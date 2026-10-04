@@ -143,7 +143,7 @@ Search tips:
 Use helpers when the job is heavy: more than about 4 searches, more than 2 long documents, or a comparison or list across many sources. Don't use them for simple lookups; each helper starts from scratch and uses extra allowance.
 
 - Available when you have a subagent tool (called Agent or Task). Normal claude.ai chats and the mobile app don't have one: use an Exa Agent for heavy work there instead.
-- Use the smallest capable model for helpers (Haiku) unless the task needs careful judgement.
+- Use Sonnet for helpers by default. Use Haiku only for simple fetching (one page, or a list of links) with nothing to judge.
 - Split the work by angle or sub-question, not by synonym. Aim for 3 to 5 searches per helper. Launch independent helpers together in one message.
 - Each helper must return compact output only (facts with source links, plus gaps). Use the template in `references/helpers.md`.
 - Merge the results, remove duplicate sources, then run the Step 4 check on the combined findings.

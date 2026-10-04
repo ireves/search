@@ -21,7 +21,7 @@ If there's no subagent tool (Agent or Task), as in normal claude.ai chats and th
 - Don't split by synonym ("overrated" and "overhyped" find the same pages).
 - 3 to 5 searches per helper. For lists of known items, 3 to 5 items per helper.
 - Launch all independent helpers in one message and wait for them.
-- Use the smallest capable model (Haiku) unless judgement-heavy reading is needed.
+- Use Sonnet by default: in testing it followed the dating, hedging and price rules much better than Haiku. Use Haiku only for simple fetching (one page, or a list of links) with nothing to judge.
 
 ## Prompt template
 
