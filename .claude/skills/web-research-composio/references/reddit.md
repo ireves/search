@@ -15,7 +15,7 @@ The Composio `reddit` toolkit uses Reddit's own search and reads threads directl
 
 | Option | Notes |
 |---|---|
-| `search_query` | Short keywords (2 to 4 after the subreddit). **Start with `subreddit:<name>`** to search one subreddit. Reddit matches words, not meaning, so use the words people would write in a post title. A 5-keyword query returned 0 posts: shorten it. Useful subreddits: `blender`, `blenderhelp`, `wacom`, `drawingtablets`, `vfx`, `FigmaDesign`, `UI_Design` |
+| `search_query` | Short keywords (2 to 4 after the subreddit). **Start with `subreddit:<name>`** to search one subreddit. Reddit matches words, not meaning, so use the words people would write in a post title. A 5-keyword query returned 0 posts: shorten it. Most apps have a help subreddit (for example `<app>help`) as well as a general one |
 | `limit` | **5.** Each result includes the whole post text, which can't be trimmed |
 | `sort` | `relevance` (default), `top`, `new`, `comments` |
 | `time_filter` | `day`, `week`, `month`, `year`, `all`. The only date control |
@@ -40,7 +40,7 @@ Comment text is in `body` with its vote `score`. Skip comments whose body is `[d
 Batch the search with the Exa search in one execute call:
 ```json
 {"tool_slug": "REDDIT_SEARCH_ACROSS_SUBREDDITS", "arguments": {
-  "search_query": "subreddit:blenderhelp boolean modifier shading", "limit": 5, "sort": "relevance", "time_filter": "all"}}
+  "search_query": "subreddit:<app>help <2 to 4 keywords>", "limit": 5, "sort": "relevance", "time_filter": "all"}}
 ```
 Then read the most-commented relevant post:
 ```json
@@ -58,13 +58,13 @@ Pick the most relevant one or two by subscriber count and description, then sear
 **Reaction to a release**
 ```json
 {"tool_slug": "REDDIT_SEARCH_ACROSS_SUBREDDITS", "arguments": {
-  "search_query": "subreddit:blender 5.2", "limit": 5, "sort": "top", "time_filter": "month"}}
+  "search_query": "subreddit:<app> <version>", "limit": 5, "sort": "top", "time_filter": "month"}}
 ```
-Confirm the version number with Exa first; don't take it from this example. Release discussion threads collect most of the reaction; read their comments with `sort: "top"`. `sort: "top"` with `time_filter: "month"` returned popular but unrelated posts in `subreddit:blender`: try `sort: "new"` or a title-style query ("Blender 5.2 LTS released"), and if no release thread appears, say Reddit had none and skip it.
+Confirm the version number with Exa first; don't take it from this example. Release discussion threads collect most of the reaction; read their comments with `sort: "top"`. `sort: "top"` with `time_filter: "month"` returned popular but unrelated posts in testing: try `sort: "new"` or a title-style query ("<app> <version> released"), and if no release thread appears, say Reddit had none and skip it.
 
 ## Quirks found in testing
 
-- **Searching all of Reddit gives poor matches.** "blender boolean shading artifacts fix" with no subreddit returned a Murder Drones face rig and a Unity article. The same idea inside `subreddit:blenderhelp` returned 5 on-topic posts. Niche questions are weaker even inside a subreddit (Curve to Mesh twisting, a Blender 5.2 release search and a Framestore search returned mostly off-topic or thin results).
+- **Searching all of Reddit gives poor matches.** "blender boolean shading artifacts fix" with no subreddit returned a Murder Drones face rig and a Unity article. The same idea inside `subreddit:blenderhelp` returned 5 on-topic posts. Niche questions are weaker even inside a subreddit (a niche software question, a release search and an employer search returned mostly off-topic or thin results).
 - **Comments come back every time,** with scores and nesting. Parallel often returned only the original post.
 - **Results are large.** 5 search results came to about 10,000 tokens when posts were long, and Composio moved the result to a remote file once. In the second round of testing, searches came to 5,000 to 10,000 characters and comment reads to 5,000 to 8,000, all inline. Keep `limit` at 5; if it moves, use `COMPOSIO_REMOTE_BASH_TOOL` with `jq` to pull `title`, `permalink`, `num_comments` and a short slice of `selftext`.
 - Image and video posts have little `selftext`; the answer is in the comments.

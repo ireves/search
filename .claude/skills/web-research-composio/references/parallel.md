@@ -1,6 +1,6 @@
 # Parallel through Composio: settings, recipes and quirks
 
-Parallel is used **only for X (unless the X toolkit is set up), Glassdoor, detailed Trustpilot pages, and as the backup reader** for pages Exa can't read. Reddit now goes through the Reddit toolkit.
+Parallel is used **only for X, Glassdoor, detailed Trustpilot pages, and as the backup reader** for pages Exa can't read. Reddit now goes through the Reddit toolkit.
 
 **Tested through Composio on 4 October 2026** (X search, Glassdoor search and read, Trustpilot read). The argument names below worked first time with no schema errors. The coverage table comes from earlier testing with Parallel's own connector.
 
@@ -47,8 +47,8 @@ There is no `mode` or site filter on reads. The objective picks which fragments 
 **Reaction to a release (X)**: confirm the version with Exa first; don't take it from this example.
 ```json
 {"tool_slug": "PARALLEL_SEARCH_WEB", "arguments": {
-  "objective": "What 3D artists on X are saying about the Blender 5.2 LTS release, praise and complaints",
-  "search_queries": ["blender 5.2", "blender 5.2 LTS cloth"],
+  "objective": "What users on X are saying about the <product> <version> release, praise and complaints",
+  "search_queries": ["just updated to <product> <version>", "<product> <version> is broken"],
   "max_chars_total": 6000,
   "advanced_settings": {"max_results": 8, "source_policy": {"include_domains": ["x.com"], "after_date": "<release date>"}}}}
 ```
@@ -56,8 +56,8 @@ There is no `mode` or site filter on reads. The objective picks which fragments 
 **Employer reviews (Glassdoor)**
 ```json
 {"tool_slug": "PARALLEL_SEARCH_WEB", "arguments": {
-  "objective": "Employee reviews of working at Framestore: pros, cons, ratings",
-  "search_queries": ["framestore reviews", "framestore employee reviews"],
+  "objective": "Employee reviews of working at <company>: pros, cons, ratings",
+  "search_queries": ["<company> reviews", "<company> employee reviews"],
   "max_chars_total": 6000,
   "advanced_settings": {"max_results": 5, "source_policy": {"include_domains": ["glassdoor.co.uk", "glassdoor.com"]}}}}
 ```
@@ -72,11 +72,11 @@ Then read the best page:
 **Company review score (Trustpilot)**
 ```json
 {"tool_slug": "PARALLEL_EXTRACT_WEB_CONTENT", "arguments": {
-  "urls": ["https://www.trustpilot.com/review/www.wacom.com"],
+  "urls": ["https://www.trustpilot.com/review/<company website>"],
   "objective": "TrustScore, number of reviews, star breakdown, and the three most common complaints in the latest reviews",
   "max_chars_total": 4000}}
 ```
-Ask for counts and themes, not every review. Tested on Wacom: the TrustScore (1.5) and review count (264) came back, but the star breakdown came back garbled (percentages fused to the star labels, and a reviewer's quoted figure contradicted it), so hedge on the exact split. The reply was raw review snippets mixed with advertisement fragments, with no complaint summary: summarise the themes yourself and say it is one platform's view.
+Ask for counts and themes, not every review. In testing, the TrustScore and review count came back correctly, but the star breakdown came back garbled (percentages fused to the star labels, and a reviewer's quoted figure contradicted it), so hedge on the exact split. The reply was raw review snippets mixed with advertisement fragments, with no complaint summary: summarise the themes yourself and say it is one platform's view.
 
 **Backup reader** (when Exa's `statuses` shows an error or the extract is thin)
 ```json
@@ -90,7 +90,7 @@ Ask for counts and themes, not every review. Tested on Wacom: the TrustScore (1.
 
 - **Site filter (tested):** `include_domains` kept every result on the target site (x.com: 11 of 11; glassdoor: 5 of 5). Posts on the right site can still be unrelated (an AI-agent article on x.com).
 - **`after_date` (tested):** respected on X.
-- **X (tested, Blender 5.2):** only about 3 of 10 results were posts by ordinary users. Most were the official account. Excerpts carry cookie banners and "Relevant people" boilerplate. Query in user voice ("just updated to blender 5.2"). The best X content came from an Exa news round-up (Creative Bloq) that embeds tweets: run that as the second step, not just a fallback.
-- **Glassdoor (tested, Framestore):** a search plus one read returned the overall rating, review count, recommend and CEO approval percentages, category ratings on role-specific pages, pros and cons, dated reviews and reviewer role and tenure. Much richer than Exa.
+- **X (tested on a software release):** only about 3 of 10 results were posts by ordinary users. Most were the official account. Excerpts carry cookie banners and "Relevant people" boilerplate. Query in user voice ("just updated to <product> <version>"). The best X content came from an Exa news round-up that embeds posts: run that as the second step, not just a fallback.
+- **Glassdoor (tested on one employer):** a search plus one read returned the overall rating, review count, recommend and CEO approval percentages, category ratings on role-specific pages, pros and cons, dated reviews and reviewer role and tenure. Much richer than Exa.
 - Earlier testing with Parallel's own connector: it ignored dates written in the objective or queries (use `after_date`); Trustpilot reads were long (the cap now keeps them down).
 - `old.reddit.com` addresses hit a login wall. Reddit goes through the Reddit toolkit anyway.

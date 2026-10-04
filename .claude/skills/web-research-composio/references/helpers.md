@@ -28,7 +28,7 @@ If there's no subagent tool (Agent or Task), as in normal claude.ai chats and th
 Fill in the brackets. Give the absolute path to this skill's folder.
 
 ```
-Read [skill folder]/SKILL.md, then the files in [skill folder]/references/ for the services you will use (exa.md, reddit.md, parallel.md, x.md).
+Read [skill folder]/SKILL.md, then the files in [skill folder]/references/ for the services you will use (exa.md, reddit.md, parallel.md).
 Use only Composio tools (COMPOSIO_MULTI_EXECUTE_TOOL with the tool names in the skill). Never use built-in web search or web fetch.
 
 Today's date is [YYYY-MM-DD].

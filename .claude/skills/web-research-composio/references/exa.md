@@ -35,7 +35,7 @@ These differ from the direct Exa connector. Extract settings sit inside `content
 | `contents.text` | **Never set in a search.** It adds the full page text. Leaving it out returns no text |
 | `contents.maxAgeHours` | Omit to use Exa's stored copy (fast). `0` forces a fresh download: use only for pages that change (jobs, news, prices), with `contents.livecrawlTimeout: 30000` |
 | `contents.summary` | A short Exa-written summary per page. Compact but can drop details; don't rely on it for exact figures |
-| `includeDomains` / `excludeDomains` | Site names (`forum.figma.com`) or paths (`arxiv.org/pdf`). Leave out `https://`. **Use one or the other, never both** |
+| `includeDomains` / `excludeDomains` | Site names (`forum.example.com`) or paths (`arxiv.org/pdf`). Leave out `https://`. **Use one or the other, never both** |
 | `startPublishedDate` / `endPublishedDate` | `YYYY-MM-DD`. Undated pages can still slip through, so check dates in results. Not supported with `category: "company"` or `"people"` |
 | `category` | `company`, `people`, `research paper`, `news`, `personal site`, `financial report`. (No `pdf` or `github` here: use `includeDomains: ["github.com"]` for GitHub) |
 | `userLocation` | Country code, for example `GB` for UK jobs or prices |
@@ -50,7 +50,7 @@ Cost: about $0.007 per search (charged by Exa to the connected Exa account).
 **General search**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "detailed case study of a product team redesigning their onboarding flow, with before and after metrics",
+  "query": "detailed case study of a team redesigning their checkout flow, with before and after metrics",
   "numResults": 8,
   "contents": {"highlights": {"query": "company, what changed, measured result with numbers", "maxCharacters": 1000}}}}
 ```
@@ -58,42 +58,44 @@ Cost: about $0.007 per search (charged by Exa to the connected Exa account).
 **Forum threads on one site (no date filter)**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "Figma variable modes resetting properties of nested component instances",
-  "includeDomains": ["forum.figma.com"], "numResults": 5,
-  "contents": {"highlights": {"query": "cause, workaround, or Figma staff reply", "maxCharacters": 800}}}}
+  "query": "exported SVG looks blurry or loses strokes when opened in a browser",
+  "includeDomains": ["forum.affinity.serif.com"], "numResults": 5,
+  "contents": {"highlights": {"query": "cause, workaround, or staff reply", "maxCharacters": 800}}}}
 ```
-No date filter on purpose: the definitive staff reply can be years old. Several domains are allowed in `includeDomains` (for example `blender.org` and `developer.blender.org`). Highlights don't show who wrote a reply: say "appears to be from staff" unless the page shows a role.
+No date filter on purpose: the definitive staff reply can be years old. Several domains are allowed in `includeDomains` (for example a product site and its bug tracker). Highlights don't show who wrote a reply: say "appears to be from staff" unless the page shows a role.
 
 **Case studies from portfolios and company blogs (batch both in one call)**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "designer's portfolio case study of redesigning an app's onboarding with before and after metrics",
+  "query": "designer's portfolio case study of redesigning an app's checkout with before and after metrics",
   "category": "personal site", "numResults": 8,
   "contents": {"highlights": {"query": "product, what changed, measured result with numbers", "maxCharacters": 1000}}}}
 ```
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "company blog post about redesigning our onboarding, with before and after numbers",
+  "query": "company blog post about redesigning our checkout, with before and after numbers",
   "excludeDomains": ["medium.com", "linkedin.com", "reddit.com"], "numResults": 8,
   "contents": {"highlights": {"query": "product, what changed, measured result with numbers", "maxCharacters": 1000}}}}
 ```
 Excluding sites doesn't remove agency marketing pages or anonymous clients: mark those as low confidence. Numbers on the author's own site are "primary source, self-reported".
 
-**Job listings (recent, UK, fresh)**
+**Job listings (recent, one country, fresh)**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "job posting for a junior or mid-level 3D artist using Blender in the UK",
+  "query": "job posting for a <seniority> <role> in <city or country>",
   "startPublishedDate": "<start of the user's window, e.g. 1 month before today>", "userLocation": "GB",
   "numResults": 8,
   "contents": {"maxAgeHours": 0, "livecrawlTimeout": 30000,
                "highlights": {"query": "company, location, salary, closing date, whether still open", "maxCharacters": 500}}}}
 ```
-Use the user's seniority and tool in place of the example. Listings can be closed even when recent, and old or undated ones still slip through the date filter (one "applications have now closed" listing came back): drop any with no date in the window unless the text shows one. Then read the top 2 or 3 candidates with `EXA_GET_CONTENTS_ACTION` (`text: false`, `maxAgeHours: 0`, a highlights question on open or closed, Blender and experience level) before presenting a job as open. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles. LinkedIn posts can still appear without it; treat them as unverified, or add `excludeDomains: ["linkedin.com"]` (not together with `includeDomains`). `userLocation: "GB"` doesn't stop non-UK or remote-US jobs appearing. Expect 10 to 15 seconds for a fresh-download search.
+Listings can be closed even when recent, and old or undated ones still slip through the date filter (one "applications have now closed" listing came back): drop any with no date in the window unless the text shows one. Then read the top 2 or 3 candidates with `EXA_GET_CONTENTS_ACTION` (`text: false`, `maxAgeHours: 0`, a highlights question on open or closed, key skills and experience level) before presenting a job as open.
+
+**Several job sites:** run one search per site, batched, with `includeDomains` set to that site's job pages (for example a board's `/jobs` path) and the same date filter. Report which sites returned listings and which returned none or couldn't be read. Exa can't search LinkedIn job listings; say so. For a site Exa reads badly, try `PARALLEL_SEARCH_WEB` limited to it. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles. LinkedIn posts can still appear without it; treat them as unverified, or add `excludeDomains: ["linkedin.com"]` (not together with `includeDomains`). `userLocation: "GB"` doesn't stop non-UK or remote-US jobs appearing. Expect 10 to 15 seconds for a fresh-download search.
 
 **Academic papers**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "academic study measuring dark patterns in subscription cancellation flows across many websites",
+  "query": "academic study measuring how screen use before bed affects teenagers' sleep",
   "category": "research paper", "numResults": 8,
   "contents": {"highlights": {"query": "title, year, method, key quantitative finding", "maxCharacters": 1000}}}}
 ```
@@ -108,7 +110,7 @@ Some library entries have no DOI. Then search the title on the likely publisher,
 **People**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
-  "query": "senior environment artist at Framestore London",
+  "query": "<job title> at <company> in <city>",
   "category": "people", "numResults": 3,
   "contents": {"highlights": {"query": "current role, employer, location", "maxCharacters": 500}}}}
 ```
@@ -118,12 +120,12 @@ Each person carries a work-history block of 2,000 to 6,000 characters that `maxC
 
 Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a question, so there's no need to pin an address inside a search.
 
-**Read a document or PDF with a question (tested on an ACM PDF: returned exactly the asked figures)**
+**Read a document or PDF with a question (tested on a research PDF: returned exactly the asked figures)**
 ```json
 {"tool_slug": "EXA_GET_CONTENTS_ACTION", "arguments": {
-  "urls": ["https://dl.acm.org/doi/pdf/10.1145/3359183"],
+  "urls": ["<the link>"],
   "text": false,
-  "highlights": {"query": "how many dark pattern instances, on how many sites, how many deceptive", "maxCharacters": 3500}}}
+  "highlights": {"query": "<the exact figures or facts you need>", "maxCharacters": 3500}}}
 ```
 
 **YouTube transcript**
@@ -160,7 +162,7 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 
   `auto` is charged by usage and defaults to a $5 cap, so never send it without a `budget`. The cap is a ceiling, not a fixed price. If `stopReason` is `budget_reached`, tell the user the answer may be incomplete. Fixed efforts have a flat price and reject `budget`.
 - The answer is in `output.text`; citations are in `output.grounding`. Use them to link sources, but don't repeat the list to the user.
-- A `minimal` run on "current stable Blender version" answered 5.2 LTS and missed the 5.2.2 patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
+- A `minimal` run on a "current version" question missed the latest patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
 - Exa Agents can't reach Reddit or X, so "what users say" comes from store reviews, forums and blogs. When Reddit opinion matters, add a Reddit search.
 - `outputSchema`: give one for lists or tables. Use a top-level object, put rows in a named array with `maxItems`, include a source URL field per row, and a `coverage_notes` field.
 - To refine or extend, pass `previousRunId`, and `input.exclusion` to avoid repeats.
@@ -172,7 +174,7 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 |---|---|---|
 | Blog posts about X | `X` | `in-depth blog post about X written by a practitioner` |
 | A company doing Y | `Y company` | `startup building Y for small studios` with `category: company` |
-| Software fix | `blender curve twist` | `forum answer explaining how to stop the profile twisting when using Curve to Mesh in Blender geometry nodes` |
+| Software fix | `krita png washed out` | `forum answer explaining why PNGs exported from Krita look washed out in a web browser` |
 
 - AND, OR, NOT and quote marks are just words to Exa.
 - One or two word queries give scattered results.
@@ -182,7 +184,7 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 
 - No Reddit or X. Use the Reddit toolkit and Parallel for those.
 - Sites Exa searches well with `includeDomains` (tested October 2026): Hacker News, Facebook groups, Instagram and TikTok (captions), Threads, Bluesky, Steam reviews, App Store reviews, Amazon reviews, YouTube, Substack, Medium, Stack Overflow, Pinterest, NYT, WSJ, BBC, the Guardian, The Verge.
-- Glassdoor: finds review pages (sometimes on regional domains such as glassdoor.com.au) with partial review excerpts but no ratings. Read them with Parallel. It can also surface pages for other businesses with the same name (an Indeed page mixed several "Framestore" companies): check the company matches.
+- Glassdoor: finds review pages (sometimes on regional domains such as glassdoor.com.au) with partial review excerpts but no ratings. Read them with Parallel. It can also surface pages for other businesses with the same name (one job-site page mixed several companies with the same name): check the company matches.
 - Review-style pages from Exa include SEO spam. Prefer reviewers who say they tested the product.
 - Trustpilot: reads some review text and sometimes the score, but not the star breakdown. Use Parallel when the breakdown matters.
 - Quora: returns an error page instead of answers.
@@ -191,4 +193,5 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 - Papers and people can come back with Exa library links (`exa.ai/library/...`). Link the original (DOI, arXiv, publisher, official page) in answers.
 - A fresh download (`maxAgeHours: 0`) gives the same quality as the stored copy but can take up to 10 times longer.
 - Results show whether a page came from the stored copy or a fresh download (`statuses[].source`: `cached` or `crawled`) on content reads.
-- Stored copies can lag: a search extract of the Blender release page showed 5.2.0 while the live download page showed 5.2.2.
+- Stored copies can lag: a search extract of a release page showed an older patch version than the live download page.
+- Ordinary searches come to about 1,500 to 2,000 characters per result, so two 8-result searches are about 17,000 characters. Paper searches run larger.

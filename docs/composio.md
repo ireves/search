@@ -9,7 +9,7 @@ A second version of the skill, `.claude/skills/web-research-composio/`, reaches 
    - **Exa** (connected)
    - **Reddit** (connected)
    - **Parallel** (connected)
-   - **Twitter**: optional, see "X (Twitter)" below
+   - **Twitter**: not used (see "X (Twitter)" below)
 3. Switch off one of the two skills, so Claude doesn't follow two sets of rules:
    - Claude Code: delete or move the folder you don't want from `.claude/skills/`.
    - Claude app: upload only one of the two zipped folders.
@@ -37,7 +37,7 @@ A second version of the skill, `.claude/skills/web-research-composio/`, reaches 
   - Only the last 7 days.
   - Since February 2026 you must create your own X developer app and add its keys to Composio ([guide](https://composio.dev/auth/twitter)).
   - X charges your developer account about $0.005 per post returned and $0.01 per profile. A 15-post search costs about $0.08 to $0.23.
-- The skill uses Parallel for X unless the Twitter toolkit is connected.
+- **Decision (4 October 2026): not set up.** The skill uses Parallel for X only, and the X tool notes were removed.
 
 ### Composio's premium search and scraping tools: not used
 
@@ -60,7 +60,6 @@ Connected and tested on X, Glassdoor and Trustpilot (4 October 2026). The size c
 
 ### Still to test
 
-- The X toolkit (`TWITTER_RECENT_SEARCH`), if you set it up. Parallel's X results were thin in testing, so this is the most likely improvement.
 - Parallel `mode` options (`turbo`, `fast`, `basic`, `advanced`): every test left it unset.
 - The `jq` line in `references/exa.md` that pulls DOIs out of moved paper results.
-- A second, unrelated set of test prompts, because several skill examples match the first set.
+- The second set of test prompts in `docs/test-prompts-2.md`. The skill examples were made generic so they no longer match either set.
