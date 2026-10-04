@@ -64,12 +64,12 @@ Cost: about $0.007 per call.
 **Job listings (recent, UK, fresh)**
 ```json
 {"query": "job posting for a junior or mid-level 3D artist using Blender in the UK",
- "startPublishedDate": "<about 6 weeks before today>", "userLocation": "GB",
+ "startPublishedDate": "<start of the user's window, e.g. 1 month before today>", "userLocation": "GB",
  "maxAgeHours": 0, "livecrawlTimeout": 30000,
  "numResults": 8, "textMaxCharacters": 1, "enableHighlights": true,
  "highlightsQuery": "company, location, salary, closing date, whether still open", "highlightsMaxCharacters": 500}
 ```
-Listings can be closed even when recent. Check the extract (or read the page) before presenting a job as open.
+Listings can be closed even when recent. Check the extract (or read the page) before presenting a job as open. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles, not job posts.
 
 **Academic papers**
 ```json
@@ -104,8 +104,8 @@ Searching by title alone may land on a summary page instead of the file; pinning
   | Job | Effort | Tested cost and time |
   |---|---|---|
   | One question needing a few sources | `minimal` | 3 searches, $0.012 |
-  | A list or comparison of known scope | `low` | not yet measured |
-  | Open-ended or hard research where the right depth isn't clear | `auto` with `budget: {"maxCostDollars": 1}` | 30 searches, $0.63, about 3 minutes, finished under the cap |
+  | A short list of known scope | `low` | 3 searches, $0.025; thin for a "compare the top 5" question |
+  | "Compare the top N", open-ended or hard research | `auto` with `budget: {"maxCostDollars": 1}` | 30 searches, $0.63, about 3 minutes, finished under the cap |
   | The user asks for a deep dive | `auto` with a higher cap the user agrees to, or `medium` to `xhigh` | not yet measured |
 
   `auto` is charged by usage and defaults to a $5 cap, so never send it without a `budget`. The cap is a ceiling, not a fixed price. If `stopReason` is `budget_reached`, tell the user the answer may be incomplete. Fixed efforts have a flat price and reject `budget`.
@@ -137,8 +137,10 @@ Searching by title alone may land on a summary page instead of the file; pinning
 - No Reddit or X: searching with `includeDomains: ["reddit.com"]` returns zero results. Use Parallel for those.
 - Sites Exa searches well with `includeDomains` (tested October 2026): Hacker News, Facebook groups, Instagram and TikTok (captions), Threads, Bluesky, Steam reviews, App Store reviews, Amazon reviews, YouTube, Substack, Medium, Stack Overflow, Pinterest, NYT, WSJ, BBC, the Guardian, The Verge.
 - Glassdoor: finds review pages but reads only the title. Read them with Parallel `web_fetch`.
-- Trustpilot: reads some review text but not the score or breakdown. Use Parallel when those matter.
+- Trustpilot: reads some review text and sometimes the score, but not the star breakdown. Use Parallel when the breakdown matters.
 - Quora: returns an error page instead of answers. Parallel can't read it either.
+- `category: "people"` returns LinkedIn-derived profile data: headline, location, work and education history, profile URL. Each result carries a 2,000 to 3,000 character profile block on top of highlights, so use 3 to 5 results. `includeText` is applied loosely with this category.
+- Papers and people can come back with Exa library links (`exa.ai/library/...`). Link the original (DOI, arXiv, publisher, official page) in answers.
 - Results arrive as raw data, which adds about 500 characters per result.
 - A fresh download (`maxAgeHours: 0`) gives the same quality as the stored copy but can take up to 10 times longer (19 s against 2 s on one PDF).
 - The connector doesn't say whether a page came from the stored copy or a fresh download.

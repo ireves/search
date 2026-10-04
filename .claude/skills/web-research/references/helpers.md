@@ -37,13 +37,14 @@ Task: [the specific sub-question]
 Suggested searches: [optional list]
 A source qualifies if: [criteria, for example "published since 2026-01-01", "a real listing, not a job board search page"]
 
-Keep results small: Exa searches with textMaxCharacters 1, a highlightsQuery and highlightsMaxCharacters of 800-1500. Parallel reads with an objective, never full_content.
+Keep results small: Exa searches with textMaxCharacters 1, a highlightsQuery and highlightsMaxCharacters of 500-1500. Parallel: at most 2 queries per search, always site:-limited; reads with an objective, never full_content. Link original sources, not exa.ai/library pages.
 
 Return only:
 - Findings: one line per fact, each with its source URL and date if known
 - Confidence, per finding, using exactly these labels:
   - well supported = two or more independent sources agree (mirrors of the same page count as one)
-  - single source = only one source says it
+  - primary source = straight from the thing itself (the paper, transcript or official page)
+  - single source = only one secondary source says it
   - unconfirmed = implied or partly stated, not clearly sourced
 - Gaps: what you looked for and couldn't find
 - sources_reviewed: [total number of results across all your searches]
