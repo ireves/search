@@ -1,5 +1,7 @@
 # Test results: web-research skill (4 October 2026)
 
+> This file covers the earlier version of the skill, which used separate Exa and Parallel connectors and has since been removed. It is kept for reference.
+
 All 15 prompts in `test-prompts.md` were run, each by a fresh helper agent that loaded the skill and logged every tool call. Helpers had no subagent tool, so heavy jobs took the normal-chat route (Exa Agent). Four runs were cut short by a Claude usage limit and were rerun.
 
 ## Summary

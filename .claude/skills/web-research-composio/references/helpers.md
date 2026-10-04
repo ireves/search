@@ -13,7 +13,9 @@ Use helpers when the job is heavy:
 
 Don't use them for a single fact, one known page, or a quick check. Each helper starts cold and costs extra allowance.
 
-If there's no subagent tool (Agent or Task), as in normal claude.ai chats and the mobile app, hand heavy work to an Exa Agent (`agent_run`) instead.
+If there's no subagent tool (Agent or Task), as in normal claude.ai chats and the mobile app, hand heavy work to an Exa Agent (`EXA_CREATE_AGENT_RUN`) instead.
+
+For lists and comparisons, run an Exa Agent first (SKILL.md Step 1), then use helpers to check its key claims (company status, prices, latest versions), 3 to 5 items per helper.
 
 ## How to split the work
 
@@ -21,15 +23,15 @@ If there's no subagent tool (Agent or Task), as in normal claude.ai chats and th
 - Don't split by synonym ("overrated" and "overhyped" find the same pages).
 - 3 to 5 searches per helper. For lists of known items, 3 to 5 items per helper.
 - Launch all independent helpers in one message and wait for them.
-- Use the smallest capable model (Haiku) unless judgement-heavy reading is needed.
+- Use Sonnet by default: in testing it followed the dating, hedging and price rules much better than Haiku. Use Haiku only for simple fetching (one page, or a list of links) with nothing to judge.
 
 ## Prompt template
 
 Fill in the brackets. Give the absolute path to this skill's folder.
 
 ```
-Read [skill folder]/SKILL.md, then [skill folder]/references/exa.md and/or references/parallel.md as needed.
-Use only the Exa and Parallel connector tools. Never use built-in web search or web fetch.
+Read [skill folder]/SKILL.md, then the files in [skill folder]/references/ for the services you will use (exa.md, reddit.md, parallel.md).
+Use only Composio tools (COMPOSIO_MULTI_EXECUTE_TOOL with the tool names in the skill). Never use built-in web search or web fetch.
 
 Today's date is [YYYY-MM-DD].
 
@@ -37,7 +39,7 @@ Task: [the specific sub-question]
 Suggested searches: [optional list]
 A source qualifies if: [criteria, for example "published since 2026-01-01", "a real listing, not a job board search page"]
 
-Keep results small: Exa searches with textMaxCharacters 1, a highlightsQuery and highlightsMaxCharacters of 500-1500. Parallel: at most 2 queries per search, always site:-limited; reads with an objective, never full_content. Link original sources, not exa.ai/library pages.
+Keep results small: EXA_SEARCH with contents.highlights (a query and maxCharacters 500-1500) and never contents.text. Reddit: search inside a subreddit with limit 5; comments with limit 8-10. Parallel: include_domains set, max_chars_total set, at most 2 queries. Link original sources, not exa.ai/library pages.
 
 Return only:
 - Findings: one line per fact, each with its source URL and date if known
@@ -46,6 +48,7 @@ Return only:
   - primary source = straight from the thing itself (the paper, transcript or official page)
   - single source = only one secondary source says it
   - unconfirmed = implied or partly stated, not clearly sourced
+- Status (companies, products or projects only): for each, the newest dated activity and the company register result, or "status not checked"
 - Gaps: what you looked for and couldn't find
 - sources_reviewed: [total number of results across all your searches]
 Do not include raw tool output.

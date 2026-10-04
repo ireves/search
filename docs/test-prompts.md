@@ -1,5 +1,7 @@
 # Test prompts for the web-research skill
 
+> This file covers the earlier version of the skill, which used separate Exa and Parallel connectors and has since been removed. It is kept for reference.
+
 Use these to check the skill picks the right tools. They come from the research in `research-findings.md`.
 
 | # | Prompt | Expected behaviour |
