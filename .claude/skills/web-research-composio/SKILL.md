@@ -50,7 +50,7 @@ The Composio tools carry a prefix that depends on how the user named the connect
 | Reddit threads and comments | `REDDIT_SEARCH_ACROSS_SUBREDDITS`, then `REDDIT_RETRIEVE_POST_COMMENTS` |
 | X posts | `PARALLEL_SEARCH_WEB` limited to `x.com` |
 | Glassdoor, Trustpilot detail | `PARALLEL_SEARCH_WEB` limited to the site, then `PARALLEL_EXTRACT_WEB_CONTENT` |
-| Opening LinkedIn pages, LinkedIn job search, Quora, pages behind a login | None of these can. Say so (but try Exa `category: "people"` for profile details) |
+| Opening LinkedIn pages, LinkedIn job search, Quora, pages behind a login | None of these can. Say so, then offer or run Reddit and Exa (blogs, forums) on the same question, and say that is what you did. For LinkedIn profile details try Exa `category: "people"` |
 
 ### When to add Reddit or Parallel (Exa-blind sources only)
 
@@ -72,7 +72,7 @@ Rules:
 - **If no Reddit result matches the question,** try one different wording or subreddit, then say Reddit had nothing useful. Don't read comments from an off-topic thread.
 - **Reddit comments** come from `REDDIT_RETRIEVE_POST_COMMENTS`, which needs the post `id` from the search, so it is always a second call. Read only the one or two most promising threads.
 - **Parallel: always limit to the target site** with `advanced_settings.source_policy.include_domains`, always set `max_chars_total`, use at most 2 `search_queries` per call and at most 2 searches per question (page reads don't count). Ignore any result that isn't about the question.
-- **X searches:** write queries the way a user would post, not as a product name (product names return mostly the official account). Then search Exa for news articles that embed X posts: these often carry the best reactions.
+- **X searches:** first settle which announcement or release the user means (Exa, with its date) and say which you chose. Write queries the way a user would post, not as a product name (product names return mostly the official account). Then search Exa for news articles that embed X posts: these often carry the best reactions.
 - For software help, Reddit is a supplement: forums and official docs from Exa usually carry the fix. Keep it to one Reddit search (plus one retry) unless the user asks about community experience.
 - Exa can reach Hacker News, Facebook groups, Instagram and TikTok captions, Threads, Bluesky, Steam, App Store and Amazon reviews, YouTube, Substack, Medium, Stack Overflow and major news sites. Don't use Parallel for those.
 - Skip Reddit and Parallel when Exa already answers the question well and community opinion adds nothing (a version number, a definition, an official spec).
@@ -129,8 +129,9 @@ Search results are close matches, not proof. After each round:
    - **Exa Agent** when the question clearly needs many steps.
 3. Back up key facts (numbers, dates, prices, versions) with two independent sources where possible.
 4. **"Latest" facts need the official page.** For the current version, price, availability or status of something, read the official page with `maxAgeHours: 0`. Exa's stored copies can lag behind the live page. If the official address is obvious, batch the search and the read.
-5. **Software instructions:** check the app version against each source's date. Advice from before a major release may describe settings that no longer exist. If most sources are over a year old, add a search of the current manual or release notes.
-6. **Stopping rule:** about 3 rounds. Then answer with what you have and list what you couldn't confirm. Never guess to fill a gap.
+5. **Prices:** state the currency, whether tax is included and the billing period. If the page shows another currency, say so and don't convert. Check prices from an Exa Agent on the official pages too.
+6. **Software instructions:** check the app version against each source's date. Advice from before a major release may describe settings that no longer exist. If most sources are over a year old, add a search of the current manual or release notes.
+7. **Stopping rule:** about 3 rounds. Then answer with what you have and list what you couldn't confirm. Never guess to fill a gap.
 
 Search tips:
 - **Date filters** suit news, jobs, releases and prices. For troubleshooting, avoid them: the definitive answer (often a staff reply or a manual page) can be years old.
@@ -158,6 +159,7 @@ Use helpers when the job is heavy: more than about 4 searches, more than 2 long 
   - **single source**: only one secondary source says it,
   - **unconfirmed**: implied or partly stated.
   Recheck helper labels against these before using them.
+- Cite only pages you read successfully (check `statuses`). Don't add figures or claims no source gave. Keep figures and opinions apart, date each figure, and say when a transcript was cut off. Don't call a mood "overwhelming" from a handful of posts.
 - Say what you couldn't find or reach (for example a LinkedIn page or a login page).
 - **People who share a name:** confirm you have the right person before reporting details. If a private individual turns up by mistake, mention only enough to avoid confusion.
 - For job listings, say whether you confirmed each listing is still open.

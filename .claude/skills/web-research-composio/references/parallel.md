@@ -76,7 +76,7 @@ Then read the best page:
   "objective": "TrustScore, number of reviews, star breakdown, and the three most common complaints in the latest reviews",
   "max_chars_total": 4000}}
 ```
-Ask for counts and themes, not every review. In testing, the TrustScore and review count came back correctly, but the star breakdown came back garbled (percentages fused to the star labels, and a reviewer's quoted figure contradicted it), so hedge on the exact split. The reply was raw review snippets mixed with advertisement fragments, with no complaint summary: summarise the themes yourself and say it is one platform's view.
+Don't report the star percentages. Ask for counts and themes, not every review. In testing, the TrustScore and review count came back correctly, but the star breakdown came back garbled (percentages fused to the star labels, and a reviewer's quoted figure contradicted it), so hedge on the exact split. The reply was raw review snippets mixed with advertisement fragments, with no complaint summary: summarise the themes yourself and say it is one platform's view.
 
 **Backup reader** (when Exa's `statuses` shows an error or the extract is thin)
 ```json
@@ -90,7 +90,8 @@ Ask for counts and themes, not every review. In testing, the TrustScore and revi
 
 - **Site filter (tested):** `include_domains` kept every result on the target site (x.com: 11 of 11; glassdoor: 5 of 5). Posts on the right site can still be unrelated (an AI-agent article on x.com).
 - **`after_date` (tested):** respected on X.
-- **X (tested on a software release):** only about 3 of 10 results were posts by ordinary users. Most were the official account. Excerpts carry cookie banners and "Relevant people" boilerplate. Query in user voice ("just updated to <product> <version>"). The best X content came from an Exa news round-up that embeds posts: run that as the second step, not just a fallback.
+- **X (tested on a software release):** only about 3 of 10 results were posts by ordinary users. Most were the official account. Excerpts carry cookie banners and "Relevant people" boilerplate. Query in user voice ("just updated to <product> <version>"). A second test returned only about 4 usable designer posts in two searches: link each post you quote and describe the mood as "a small sample", not "overwhelming". The best X content came from an Exa news round-up that embeds posts: run that as the second step, not just a fallback.
+- **Employer accounts:** blog posts or reviews more than 2 to 3 years old (before a takeover or reorganisation) are "dated": say so. A careers page describing its own culture is self-reported.
 - **Glassdoor (tested on one employer):** a search plus one read returned the overall rating, review count, recommend and CEO approval percentages, category ratings on role-specific pages, pros and cons, dated reviews and reviewer role and tenure. Much richer than Exa.
 - Earlier testing with Parallel's own connector: it ignored dates written in the objective or queries (use `after_date`); Trustpilot reads were long (the cap now keeps them down).
 - `old.reddit.com` addresses hit a login wall. Reddit goes through the Reddit toolkit anyway.

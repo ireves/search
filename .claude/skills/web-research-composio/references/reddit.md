@@ -64,6 +64,9 @@ Confirm the version number with Exa first; don't take it from this example. Rele
 
 ## Quirks found in testing
 
+- A single employer or niche can have no subreddit coverage: three searches in likely subreddits returned nothing on topic. Say Reddit had nothing rather than widening to unrelated threads.
+- Don't guess a subreddit name (a wrong guess returned 0 results): use `REDDIT_GET_SUBREDDITS_SEARCH` first, or batch two likely ones.
+
 - **Searching all of Reddit gives poor matches.** "blender boolean shading artifacts fix" with no subreddit returned a Murder Drones face rig and a Unity article. The same idea inside `subreddit:blenderhelp` returned 5 on-topic posts. Niche questions are weaker even inside a subreddit (a niche software question, a release search and an employer search returned mostly off-topic or thin results).
 - **Comments come back every time,** with scores and nesting. Parallel often returned only the original post.
 - **Results are large.** 5 search results came to about 10,000 tokens when posts were long, and Composio moved the result to a remote file once. In the second round of testing, searches came to 5,000 to 10,000 characters and comment reads to 5,000 to 8,000, all inline. Keep `limit` at 5; if it moves, use `COMPOSIO_REMOTE_BASH_TOOL` with `jq` to pull `title`, `permalink`, `num_comments` and a short slice of `selftext`.

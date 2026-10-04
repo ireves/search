@@ -90,7 +90,7 @@ Excluding sites doesn't remove agency marketing pages or anonymous clients: mark
 ```
 Listings can be closed even when recent, and old or undated ones still slip through the date filter (one "applications have now closed" listing came back): drop any with no date in the window unless the text shows one. Then read the top 2 or 3 candidates with `EXA_GET_CONTENTS_ACTION` (`text: false`, `maxAgeHours: 0`, a highlights question on open or closed, key skills and experience level) before presenting a job as open.
 
-**Several job sites:** run one search per site, batched, with `includeDomains` set to that site's job pages (for example a board's `/jobs` path) and the same date filter. Report which sites returned listings and which returned none or couldn't be read. Exa can't search LinkedIn job listings; say so. For a site Exa reads badly, try `PARALLEL_SEARCH_WEB` limited to it. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles. LinkedIn posts can still appear without it; treat them as unverified, or add `excludeDomains: ["linkedin.com"]` (not together with `includeDomains`). `userLocation: "GB"` doesn't stop non-UK or remote-US jobs appearing. Expect 10 to 15 seconds for a fresh-download search.
+**Several job sites:** run one search per site, batched, with `includeDomains` set to that site's job pages (for example a board's `/jobs` path) and the same date filter. Report which sites returned listings and which returned none or couldn't be read. A site that returns pages of the wrong country or only category pages counts as "couldn't be searched reliably"; try `PARALLEL_SEARCH_WEB` limited to its local domain (its results may have no date, so say so). Some boards have merged into others: search the current one. "Confirmed open" means a fresh read shows no closed notice and an apply link or a date; say "undated" when there is none. Exa can't search LinkedIn job listings; say so. For a site Exa reads badly, try `PARALLEL_SEARCH_WEB` limited to it. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles. LinkedIn posts can still appear without it; treat them as unverified, or add `excludeDomains: ["linkedin.com"]` (not together with `includeDomains`). `userLocation: "GB"` doesn't stop non-UK or remote-US jobs appearing. Expect 10 to 15 seconds for a fresh-download search.
 
 **Academic papers**
 ```json
@@ -99,7 +99,7 @@ Listings can be closed even when recent, and old or undated ones still slip thro
   "category": "research paper", "numResults": 8,
   "contents": {"highlights": {"query": "title, year, method, key quantitative finding", "maxCharacters": 1000}}}}
 ```
-The same paper can appear from several sites (arXiv, ACM, ResearchGate) or in two searches. Dedupe by title. Use `numResults: 6` per search: two 8-result paper searches (about 35,000 characters) were moved to the remote workspace.
+The same paper can appear from several sites (arXiv, ACM, ResearchGate) or in two searches. Dedupe by title. Use `numResults: 6` per search, one search with the category (a second search without it duplicates results). Name each study and give its own DOI or publisher link; list every paper you cite: two 8-result paper searches (about 35,000 characters) were moved to the remote workspace.
 
 About half the results link to `exa.ai/library/publication/...`. The original DOI is in `entities[0].properties`, which is a JSON string and shows only as `{object}` in the preview. Pull it out with `COMPOSIO_REMOTE_BASH_TOOL`, for example (this line is a sketch, not tested as written; check the file's shape first with `jq 'keys'`; the path to the results varies):
 ```
@@ -114,7 +114,7 @@ Some library entries have no DOI. Then search the title on the likely publisher,
   "category": "people", "numResults": 3,
   "contents": {"highlights": {"query": "current role, employer, location", "maxCharacters": 500}}}}
 ```
-Each person carries a work-history block of 2,000 to 6,000 characters that `maxCharacters` doesn't shrink, so three results can be 10,000 to 17,000 characters. For a famous person, batch this with a normal `EXA_SEARCH` (Wikipedia, the official site) to confirm who they are. A people search can rank an unrelated namesake first: if nothing matches, say no match was found and don't give the namesake's details. `publishedDate` on profiles is crawl time, and results carry `exa.ai/library/person/...` ids that must not be linked.
+Each person carries a work-history block of 2,000 to 6,000 characters that `maxCharacters` doesn't shrink, so three results can be 10,000 to 17,000 characters. For "who leads X" questions, run a normal search first (company site, interviews) and only then a people search with the name you found; a guessed job title returns the wrong tier. For a famous person, batch this with a normal `EXA_SEARCH` (Wikipedia, the official site) to confirm who they are. A people search can rank an unrelated namesake first: if nothing matches, say no match was found and don't give the namesake's details. `publishedDate` on profiles is crawl time, and results carry `exa.ai/library/person/...` ids that must not be linked.
 
 ## `EXA_GET_CONTENTS_ACTION`
 
@@ -150,7 +150,7 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
   {"tool_slug": "EXA_CREATE_AGENT_RUN", "arguments": {"query": "<the task, with what to return>", "effort": "auto", "budget": {"maxCostDollars": 1}}}
   ```
   Then `{"tool_slug": "EXA_GET_AGENT_RUN", "arguments": {"runId": "<id>"}}`. Don't name candidates in the query unless the user did, or the ranking gets biased.
-- **It returns straight away** with `status: "running"` and an `id`. Call `EXA_GET_AGENT_RUN` with `runId` set to that `id` until `status` is `completed`. In testing a `minimal` run was done within 5 seconds; `auto` runs can take about 3 minutes. Do other useful work between checks (for example the Reddit search) rather than checking in a tight loop. To wait, use `COMPOSIO_REMOTE_BASH_TOOL` with `sleep 50` (a `sleep 150` timed out at about 60 seconds), then poll about once a minute. A running poll shows cost $0 and no searches for the first minute or so: that doesn't mean it is stuck. Tested `auto` run: 37 searches, $0.63, about 3 minutes, 4 polls, finished under the cap. Don't start a duplicate run. Its ranking is a count over a small sample of pages: call it "not exhaustive".
+- **It returns straight away** with `status: "running"` and an `id`. Call `EXA_GET_AGENT_RUN` with `runId` set to that `id` until `status` is `completed`. In testing a `minimal` run was done within 5 seconds; `auto` runs take 3 to 5 minutes (about 6 polls). Do other useful work between checks (for example the Reddit search) rather than checking in a tight loop. To wait, use `COMPOSIO_REMOTE_BASH_TOOL` with `sleep 50` (a `sleep 150` timed out at about 60 seconds), then poll about once a minute. A running poll shows cost $0 and no searches for the first minute or so: that doesn't mean it is stuck. Tested `auto` run: 37 searches, $0.63, about 3 minutes, 4 polls, finished under the cap. Don't start a duplicate run. Its ranking is a count over a small sample of pages: call it "not exhaustive".
 - `effort`: always set it. Choose by job:
 
   | Job | Effort | Tested cost and time |
@@ -162,7 +162,7 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 
   `auto` is charged by usage and defaults to a $5 cap, so never send it without a `budget`. The cap is a ceiling, not a fixed price. If `stopReason` is `budget_reached`, tell the user the answer may be incomplete. Fixed efforts have a flat price and reject `budget`.
 - The answer is in `output.text`; citations are in `output.grounding`. Use them to link sources, but don't repeat the list to the user.
-- A `minimal` run on a "current version" question missed the latest patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
+- Prices in an Agent's answer still need a fresh read of each official page (`maxAgeHours: 0`); a regional page may show another currency. A `minimal` run on a "current version" question missed the latest patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
 - Exa Agents can't reach Reddit or X, so "what users say" comes from store reviews, forums and blogs. When Reddit opinion matters, add a Reddit search.
 - `outputSchema`: give one for lists or tables. Use a top-level object, put rows in a named array with `maxItems`, include a source URL field per row, and a `coverage_notes` field.
 - To refine or extend, pass `previousRunId`, and `input.exclusion` to avoid repeats.
