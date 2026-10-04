@@ -8,7 +8,7 @@ A second version of the skill, `.claude/skills/web-research-composio/`, reaches 
 2. In Composio, connect these toolkits (Claude can give you sign-in links: ask it to "connect Parallel in Composio"):
    - **Exa** (connected)
    - **Reddit** (connected)
-   - **Parallel** (not connected yet; needs a Parallel account)
+   - **Parallel** (connected)
    - **Twitter**: optional, see "X (Twitter)" below
 3. Switch off one of the two skills, so Claude doesn't follow two sets of rules:
    - Claude Code: delete or move the folder you don't want from `.claude/skills/`.
@@ -54,8 +54,13 @@ A second version of the skill, `.claude/skills/web-research-composio/`, reaches 
 - The Exa Agent returns straight away and needs checking back for the answer. A minimal run finished in about 5 seconds.
 - **Big results are moved.** Composio moves large results to a file in its own workspace and shows only a preview. Claude then needs one more step to pull out the parts it needs.
 
+### Parallel through Composio: tested
+
+Connected and tested on X, Glassdoor and Trustpilot (4 October 2026). The size cap (`max_chars_total`) holds, the site filter kept every result on the target site, and Glassdoor came back with ratings and dated reviews. X results were thin. Trustpilot's star breakdown came back garbled. Composio shows no cost for Parallel, only usage lines. Details in `docs/test-results-composio.md`.
+
 ### Still to test
 
-- Parallel through Composio (connect it first), especially the new `max_chars_total` size cap and site filter.
-- The X toolkit, if you set it up.
-- Re-run `docs/test-prompts.md` with the Composio version.
+- The X toolkit (`TWITTER_RECENT_SEARCH`), if you set it up. Parallel's X results were thin in testing, so this is the most likely improvement.
+- Parallel `mode` options (`turbo`, `fast`, `basic`, `advanced`): every test left it unset.
+- The `jq` line in `references/exa.md` that pulls DOIs out of moved paper results.
+- A second, unrelated set of test prompts, because several skill examples match the first set.

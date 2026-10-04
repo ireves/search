@@ -143,7 +143,12 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 ## Exa Agent (`EXA_CREATE_AGENT_RUN` and `EXA_GET_AGENT_RUN`)
 
 - Runs its own searches and reading on Exa's servers and returns a cited answer. Uses Exa credit, not the user's Claude allowance.
-- **It returns straight away** with `status: "running"` and an `id`. Call `EXA_GET_AGENT_RUN` with `runId` set to that `id` until `status` is `completed`. In testing a `minimal` run was done within 5 seconds; `auto` runs can take about 3 minutes. Do other useful work between checks (for example the Reddit search) rather than checking in a tight loop. Don't start a duplicate run.
+- **Call shape (a wrong guess cost two failed calls):** the task goes in a top-level `query`. `input` is only for rows to enrich (`input.data`) or avoid (`input.exclusion`), never for the question.
+  ```json
+  {"tool_slug": "EXA_CREATE_AGENT_RUN", "arguments": {"query": "<the task, with what to return>", "effort": "auto", "budget": {"maxCostDollars": 1}}}
+  ```
+  Then `{"tool_slug": "EXA_GET_AGENT_RUN", "arguments": {"runId": "<id>"}}`. Don't name candidates in the query unless the user did, or the ranking gets biased.
+- **It returns straight away** with `status: "running"` and an `id`. Call `EXA_GET_AGENT_RUN` with `runId` set to that `id` until `status` is `completed`. In testing a `minimal` run was done within 5 seconds; `auto` runs can take about 3 minutes. Do other useful work between checks (for example the Reddit search) rather than checking in a tight loop. To wait, use `COMPOSIO_REMOTE_BASH_TOOL` with `sleep 50` (a `sleep 150` timed out at about 60 seconds), then poll about once a minute. A running poll shows cost $0 and no searches for the first minute or so: that doesn't mean it is stuck. Tested `auto` run: 37 searches, $0.63, about 3 minutes, 4 polls, finished under the cap. Don't start a duplicate run. Its ranking is a count over a small sample of pages: call it "not exhaustive".
 - `effort`: always set it. Choose by job:
 
   | Job | Effort | Tested cost and time |
