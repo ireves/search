@@ -21,7 +21,7 @@ Never fall back to built-in web search or web fetch. If a toolkit is missing or 
 
 1. **Call tools directly.** Use `COMPOSIO_MULTI_EXECUTE_TOOL` with the tool names in this skill (for example `EXA_SEARCH`). There is no need to call `COMPOSIO_SEARCH_TOOLS` first. Only use it if a tool name comes back as unknown (Composio may have renamed it).
 2. **Batch independent calls.** Put an Exa search and a Reddit search in the same `tools` list so they run at once. Only batch calls that don't depend on each other's results.
-3. **Always set `sync_response_to_workbench: false`.**
+3. **Always set `sync_response_to_workbench: false`.** It doesn't stop a large result being moved (see 4).
 4. **Large results get moved.** If a result is too big, Composio saves it to a file in its own remote workspace and shows only a preview. Don't read the whole file: use `COMPOSIO_REMOTE_BASH_TOOL` with `jq` to pull out only the fields you need (titles, links, the relevant text). Prevent this by keeping result limits small (Step 3).
 5. **Don't use the `composio_search` toolkit** (`COMPOSIO_SEARCH_WEB`, `COMPOSIO_SEARCH_FETCH_URL_CONTENT` and similar), the `linkedin` toolkit (it only manages the user's own account) or the `twitter` toolkit (not set up).
 
