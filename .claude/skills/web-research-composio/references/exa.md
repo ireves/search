@@ -41,7 +41,7 @@ These differ from the direct Exa connector. Extract settings sit inside `content
 | `userLocation` | Country code, for example `GB` for UK jobs or prices |
 | `includeText` / `excludeText` | **Exactly one phrase of up to 5 words**, in a list. More than one phrase is rejected |
 | `additionalQueries` | Only works with the `deep` search types. For different angles, batch separate `EXA_SEARCH` calls instead |
-| `type` | Leave as `auto`. `deep-lite`, `deep` and `deep-reasoning` are slower (4 to 40 seconds) and dearer; prefer the Agent for deep work |
+| `type` | Leave as `auto`. In testing, `deep-lite`, `deep` and `deep-reasoning` took 7 to 19 seconds and cost about twice as much. On a single fact they found nothing `auto` missed; on a list they returned only 2 to 6 companies, and `deep-reasoning` called a liquidated company active. Use the Agent for lists (see `docs/test-results-search-types.md`) |
 
 Cost: about $0.007 per search (charged by Exa to the connected Exa account).
 
