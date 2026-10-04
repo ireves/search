@@ -134,7 +134,11 @@ Searching by title alone may land on a summary page instead of the file; pinning
 
 ## Quirks found in testing
 
-- No Reddit or X: searching with `includeDomains: ["reddit.com"]` returns zero results.
+- No Reddit or X: searching with `includeDomains: ["reddit.com"]` returns zero results. Use Parallel for those.
+- Sites Exa searches well with `includeDomains` (tested October 2026): Hacker News, Facebook groups, Instagram and TikTok (captions), Threads, Bluesky, Steam reviews, App Store reviews, Amazon reviews, YouTube, Substack, Medium, Stack Overflow, Pinterest, NYT, WSJ, BBC, the Guardian, The Verge.
+- Glassdoor: finds review pages but reads only the title. Read them with Parallel `web_fetch`.
+- Trustpilot: reads some review text but not the score or breakdown. Use Parallel when those matter.
+- Quora: returns an error page instead of answers. Parallel can't read it either.
 - Results arrive as raw data, which adds about 500 characters per result.
 - A fresh download (`maxAgeHours: 0`) gives the same quality as the stored copy but can take up to 10 times longer (19 s against 2 s on one PDF).
 - The connector doesn't say whether a page came from the stored copy or a fresh download.

@@ -210,3 +210,21 @@ Question (test prompt 11): compare the 5 most recommended Blender hard-surface a
 Compared with minimal effort (3 searches, $0.012), Auto did 10 times the searching for about 50 times the price, and produced a much more complete, checkable answer.
 
 **Skill update:** minimal for a few sources, low for a list of known scope, Auto with a $1 cap for open-ended research, higher only on request. When Reddit opinion matters, add a Parallel search alongside the agent.
+
+## 14. Which sources only Parallel can reach
+
+Each site tested with Exa (`includeDomains` set to that site) and, where Exa looked weak, Parallel (`site:` search or `web_fetch` with an objective).
+
+| Source | Exa | Parallel | Verdict |
+|---|---|---|---|
+| Reddit, X | Nothing | Full search and reading | Parallel only |
+| Glassdoor | Finds review pages, reads only the title | Full review: role, date, rating, pros, cons | Parallel to read |
+| Trustpilot | Partial review text, no score | Score, star breakdown, dated reviews (very long) | Parallel when detail matters |
+| Quora | Error page ("Something went wrong") | Same error page | Neither |
+| Hacker News, Facebook groups, Instagram, TikTok, Threads, Bluesky, Amazon reviews, Steam, App Store, YouTube, Pinterest, Substack, Medium, Stack Overflow | Results found, mostly useful extracts | Not needed | Exa only |
+| NYT, WSJ | Articles found with a well-worded search (lead paragraph only) | Also found (one via an archive copy) | Exa only |
+| FT | Nothing | Nothing | Neither |
+
+`site:reddit.com` in Parallel kept 10 of 10 results on Reddit, so limiting Parallel with `site:` reliably avoids duplicating Exa. Some Reddit pages carried Reddit's auto-generated "Related Answers" text, which isn't user content.
+
+**Skill update:** Parallel is now added alongside Exa for software help, buying advice, real-world experience, reactions to releases, creator posts, employer reviews and company review scores, but always limited to Reddit, X, Glassdoor or Trustpilot. Unrestricted Parallel web searches are no longer used.

@@ -1,11 +1,11 @@
 ---
 name: web-research
-description: Web search and research using the Exa and Parallel connectors instead of Claude's built-in web search and web fetch. Use this whenever you need information from the web - current facts, prices, releases, documentation, software help (Blender, Figma, DaVinci Resolve and similar), Reddit or X discussions, design research, case studies, academic papers, PDFs, job listings, people or companies - or need to read a link, document or YouTube video. Use it even when the user doesn't say "search", and whenever you would otherwise reach for built-in web search.
+description: Web search and research using the Exa and Parallel connectors instead of Claude's built-in web search and web fetch. Use this whenever you need information from the web - current facts, prices, releases, documentation, software help (Blender, Figma, DaVinci Resolve and similar), product recommendations, Reddit or X discussions, employer reviews, design research, case studies, academic papers, PDFs, job listings, people or companies - or need to read a link, document or YouTube video. Use it even when the user doesn't say "search", and whenever you would otherwise reach for built-in web search.
 ---
 
 # Web research with Exa and Parallel
 
-Exa is the main tool. Parallel covers what Exa can't reach (Reddit, X) and acts as the backup.
+Exa is the main tool for everything it can reach. Parallel is used **only for sources Exa can't find or read** (Reddit, X, Glassdoor reviews, detailed Trustpilot pages) and as the backup reader. This widens the search without repeating what Exa already found.
 Never fall back to built-in web search or web fetch. If a connector is missing or failing, say so (see "Errors").
 
 Connector tool names carry a prefix that depends on how the user named the connector (for example `Exa_MCP__web_search_advanced_exa` or `Parallel__web_search`). Match on the part after the prefix.
@@ -29,11 +29,28 @@ Connector tool names carry a prefix that depends on how the user named the conne
 | People, companies, personal blogs, GitHub, financial reports | Exa, with a `category` |
 | Read a specific link, long document or PDF | Exa `web_search_advanced_exa` with the exact address pinned (recipe below). Backup: Parallel `web_fetch` |
 | YouTube video (full transcript) | Exa `web_fetch_exa` |
-| Software help (Blender, Figma, and so on) | **Both, in the same turn:** Exa for forums and docs, Parallel `web_search` for Reddit, official manuals and the newest threads |
-| Reddit or X (Twitter), searching or reading | Parallel only. Exa cannot reach either |
-| Exa refuses a page, or returns thin or broken extracts | Parallel `web_fetch` with an objective |
 | Multi-step research, lists, comparisons, enrichment | Exa `agent_run` (or helpers, Step 5) |
-| LinkedIn profiles, pages behind a login | Neither can read them. Say so |
+| LinkedIn profiles, Quora answers, pages behind a login | Neither can read them. Say so |
+
+### When to add Parallel (Exa-blind sources only)
+
+Add a Parallel search **alongside** Exa, in the same turn, whenever the question would benefit from one of these. Always limit Parallel to the platform with `site:` so it can't return pages Exa already covers.
+
+| Question type | Parallel source | Example `search_queries` |
+|---|---|---|
+| Software help and troubleshooting (Blender, Figma, Resolve, games, coding tools) | Reddit | `site:reddit.com blender boolean shading fix` |
+| "Is X worth it?", product or tool recommendations, buying advice | Reddit | `site:reddit.com best drawing tablet for blender` |
+| Real-world experience: careers, salaries, courses, freelancing, studios, hobbies, travel, local tips | Reddit | `site:reddit.com framestore junior artist experience` |
+| Community reaction to a release, update, announcement or controversy | X, then Reddit | `site:x.com blender 5.2`, `site:reddit.com blender 5.2 release` |
+| What creators, developers or official accounts are posting right now | X | `site:x.com figma config announcement` |
+| What it's like to work somewhere (pros, cons, ratings, interview experiences) | Glassdoor (read with `web_fetch`) | `site:glassdoor.co.uk framestore reviews` |
+| A company's detailed review score, rating breakdown and dated reviews | Trustpilot (read with `web_fetch`) | `site:trustpilot.com wacom` |
+| Exa refuses a page, or its extracts are thin or broken | Any page (backup reader) | `web_fetch` with an objective |
+
+Rules:
+- Don't run unrestricted Parallel web searches. If a Parallel result isn't on the target platform, ignore it.
+- Exa can reach Hacker News, Facebook groups, Instagram and TikTok captions, Threads, Bluesky, Steam, App Store and Amazon reviews, YouTube, Substack, Medium, Stack Overflow and major news sites. Don't use Parallel for those.
+- Skip Parallel when Exa already answers the question well and community opinion adds nothing (a version number, a definition, an official spec).
 
 Full settings, recipes and quirks: `references/exa.md` and `references/parallel.md`. Read the relevant file before your first call to that service in a conversation.
 
@@ -86,7 +103,7 @@ Search results are close matches, not proof. After each round:
 1. Tick off which planned facts now have a source, and which are still missing or rest on a single weak source.
 2. If gaps remain, try these in order and stop once covered:
    - **Different angle,** not a synonym swap (for example practitioner view, official docs, a complaint or bug report, a newer date range). `additionalQueries` runs several wordings in one Exa call.
-   - **The other service.** Parallel finds different sources, especially Reddit and the newest threads. Exa finds better case studies, papers and job pages.
+   - **The other service, within its lane.** If opinion or experience is missing, add Parallel on Reddit, X or Glassdoor. If facts, papers or listings are missing, widen Exa (new filters, `category`, `additionalQueries`).
    - **Read the best page** with a focused question when an extract hints at the answer but is cut off.
    - **Exa Agent** when the question clearly needs many steps.
 3. Back up key facts (numbers, dates, prices, versions) with two independent sources where possible.
