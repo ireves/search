@@ -164,3 +164,22 @@ Tested through Exa's hosted connector server (`https://mcp.exa.ai/mcp?tools=web_
 - Costs about $0.007 per search, compared with $0.001 for a Parallel search.
 
 **Verdict:** this fixes Exa's two biggest weaknesses from the earlier tests: oversized results and ignored dates. It should replace `web_search_exa` as the main search tool in the skill.
+
+## 11. Stored copy vs fresh download (fairer test)
+
+Run through the new custom Exa connector (`web_search_advanced_exa`), which now works in claude.ai. Each document was found by searching for its exact title on its own website, with question-focused highlights capped at 3,000 characters and full text switched off. "Fresh" = `maxAgeHours: 0` with a 30-second timeout.
+
+| Document | Type | Stored copy | Fresh download |
+|---|---|---|---|
+| ICPEN regulator report (oaic.gov.au) | PDF | All 4 key figures, clean text. 1.9 s | All 4 key figures, identical text. 18.9 s |
+| "Roach Motel" paper (arxiv.org/pdf) | PDF | All key facts. Some small "..." gaps in less relevant parts. 5.1 s | Same facts, slightly fewer gaps. 5.6 s |
+| "Dark Patterns at Scale" (dl.acm.org) | Asked for the PDF | Returned the abstract page instead of the PDF. 2 of 5 key facts (the rest aren't in the abstract). 14 s | Same page, same result. 32.6 s |
+| Blender manual, Set Curve Normal | Web page | Complete, clean. 3.3 s | Identical. 3.6 s |
+
+Each search cost $0.007.
+
+**Findings**
+- The regulator PDF that came back as 491 broken characters earlier was complete both times here. So neither "PDF" nor "fresh download" explains the earlier failure. It was either a one-off glitch or something specific to the direct page-reading API, which I couldn't retest without a key.
+- A fresh download gives the same quality but can take up to 10 times longer. The skill should use the stored copy by default and only ask for a fresh download when the page is likely to have changed recently.
+- Searching for a document by title doesn't always land on the exact file. On the ACM site it chose the abstract page over the PDF. When the exact file matters, read the link directly with Parallel.
+- The connector doesn't say whether a page came from the stored copy or a fresh download. Only the time taken hints at it.
