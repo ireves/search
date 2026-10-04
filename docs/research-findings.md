@@ -112,3 +112,14 @@ Tested on 4 October 2026, with Parallel connected through a signed-in account.
 - Software questions: run both. Exa for community answers, Parallel for Reddit, official docs and the newest threads.
 - Design research, case studies and papers: Exa only.
 - Jobs: Exa first. Open each listing to check it's still open.
+
+## 8. Reading long documents without overloading Claude's memory
+
+Test: find the cancel-versus-subscribe click counts and the phone-only cancellations in a 30+ page research paper (arXiv 2309.17145).
+
+| Tool | What came back | Answered the question? |
+|---|---|---|
+| Parallel fetch with a stated goal | About 10,000 characters of only the relevant passages, taken from all through the paper, including the results tables | Yes, fully (4.9 vs 6.2 clicks to cancel; WSJ and NRC needed a phone call) |
+| Exa fetch, capped at 6,000 characters | The first 6,000 characters of the paper (title, abstract, introduction) | No. The cap cuts from the top, so the answer was never reached |
+
+**Lesson:** for long documents, read with Parallel and give it a precise goal. Exa's fetch is fine for short pages, or when the start of the page holds the answer (articles, YouTube transcripts).
