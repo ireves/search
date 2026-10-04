@@ -141,3 +141,26 @@ Exa's `/contents` API accepts `highlights: { query, maxCharacters }` (passages m
 - On freshly fetched PDFs it can return thin, broken extracts. Parallel was more reliable there.
 - The same option on Exa's search keeps search results short, which addresses the size problem seen with the connector.
 - Summaries are compact but can drop details. Fine for a quick check, not for anything that needs exact figures.
+
+## 10. Exa advanced search tool (`web_search_advanced_exa`)
+
+Tested through Exa's hosted connector server (`https://mcp.exa.ai/mcp?tools=web_search_advanced_exa`) with a temporary API key. It isn't switched on in the claude.ai Exa connector yet.
+
+**Options it offers:** category (company, publication, news, pdf, github, personal site, people, financial report), include or exclude domains, published and crawled date ranges, must-contain or must-not-contain text, country, extra query wordings, highlights with a question and a length cap, summaries with a question, text length cap, freshness (`maxAgeHours`), and subpage crawling.
+
+| Test | Result |
+|---|---|
+| Highlights switched on, nothing else | **Also returned the full text of every page.** 5 results = 39,000 characters of raw data |
+| Same, plus `textMaxCharacters: 1` | 5 results = 8,500 characters in total. Extracts went straight to the fix. 3.6 seconds, $0.007 |
+| Figma threads, forum only, published since 1 January 2026 | 5 threads, all from 2026, including two Figma staff replies. Matches or beats Parallel's earlier result |
+| UK Blender jobs, published since 1 September 2026 | 8 listings, all posted in September 2026 (Framestore, Blue Zoo and others). 11.8 seconds |
+| One specific paper (title as the search, arxiv.org only, question-focused highlights) | Found the paper; all 5 key facts in 3,905 characters. 1.9 seconds |
+| Reddit only (`includeDomains: reddit.com`) | 0 results. Exa still can't reach Reddit |
+
+**Quirks**
+- Always set `textMaxCharacters: 1` (or another small number), otherwise full page text is sent too.
+- Results come back as raw data rather than tidy text, which adds about 500 characters per result.
+- Pages with no known date can still slip through a date filter.
+- Costs about $0.007 per search, compared with $0.001 for a Parallel search.
+
+**Verdict:** this fixes Exa's two biggest weaknesses from the earlier tests: oversized results and ignored dates. It should replace `web_search_exa` as the main search tool in the skill.
