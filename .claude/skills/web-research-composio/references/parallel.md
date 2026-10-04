@@ -76,7 +76,7 @@ Then read the best page:
   "objective": "TrustScore, number of reviews, star breakdown, and the three most common complaints in the latest reviews",
   "max_chars_total": 4000}}
 ```
-Don't report the star percentages. Ask for counts and themes, not every review. In testing, the TrustScore and review count came back correctly, but the star breakdown came back garbled (percentages fused to the star labels, and a reviewer's quoted figure contradicted it), so hedge on the exact split. The reply was raw review snippets mixed with advertisement fragments, with no complaint summary: summarise the themes yourself and say it is one platform's view.
+Don't report the star percentages. Ask for counts and themes, not every review. In testing, the TrustScore and review count came back correctly, but the star breakdown came back garbled (percentages fused to the star labels, and a reviewer's quoted figure contradicted it). The reply was raw review snippets mixed with advertisement fragments, with no complaint summary: summarise the themes yourself and say it is one platform's view.
 
 **Backup reader** (when Exa's `statuses` shows an error or the extract is thin)
 ```json

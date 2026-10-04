@@ -96,7 +96,7 @@ Listings can be closed even when recent, and old or undated ones still slip thro
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
   "query": "academic study measuring how screen use before bed affects teenagers' sleep",
-  "category": "research paper", "numResults": 8,
+  "category": "research paper", "numResults": 6,
   "contents": {"highlights": {"query": "title, year, method, key quantitative finding", "maxCharacters": 1000}}}}
 ```
 The same paper can appear from several sites (arXiv, ACM, ResearchGate) or in two searches. Dedupe by title. Use `numResults: 6` per search, one search with the category (a second search without it duplicates results). Name each study and give its own DOI or publisher link; list every paper you cite: two 8-result paper searches (about 35,000 characters) were moved to the remote workspace.

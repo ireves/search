@@ -11,7 +11,7 @@ All 15 prompts in `test-prompts-2.md` were run against `.claude/skills/web-resea
 | 3 | Product Designer jobs | Pass | Fresh reads, date filter and per-site report all done. "Confirmed open" was weak (no closed notice, not a real confirmation) |
 | 4 | Salaries and agency vs in-house | Partial | Gave "yes, worth it" more firmly than the sources allow; guessed a wrong subreddit (0 results); opinion and figures mixed. Needed a rerun for the format |
 | 5 | Empty states | Partial | Exa only, as expected, but examples included a desktop dashboard and Notion rather than mobile apps, and "measurably increases activation" had no figure |
-| 6 | Contrast and reading speed | Partial | Used 8 results (not 6) and a second search; most papers had no DOI link and one study was unnamed. The `jq` line worked as written |
+| 6 | Contrast and reading speed | Partial | Used 8 results (not 6) and a second search; most papers had no DOI link and one study was unnamed. A `jq` line pulled fields from the moved results (not the DOI line as written) |
 | 7 | WCAG 2.5.8 | Pass | 24 by 24 CSS pixels, all five exceptions, one read, about 2,100 characters |
 | 8 | Config 2026 talk | Partial | Found the talk and read the transcript, but the transcript was cut off at the limit and the answer did not say so |
 | 9 | Figma Professional price | Fail | Pricing page read gave USD only; the answer cited a Help Center page that had returned a 404, left a £14 vs £12 conflict open, and said nothing about VAT |
