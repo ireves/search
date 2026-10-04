@@ -55,13 +55,29 @@ Cost: about $0.007 per search (charged by Exa to the connected Exa account).
   "contents": {"highlights": {"query": "company, what changed, measured result with numbers", "maxCharacters": 1000}}}}
 ```
 
-**Recent forum threads on one site**
+**Forum threads on one site (no date filter)**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
   "query": "Figma variable modes resetting properties of nested component instances",
-  "includeDomains": ["forum.figma.com"], "startPublishedDate": "2026-01-01", "numResults": 5,
+  "includeDomains": ["forum.figma.com"], "numResults": 5,
   "contents": {"highlights": {"query": "cause, workaround, or Figma staff reply", "maxCharacters": 800}}}}
 ```
+No date filter on purpose: the definitive staff reply can be years old. Several domains are allowed in `includeDomains` (for example `blender.org` and `developer.blender.org`). Highlights don't show who wrote a reply: say "appears to be from staff" unless the page shows a role.
+
+**Case studies from portfolios and company blogs (batch both in one call)**
+```json
+{"tool_slug": "EXA_SEARCH", "arguments": {
+  "query": "designer's portfolio case study of redesigning an app's onboarding with before and after metrics",
+  "category": "personal site", "numResults": 8,
+  "contents": {"highlights": {"query": "product, what changed, measured result with numbers", "maxCharacters": 1000}}}}
+```
+```json
+{"tool_slug": "EXA_SEARCH", "arguments": {
+  "query": "company blog post about redesigning our onboarding, with before and after numbers",
+  "excludeDomains": ["medium.com", "linkedin.com", "reddit.com"], "numResults": 8,
+  "contents": {"highlights": {"query": "product, what changed, measured result with numbers", "maxCharacters": 1000}}}}
+```
+Excluding sites doesn't remove agency marketing pages or anonymous clients: mark those as low confidence. Numbers on the author's own site are "primary source, self-reported".
 
 **Job listings (recent, UK, fresh)**
 ```json
@@ -72,7 +88,7 @@ Cost: about $0.007 per search (charged by Exa to the connected Exa account).
   "contents": {"maxAgeHours": 0, "livecrawlTimeout": 30000,
                "highlights": {"query": "company, location, salary, closing date, whether still open", "maxCharacters": 500}}}}
 ```
-Listings can be closed even when recent. Check the extract (or read the page) before presenting a job as open. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles, not job posts.
+Use the user's seniority and tool in place of the example. Listings can be closed even when recent, and old or undated ones still slip through the date filter (one "applications have now closed" listing came back): drop any with no date in the window unless the text shows one. Then read the top 2 or 3 candidates with `EXA_GET_CONTENTS_ACTION` (`text: false`, `maxAgeHours: 0`, a highlights question on open or closed, Blender and experience level) before presenting a job as open. Don't put `linkedin.com` in `includeDomains` for jobs: it returns people's profiles. LinkedIn posts can still appear without it; treat them as unverified, or add `excludeDomains: ["linkedin.com"]` (not together with `includeDomains`). `userLocation: "GB"` doesn't stop non-UK or remote-US jobs appearing. Expect 10 to 15 seconds for a fresh-download search.
 
 **Academic papers**
 ```json
@@ -81,15 +97,22 @@ Listings can be closed even when recent. Check the extract (or read the page) be
   "category": "research paper", "numResults": 8,
   "contents": {"highlights": {"query": "title, year, method, key quantitative finding", "maxCharacters": 1000}}}}
 ```
-The same paper often appears from several sites (arXiv, ACM, ResearchGate). Treat those as one source.
+The same paper can appear from several sites (arXiv, ACM, ResearchGate) or in two searches. Dedupe by title. Use `numResults: 6` per search: two 8-result paper searches (about 35,000 characters) were moved to the remote workspace.
+
+About half the results link to `exa.ai/library/publication/...`. The original DOI is in `entities[0].properties`, which is a JSON string and shows only as `{object}` in the preview. Pull it out with `COMPOSIO_REMOTE_BASH_TOOL`, for example (this line is a sketch, not tested as written; check the file's shape first with `jq 'keys'`; the path to the results varies):
+```
+jq -r '.. | objects | select(has("entities")) | [.title, .publishedDate, .url, (.entities[0].properties // "" | fromjson? | .doi // "no doi")] | @tsv' /path/to/saved.json
+```
+Some library entries have no DOI. Then search the title on the likely publisher, or say no original link was found. `publishedDate` of 01-01 is only the year.
 
 **People**
 ```json
 {"tool_slug": "EXA_SEARCH", "arguments": {
   "query": "senior environment artist at Framestore London",
-  "category": "people", "numResults": 4,
+  "category": "people", "numResults": 3,
   "contents": {"highlights": {"query": "current role, employer, location", "maxCharacters": 500}}}}
 ```
+Each person carries a work-history block of 2,000 to 6,000 characters that `maxCharacters` doesn't shrink, so three results can be 10,000 to 17,000 characters. For a famous person, batch this with a normal `EXA_SEARCH` (Wikipedia, the official site) to confirm who they are. A people search can rank an unrelated namesake first: if nothing matches, say no match was found and don't give the namesake's details. `publishedDate` on profiles is crawl time, and results carry `exa.ai/library/person/...` ids that must not be linked.
 
 ## `EXA_GET_CONTENTS_ACTION`
 
@@ -112,8 +135,9 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 
 - **`text` defaults to `true`** (full page). Always set `text: false` when using `highlights`, or give `text` a `maxCharacters`.
 - `urls` takes several links at once.
-- **Check `statuses`.** The call reports success even when a link failed. Look for `CRAWL_NOT_FOUND`, `CRAWL_LIVECRAWL_TIMEOUT` or `SOURCE_NOT_AVAILABLE`, and try Parallel for that link.
-- `maxAgeHours: 0` forces a fresh download for pages that change.
+- **Check `statuses`.** The call reports success even when a link failed. Look for `CRAWL_NOT_FOUND`, `CRAWL_LIVECRAWL_TIMEOUT` or `SOURCE_NOT_AVAILABLE`, and try `PARALLEL_EXTRACT_WEB_CONTENT` (with an objective) for that link. Search results have no `statuses`; only reads do.
+- `maxAgeHours: 0` forces a fresh download for pages that change (top level of `arguments` on reads; inside `contents` on searches).
+- A YouTube read returns the transcript only, not the video description or its links.
 - Fails on Reddit, X and LinkedIn.
 
 ## Exa Agent (`EXA_CREATE_AGENT_RUN` and `EXA_GET_AGENT_RUN`)
@@ -153,11 +177,13 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 
 - No Reddit or X. Use the Reddit toolkit and Parallel for those.
 - Sites Exa searches well with `includeDomains` (tested October 2026): Hacker News, Facebook groups, Instagram and TikTok (captions), Threads, Bluesky, Steam reviews, App Store reviews, Amazon reviews, YouTube, Substack, Medium, Stack Overflow, Pinterest, NYT, WSJ, BBC, the Guardian, The Verge.
-- Glassdoor: finds review pages but reads only the title. Read them with Parallel.
+- Glassdoor: finds review pages (sometimes on regional domains such as glassdoor.com.au) with partial review excerpts but no ratings. Read them with Parallel. It can also surface pages for other businesses with the same name (an Indeed page mixed several "Framestore" companies): check the company matches.
+- Review-style pages from Exa include SEO spam. Prefer reviewers who say they tested the product.
 - Trustpilot: reads some review text and sometimes the score, but not the star breakdown. Use Parallel when the breakdown matters.
 - Quora: returns an error page instead of answers.
-- `category: "people"` returns LinkedIn-derived profile data: headline, location, work and education history, profile URL. Each result carries a 2,000 to 3,000 character profile block on top of highlights, so use 3 to 5 results.
+- `category: "people"` returns LinkedIn-derived profile data: headline, location, work and education history, profile URL. Each result carries a 2,000 to 6,000 character profile block on top of highlights, so use 3 results.
 - **Unrelated `entities` blocks:** a YouTube read came back with a profile of a person who had nothing to do with the video. Ignore any `entities` block that doesn't match the page.
 - Papers and people can come back with Exa library links (`exa.ai/library/...`). Link the original (DOI, arXiv, publisher, official page) in answers.
 - A fresh download (`maxAgeHours: 0`) gives the same quality as the stored copy but can take up to 10 times longer.
-- Results show whether a page came from the stored copy or a fresh download (`statuses[].source`: `cached` or `live`) on content reads.
+- Results show whether a page came from the stored copy or a fresh download (`statuses[].source`: `cached` or `crawled`) on content reads.
+- Stored copies can lag: a search extract of the Blender release page showed 5.2.0 while the live download page showed 5.2.2.

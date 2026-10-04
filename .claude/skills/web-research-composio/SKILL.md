@@ -69,11 +69,13 @@ Add these **alongside** Exa, in the same batched call, whenever the question wou
 | Exa refuses a page, or its extracts are thin or broken | Parallel (backup reader) | `PARALLEL_EXTRACT_WEB_CONTENT` with an objective |
 
 Rules:
-- **Reddit search works best inside one subreddit.** Reddit's own search matches words, not meaning. Across all of Reddit it returned unrelated posts in testing; with `subreddit:name` at the start of the query, all 5 results were on topic. If you don't know the subreddit, find it with `REDDIT_GET_SUBREDDITS_SEARCH` first, or batch searches in two likely subreddits.
-- **Reddit comments come back reliably** with `REDDIT_RETRIEVE_POST_COMMENTS` (unlike Parallel). Read only the one or two most promising threads.
+- **Reddit search works best inside one subreddit, with 2 to 4 keywords.** Reddit's own search matches words, not meaning. Across all of Reddit it returned unrelated posts in testing; inside `subreddit:name` it was usually on topic, but not always (a niche question returned popular, unrelated posts; a 5-keyword query returned nothing). If you don't know the subreddit, find it with `REDDIT_GET_SUBREDDITS_SEARCH` first, or batch searches in two likely subreddits.
+- **If no result matches the question,** try one different wording or subreddit, then say Reddit had nothing useful. Don't read comments from an off-topic thread.
+- **Reddit comments come back reliably** with `REDDIT_RETRIEVE_POST_COMMENTS` (unlike Parallel). Read only the one or two most promising threads. The comment read depends on the post `id` from the search, so it is always a second call.
 - **Limit Parallel to the target site** with `advanced_settings.source_policy.include_domains`. If a result isn't on that site, ignore it.
-- **Keep Parallel small:** always set `max_chars_total` (6,000 for a search) and at most 2 `search_queries` per call, and at most 2 Parallel searches per question.
-- For software help, Reddit is a supplement: forums and official docs from Exa usually carry the fix. Keep it to one Reddit search unless the user asks about community experience.
+- **Keep Parallel small:** always set `max_chars_total` (6,000 for a search) and at most 2 `search_queries` per call, and at most 2 Parallel searches per question. Page reads (`PARALLEL_EXTRACT_WEB_CONTENT`) don't count towards the 2.
+- **X searches:** write the queries the way a user would post ("just updated to blender 5.2", "blender 5.2 is broken"). Product-name queries return mostly the official account.
+- For software help, Reddit is a supplement: forums and official docs from Exa usually carry the fix. Keep it to one Reddit search (plus one retry if it found nothing relevant) unless the user asks about community experience.
 - Exa can reach Hacker News, Facebook groups, Instagram and TikTok captions, Threads, Bluesky, Steam, App Store and Amazon reviews, YouTube, Substack, Medium, Stack Overflow and major news sites. Don't use Parallel for those.
 - Skip Reddit, X and Parallel when Exa already answers the question well and community opinion adds nothing (a version number, a definition, an official spec).
 
@@ -103,17 +105,17 @@ Never add `contents.text` to a search: it returns the full text of every page.
  }}
 ```
 
-`text: false` is essential: this tool returns the full page text unless told not to. Check `statuses` in the result: a failed page still returns "successful" overall.
+`text: false` is essential: this tool returns the full page text unless told not to. Check `statuses` in the result: a failed page still returns "successful" overall. For pages that change (a download page, prices, job listings), add `maxAgeHours: 0` at the top level of `arguments`.
 
 ## Step 3: Keep the context small
 
 These rules apply everywhere, including normal Claude chats with no helper agents.
 
-- **Exa searches return trimmed extracts only:** highlights with a question, 500 to 1,500 characters per result (500 for job listings), 5 to 10 results. Never more than 15 results in one call. People searches (`category: "people"`) carry a 2,000 to 3,000 character profile block per result, so use 3 to 5 results.
-- **Reddit searches return whole post texts and can't be trimmed.** Use `limit: 5`. Comment reads also include the whole original post: use `limit: 8` to `10`, `depth: 1` and `sort: "top"`.
+- **Exa searches return trimmed extracts only:** highlights with a question, 500 to 1,500 characters per result (500 for job listings), 5 to 10 results. Never more than 15 results in one call. People searches (`category: "people"`) carry a profile block of 2,000 to 6,000 characters per result that highlights can't shrink, so use 3 results. Expect about 1,500 to 2,000 characters per result in ordinary searches, so two 8-result searches come to about 17,000 characters. Paper searches (`category: "research paper"`) run larger and 2 searches of 8 results were moved to the remote workspace: use 6 results each, and see `references/exa.md` for the `jq` line that pulls out titles, links and DOIs.
+- **Reddit searches return whole post texts and can't be trimmed.** Use `limit: 5`. Comment reads also include the whole original post: use `limit: 8` to `10`, `depth: 1` and `sort: "top"` (depth 1 shows replies only as empty "more" stubs; use 2 when replies matter).
 - **Parallel:** always set `max_chars_total`; at most 2 queries per call and 2 calls per question.
 - **Read only when extracts aren't enough,** and only the one or two most promising pages. Use 3,000 to 4,000 characters of highlights for one document.
-- **YouTube transcripts:** set `text: {"maxCharacters": 3000 to 8000}`. If the transcript fills the whole limit, it was probably cut off: say the summary may miss the end, or read again with a higher limit (up to about 20,000) if the ending matters.
+- **YouTube transcripts:** set `text: {"maxCharacters": 3000 to 8000}`. If the transcript fills the whole limit, it was probably cut off: say the summary may miss the end, or read again with a higher limit (up to about 20,000) if the ending matters. A transcript shorter than the limit that ends with a sign-off is complete. The video description (and any links in it) is not included: say so if the user needs them.
 - **Heavy reading goes to an Exa Agent** (`EXA_CREATE_AGENT_RUN`). It searches and reads on Exa's servers and returns a cited answer, using none of the user's Claude allowance. Effort: `minimal` for a few sources, `low` for a short list of known scope, `auto` with a $1 `budget` for "compare the top N" and open-ended research (see `references/exa.md`).
 - Don't repeat large tool output back to the user. Quote only what supports the answer.
 
@@ -128,11 +130,14 @@ Search results are close matches, not proof. After each round:
    - **Read the best page** with a focused question when an extract hints at the answer but is cut off.
    - **Exa Agent** when the question clearly needs many steps.
 3. Back up key facts (numbers, dates, prices, versions) with two independent sources where possible.
-4. **"Latest" facts need the official page.** For the current version, price, availability or status of something, read the official page (download page, pricing page, release list) to confirm, rather than relying on announcements or news that may be out of date.
+4. **"Latest" facts need the official page.** For the current version, price, availability or status of something, read the official page (download page, pricing page, release list) with `maxAgeHours: 0` to confirm, rather than relying on announcements or news that may be out of date. Exa's stored search extracts can lag behind the live page (a release page showed 5.2.0 while the live download page showed 5.2.2). If the official address is obvious, batch the search and the read in one call. For "since which version" facts, the release notes are the best source.
+   - **Software instructions:** check the app version against the date of each source. Advice from before a major release may describe removed settings (Blender's Auto Smooth checkbox went in 4.1). If most sources are older than a year, add a search of the current manual.
 5. **Stopping rule:** about 3 rounds. Then answer with what you have and list what you couldn't confirm. Never guess to fill a gap.
 
 Search tips that came out of testing:
 - **Date filters** suit news, jobs, releases and prices. For troubleshooting, avoid them or keep them loose: the definitive answer (often a staff reply or a manual page) can be years old.
+- Some results have no `publishedDate`, or only a year (01-01). Say "undated" and don't infer how recent they are.
+- When sources disagree (for example older staff replies saying "expected" and a newer one saying "bug"), order them by date and report the trend.
 - Reddit search has no exact dates, only `time_filter` (`day`, `week`, `month`, `year`, `all`).
 
 ## Step 5: Helper agents (Claude Code and Claude Cowork only)
@@ -148,11 +153,11 @@ Use helpers when the job is heavy: more than about 4 searches, more than 2 long 
 ## Step 6: Answer
 
 - Lead with the answer. Link sources inline with descriptive link text.
-- **Link the original source.** Exa sometimes returns its own library pages (`exa.ai/library/...`) for papers and people. Link the paper, publisher, DOI or official page instead (the DOI is often in the result's details).
-- For Reddit, link the thread (`permalink`), and say how many upvotes or comments backed a view when it matters.
+- **Link the original source.** Exa sometimes returns its own library pages (`exa.ai/library/...`) for papers and people. Link the paper, publisher, DOI or official page instead (the DOI is in the result's `entities[0].properties`, see `references/exa.md`). If there is no DOI, search the title on the likely publisher, or say no original link was found.
+- For Reddit, link the thread (`permalink`; comment results give a relative `/r/...` path, so add `https://www.reddit.com`), and say how many upvotes or comments backed a view when it matters.
 - Mark confidence where it matters:
   - **well supported**: two or more independent sources agree (mirrors of one page count once),
-  - **primary source**: the answer comes straight from the thing itself (the paper, the video transcript, the official page),
+  - **primary source**: the answer comes straight from the thing itself (the paper, the video transcript, the official page). A case study on its author's own site is "primary source, self-reported",
   - **single source**: only one secondary source says it,
   - **unconfirmed**: implied or partly stated.
   Recheck helper labels against these before using them.
