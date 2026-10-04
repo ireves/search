@@ -194,3 +194,19 @@ Each search cost $0.007.
 | Figma forum thread (exact thread address) | Exact thread returned, with the staff replies and the user workaround. 6.5 s |
 
 **Routing update:** reading a specific link, long document or PDF now goes to **Exa first** (advanced tool, exact address pinned, question-focused highlights, full text off). Parallel's reader is the backup, and the first choice for Reddit and X links.
+
+## 13. Exa Agent at Auto effort with a $1 cap
+
+Question (test prompt 11): compare the 5 most recommended Blender hard-surface add-ons, with price, store, Blender 5.x compatibility, and what users praise and complain about. Structured output requested (5 rows with evidence links, coverage notes, known gaps).
+
+| Measure | Result |
+|---|---|
+| Cost | $0.63 ($0.48 agent work + $0.15 for 30 searches). Under the $1 cap; finished normally (`schema_satisfied`) |
+| Time | About 3 minutes. Each `agent_run` call waited about 50 seconds before saying "still running" |
+| Output | Hard Ops/Boxcutter bundle, MESHmachine, Fluent 4, DECALmachine, KIT OPS 4 PRO, each with USD price, store link, best use, praise, complaints and 3 to 4 evidence links |
+| Strengths | Version-specific compatibility (for example KIT OPS confirmed only up to Blender 5.0), honest gaps, notes that the list is a shortlist rather than a measured ranking |
+| Weaknesses | User opinion came almost entirely from the store's own review pages; no Reddit (Exa can't reach it) and few independent forums. The citation list was long (about 10,000 characters) |
+
+Compared with minimal effort (3 searches, $0.012), Auto did 10 times the searching for about 50 times the price, and produced a much more complete, checkable answer.
+
+**Skill update:** minimal for a few sources, low for a list of known scope, Auto with a $1 cap for open-ended research, higher only on request. When Reddit opinion matters, add a Parallel search alongside the agent.

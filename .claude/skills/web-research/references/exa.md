@@ -99,7 +99,19 @@ Searching by title alone may land on a summary page instead of the file; pinning
 ## `agent_run`
 
 - Runs its own searches and reading on Exa's servers and returns a cited answer. Uses Exa credit, not the user's Claude allowance. A minimal-effort test made 3 searches and cost about $0.012.
-- `effort`: start with `minimal` or `low`. Go higher only if the user asks for depth or the first run is clearly thin.
+- `effort`: always set it. Choose by job:
+
+  | Job | Effort | Tested cost and time |
+  |---|---|---|
+  | One question needing a few sources | `minimal` | 3 searches, $0.012 |
+  | A list or comparison of known scope | `low` | not yet measured |
+  | Open-ended or hard research where the right depth isn't clear | `auto` with `budget: {"maxCostDollars": 1}` | 30 searches, $0.63, about 3 minutes, finished under the cap |
+  | The user asks for a deep dive | `auto` with a higher cap the user agrees to, or `medium` to `xhigh` | not yet measured |
+
+  `auto` is charged by usage and defaults to a $5 cap, so never send it without a `budget`. The cap is a ceiling, not a fixed price. If `stopReason` is `budget_reached`, tell the user the answer may be incomplete. Fixed efforts have a flat price and reject `budget`.
+- Each `agent_run` call waits about 50 seconds before returning `status: "running"`. Keep calling with the `runId`; tell the user it's still working if it takes more than a minute or two.
+- The answer includes a long citation list (`grounding`, one entry per field). Use it to link sources, but don't repeat it to the user.
+- Exa Agents can't reach Reddit or X, so "what users say" comes from store reviews, forums and blogs. When Reddit opinion matters, add a Parallel search for it.
 - `outputSchema`: give one for lists or tables. Use a top-level object, put rows in a named array with `maxItems`, include a source URL field per row, and a `coverage_notes` field.
 - If the response says `status: "running"`, call again with `runId` set to the returned `id`. Don't start a duplicate run.
 - To refine or extend, pass `previousRunId`, and `input.exclusion` to avoid repeats.

@@ -76,7 +76,7 @@ These rules apply everywhere, including normal Claude chats with no helper agent
 - **Read only when extracts aren't enough,** and only the one or two most promising pages. Use 3,000 to 4,000 characters for one document.
 - **Parallel `web_fetch`:** always give an `objective`. Leave `full_content` off unless the user needs the whole page; it returns the text twice and can be tens of thousands of characters.
 - **Exa `web_fetch_exa` cuts from the top of the page.** Use it only for YouTube transcripts and short pages, always with `maxCharacters` (3,000 to 8,000).
-- **Heavy reading goes to an Exa Agent** (`agent_run`, minimal or low effort). It searches and reads on Exa's servers and returns a short cited answer, using none of the user's Claude allowance.
+- **Heavy reading goes to an Exa Agent** (`agent_run`). It searches and reads on Exa's servers and returns a cited answer, using none of the user's Claude allowance. Effort: `minimal` for a few sources, `low` for a list of known scope, `auto` with a $1 `budget` for open-ended research (see `references/exa.md`).
 - Don't repeat large tool output back to the user. Quote only what supports the answer.
 
 ## Step 4: Confidence check (do this before answering)
