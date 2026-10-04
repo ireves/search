@@ -123,3 +123,21 @@ Test: find the cancel-versus-subscribe click counts and the phone-only cancellat
 | Exa fetch, capped at 6,000 characters | The first 6,000 characters of the paper (title, abstract, introduction) | No. The cap cuts from the top, so the answer was never reached |
 
 **Lesson:** for long documents, read with Parallel and give it a precise goal. Exa's fetch is fine for short pages, or when the start of the page holds the answer (articles, YouTube transcripts).
+
+## 9. Exa API: question-focused reading (not available in the Exa connector)
+
+Exa's `/contents` API accepts `highlights: { query, maxCharacters }` (passages matching a question, up to a length) and `summary: { query }` (a short summary focused on a question). The connector's `web_fetch_exa` only offers a plain length limit. Tested directly against the API with a temporary key.
+
+| Test | Exa API | Parallel `web_fetch` with a goal |
+|---|---|---|
+| Research paper (stored by Exa already), highlights capped at 4,000 characters | 9 of 10 key facts in 3,905 characters. Under 1 second. $0.001 | All key facts in about 10,000 characters |
+| Same paper, highlights capped at 10,000 characters | All 10 key facts in 7,055 characters | (as above) |
+| Same paper, summary with a question | Correct short summary of the main figures. Missed the Dutch phone-only case. 3.6 seconds. $0.001 | n/a |
+| Long PDF that Exa had to fetch fresh (regulator report) | Only 491 characters, broken into fragments with "..." gaps. 4 seconds | About 3,000 readable characters with the full context |
+| Search with focused highlights (3 results, 1,500 character cap each) | About 2,800 characters in total, on-topic. $0.007 | n/a |
+
+**Findings**
+- On pages Exa already has stored, its question-focused highlights match Parallel and use less space.
+- On freshly fetched PDFs it can return thin, broken extracts. Parallel was more reliable there.
+- The same option on Exa's search keeps search results short, which addresses the size problem seen with the connector.
+- Summaries are compact but can drop details. Fine for a quick check, not for anything that needs exact figures.
