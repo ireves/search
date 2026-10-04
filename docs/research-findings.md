@@ -44,9 +44,12 @@ Tested on 4 October 2026 through the Exa and Parallel connectors in a Claude Cod
 - Long agent runs (over about 12 minutes) return a "still running" ID that must be checked again.
 
 **Parallel**
-- **Hit the free limit on the very first call through the connector.** The same request sent directly from the session worked. The connector seems to share one anonymous allowance with other users. Adding a free Parallel account key (includes $5 of monthly credit) should fix this.
+- **Hit the free limit on the very first call through the anonymous connector.** Fixed by reconnecting at `https://search.parallel.ai/mcp-oauth` and signing in with a Parallel account. After that, 6 calls in a row (including 4 at once) all worked.
+- With an account, search extracts are much longer than when anonymous (some single results over 10,000 characters), so results now take up more room in Claude's memory.
+- Full-page fetch (`full_content`) returns the page text twice, once as extracts and once in full. Use goal-focused fetch unless the whole page is really needed.
 - Weak at "find me things like this" searches. Returns low-quality pages.
-- Reddit results often have no date, so recency is hard to judge.
+- Reddit results often have no date, so recency is hard to judge. Fetching the thread does return its date.
+- Ignores dates in the search wording. Asking for X posts from "September 2026" returned posts from June and July plus unrelated profiles.
 - Reddit extracts in search are short (about 200 to 300 characters). Fetch the thread for the full answers.
 - Focused fetch took 23 seconds on a fresh page. Full-page fetch of a cached page took under 1 second.
 - Cost per call: $0.001 per search or page.
@@ -79,7 +82,7 @@ Sources read: Exa's official plugin skills ([`search`](https://github.com/exa-la
 
 ## 6. Decisions needed before building
 
-1. Add a free Parallel API key to stop the rate-limit errors?
+1. ~~Add a free Parallel API key?~~ Done: Parallel now connects through a signed-in account.
 2. Switch on Exa's advanced search in the connector, for date and site filters?
 3. Should the skill block Claude's built-in search entirely, or only prefer Exa and Parallel?
 4. Where will you use it: Claude Code, the Claude app, or both? This changes how the skill is installed.
