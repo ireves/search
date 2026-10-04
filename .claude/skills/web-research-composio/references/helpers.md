@@ -15,6 +15,8 @@ Don't use them for a single fact, one known page, or a quick check. Each helper 
 
 If there's no subagent tool (Agent or Task), as in normal claude.ai chats and the mobile app, hand heavy work to an Exa Agent (`EXA_CREATE_AGENT_RUN`) instead.
 
+For lists and comparisons, run an Exa Agent first (SKILL.md Step 1), then use helpers to check its key claims (company status, prices, latest versions), 3 to 5 items per helper.
+
 ## How to split the work
 
 - Split by sub-question or angle: practitioner view, official docs, complaints and failure reports, newest developments, a specific site.

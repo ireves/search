@@ -161,14 +161,14 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
   |---|---|---|
   | One question needing a few sources | `minimal` | 3 searches, $0.012, about 5 seconds |
   | A short list of known scope | `low` | 3 searches, $0.025; thin for a "compare the top 5" question |
-  | "Compare the top N", open-ended or hard research | `auto` with `budget: {"maxCostDollars": 1}` | 30 searches, $0.63, about 3 minutes, finished under the cap |
+  | Lists, "compare the top N", "who is doing X", open-ended or hard research | `auto` with `budget: {"maxCostDollars": 1}` | 30 searches, $0.63, about 3 minutes, finished under the cap |
   | The user asks for a deep dive | `auto` with a higher cap the user agrees to, or `medium` to `xhigh` | not yet measured |
 
   `auto` is charged by usage and defaults to a $5 cap, so never send it without a `budget`. The cap is a ceiling, not a fixed price. If `stopReason` is `budget_reached`, tell the user the answer may be incomplete. Fixed efforts have a flat price and reject `budget`.
 - The answer is in `output.text`; citations are in `output.grounding`. Use them to link sources, but don't repeat the list to the user.
 - Prices in an Agent's answer still need a fresh read of each official page (`maxAgeHours: 0`); a regional page may show another currency. Composio reads from outside the UK, so an official page can show USD only and a guessed regional address (such as `/en-gb/`) may 404: give the USD figure, name any local-currency figure as coming from a stored extract, and say it is unconfirmed on the live page. A `minimal` run on a "current version" question missed the latest patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
 - Exa Agents can't reach Reddit or X, so "what users say" comes from store reviews, forums and blogs. When Reddit opinion matters, add a Reddit search.
-- `outputSchema`: give one for lists or tables. Use a top-level object, put rows in a named array with `maxItems`, include a source URL field per row, and a `coverage_notes` field.
+- `outputSchema`: give one for lists or tables. Use a top-level object, put rows in a named array with `maxItems`, include a source URL field per row, and a `coverage_notes` field. For companies or products, also add `newest_dated_activity` (with its date) and `closure_or_takeover_signs` per row. Treat these as leads to check, not as proof.
 - To refine or extend, pass `previousRunId`, and `input.exclusion` to avoid repeats.
 - Optional `dataSources` add paid partner data (for example `similarweb` for site traffic, `particle` for podcast transcripts). Only use when clearly useful and name the data in the query.
 
