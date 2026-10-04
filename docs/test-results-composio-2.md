@@ -81,3 +81,55 @@ The scores are not like for like. The second set has no copied examples to lean 
 - **Exa Agent speed.** The guide now says 3 to 5 minutes; earlier tests showed about 3. Run times may vary.
 - **Skill changes untested.** The edits above have not been rerun against the prompts.
 - **X quality** and **Parallel cost visibility** remain as in the first results file.
+
+## Rerun with Sonnet (4 October 2026)
+
+Prompts 1, 2, 4, 9 and 13 were rerun on the skill as edited earlier that day, one fresh Sonnet helper each, all five at once. All five finished first time, with no reruns. Tool rules were followed in every run: Composio only, highlights on every search, `text: false` on the one document read, Reddit inside a subreddit with `limit: 5`, Parallel on-site with `max_chars_total`.
+
+| # | Haiku | Sonnet | Main issue (Sonnet) | Cause |
+|---|---|---|---|---|
+| 1 | Partial | Partial | Dated the sources and said Resolve is now on a later version than most of them, so older advice was flagged. It skipped the step that adds a search of the current manual, so the free-versus-Studio claims stayed on 2020 to 2024 forums | Model (skipped a stated step); the skill gave no site hint, now added |
+| 2 | Partial | Pass | Cited both the older Cloth tag docs and the newer Simulation System docs and told the user to check which they use. Reddit ran up front and the thread read added nothing | Model. The Reddit timing is a skill inconsistency (the table says "alongside", the prompt table says "only if thin"), left as is because no harm showed |
+| 4 | Partial | Partial | Figures and opinions in separate sections, most figures dated, and the sources' weakness stated. But the headline led with "probably worth it", and two figures (JobLabs, MyUXAcademy) had no date. The real subreddit was used; the London pay search found 0 posts and was not retried | Model. The rules exist and were mostly followed |
+| 9 | Fail | Partial | Currency (USD on the live page), VAT (not stated by sources) and billing period were all given, with no conversion. The £14 and £18 figures came from a Help Center extract whose fresh read gave a 404, and the answer cited it anyway (while saying so). No GBP figure on the official page | Skill. Composio reads from outside the UK, so the page shows USD, and the cite rule did not cover "stored extract, failed fresh read". Now covered |
+| 13 | Partial | Partial | No star percentages (it gave the overall TrustScore and review count), themes summarised, and the answer drew on other sources too. It never said Trustpilot reviews are one platform's view, and it quoted an old 1.2 score beside the current 3.0 (but flagged the conflict) | Model (the rule is in `parallel.md`). The skill had no note on conflicting Trustpilot scores or the unreliable publish date |
+
+Result: 1 pass, 4 partial, 0 fail, against 0 pass, 4 partial, 1 fail for Haiku on the same five.
+
+### The 4 October rules, checked
+
+- **Prompts 1 and 2 (version against source date):** followed in both. Prompt 2 did it best (two systems, each tied to its own documentation). Prompt 1 flagged the age but did not add the manual search.
+- **Prompt 4 (figures against opinions):** mostly followed. Not followed: one undated figure pair and a verdict in the first line.
+- **Prompt 9 (currency, VAT, period, no conversion, only loaded pages):** the first three followed. "Only pages that loaded" was bent: the cited page failed its fresh read, though the figure came from a stored extract and the answer said so.
+- **Prompt 13 (no star percentages, themes, one platform):** first two followed. Third missed.
+
+### Tool calls and result size
+
+The Haiku run did not record call counts or sizes, so there is nothing to compare. Sonnet figures (Composio calls only, rough characters):
+
+| # | Composio calls (tools inside) | Result size | Moved to workspace |
+|---|---|---|---|
+| 1 | 2 (3 searches, then one `jq`) | about 49,000 | Yes, despite the flag |
+| 2 | 2 (3, then 1) | about 15,500 | No |
+| 4 | 2 (4, then 2) | about 38,000 | No |
+| 9 | 2 (2, then 1 read of 2 pages) | about 10,000 | No |
+| 13 | 1 (3) | about 20,000 | No |
+| Total | 9 | about 133,000 | 1 of 5 |
+
+Helpers did one to two rounds each, below the skill's limit of about 3. Prompt 1's result was moved because Reddit post text can't be trimmed; the helper had no `jq` recipe for batched files and had to write one.
+
+### Model or skill
+
+- The slips in prompts 1, 4 and 13 came from the model: the rules were already in the skill and a Sonnet helper still missed some of them, though fewer than Haiku.
+- Prompt 9 came from the skill: it cannot get a UK page from Composio, and one rule had a gap. Prompt 2 was fixed by the model.
+- Prompt 9 was a Fail on Haiku and is now Partial. Sonnet's answer was honest about what it could not confirm; the missing GBP price is a limit of where Composio runs, which the skill can only warn about.
+
+### Recommendation
+
+Use Sonnet for helpers on answer-heavy work: prices, comparisons, salaries, anything with caveats. It followed the dating, hedging and cost rules noticeably better and all five runs finished first time. Keep Haiku for simple fetching (one page, one list of links) where there is little to judge. Nothing here measures cost, and the five runs are a small sample, so recheck after any further skill change.
+
+### Skill changes made
+
+`SKILL.md` grew by about 120 characters: the manual search for old sources names `includeDomains` on the vendor's docs site, and the cite rule covers a failed fresh read with a stored extract. `references/exa.md`: a `jq` recipe for moved batch results; a manual or release-notes search for old software advice; a note that Composio reads from outside the UK, so prices may show USD only.
+
+Not changed: the Reddit-alongside-or-only-if-thin inconsistency, a salary-source guide, a "how do customers rate X" recipe and a Trustpilot-conflict note. Each was suggested by one helper and is not yet shown to cause harm.

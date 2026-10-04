@@ -130,7 +130,7 @@ Search results are close matches, not proof. After each round:
 3. Back up key facts (numbers, dates, prices, versions) with two independent sources where possible.
 4. **"Latest" facts need the official page.** For the current version, price, availability or status of something, read the official page with `maxAgeHours: 0`. Exa's stored copies can lag behind the live page. If the official address is obvious, batch the search and the read.
 5. **Prices:** state the currency, whether tax is included and the billing period. If the page shows another currency, say so and don't convert. Check prices from an Exa Agent on the official pages too.
-6. **Software instructions:** check the app version against each source's date. Advice from before a major release may describe settings that no longer exist. If most sources are over a year old, add a search of the current manual or release notes.
+6. **Software instructions:** check the app version against each source's date. Advice from before a major release may describe settings that no longer exist. If most sources are over a year old, add a search of the current manual or release notes (`includeDomains` set to the vendor's docs site).
 7. **Stopping rule:** about 3 rounds. Then answer with what you have and list what you couldn't confirm. Never guess to fill a gap.
 
 Search tips:
@@ -159,7 +159,7 @@ Use helpers when the job is heavy: more than about 4 searches, more than 2 long 
   - **single source**: only one secondary source says it,
   - **unconfirmed**: implied or partly stated.
   Recheck helper labels against these before using them.
-- Cite only pages you read successfully (check `statuses`). Don't add figures or claims no source gave. Keep figures and opinions apart, date each figure, and say when a transcript was cut off. Don't call a mood "overwhelming" from a handful of posts.
+- Cite only pages you read successfully (check `statuses`); if a fresh read failed but a stored extract gave the figure, say so. Don't add figures or claims no source gave. Keep figures and opinions apart, date each figure, and say when a transcript was cut off. Don't call a mood "overwhelming" from a handful of posts.
 - Say what you couldn't find or reach (for example a LinkedIn page or a login page).
 - **People who share a name:** confirm you have the right person before reporting details. If a private individual turns up by mistake, mention only enough to avoid confusion.
 - For job listings, say whether you confirmed each listing is still open.

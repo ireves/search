@@ -60,4 +60,4 @@ Connected and tested on X, Glassdoor and Trustpilot (4 October 2026). The size c
 
 - Parallel `mode` options (`turbo`, `fast`, `basic`, `advanced`): every test left it unset.
 - The `jq` line in `references/exa.md`: a helper ran a similar line on moved paper results and it worked, but the DOI version has not been run as written.
-- Rerun the weaker second-set prompts (1, 2, 4, 9, 13, 14, 15) after the 4 October 2026 skill edits, ideally with Sonnet helpers to separate model effect from skill gaps. Results are in `docs/test-results-composio-2.md`.
+- Prompts 1, 2, 4, 9 and 13 were rerun with Sonnet on 4 October 2026 (1 pass, 4 partial, 0 fail; results in `docs/test-results-composio-2.md`). Still to rerun after the skill edits: prompts 14 and 15, and the Sonnet-rerun fixes (manual search for old software advice, `jq` recipe for moved batches, regional price note).

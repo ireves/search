@@ -105,6 +105,10 @@ About half the results link to `exa.ai/library/publication/...`. The original DO
 ```
 jq -r '.. | objects | select(has("entities")) | [.title, .publishedDate, .url, (.entities[0].properties // "" | fromjson? | .doi // "no doi")] | @tsv' /path/to/saved.json
 ```
+
+**Batched results that were moved** (a batch with Reddit often is, because post text can't be trimmed): go straight to one `jq` call and don't read the preview. In one run the file held `.results[N].response.data`, with Exa hits under `.results[]` and Reddit posts under `.posts[]`. Print only url, date and the first 600 characters of the highlights, and for Reddit the permalink, score, comment count and title. Exa gives a forum thread's title as just the site name, with the date in `author`: write the link text from the content. Field names are from one run; list the keys first if a path comes back empty.
+
+**Software help with old sources:** a second search with `includeDomains` set to the vendor's manual or release-notes site settles which version a setting belongs to.
 Some library entries have no DOI. Then search the title on the likely publisher, or say no original link was found. `publishedDate` of 01-01 is only the year.
 
 **People**
@@ -162,7 +166,7 @@ Reads known links. Unlike the direct connector's `web_fetch_exa`, it can take a 
 
   `auto` is charged by usage and defaults to a $5 cap, so never send it without a `budget`. The cap is a ceiling, not a fixed price. If `stopReason` is `budget_reached`, tell the user the answer may be incomplete. Fixed efforts have a flat price and reject `budget`.
 - The answer is in `output.text`; citations are in `output.grounding`. Use them to link sources, but don't repeat the list to the user.
-- Prices in an Agent's answer still need a fresh read of each official page (`maxAgeHours: 0`); a regional page may show another currency. A `minimal` run on a "current version" question missed the latest patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
+- Prices in an Agent's answer still need a fresh read of each official page (`maxAgeHours: 0`); a regional page may show another currency. Composio reads from outside the UK, so an official page can show USD only and a guessed regional address (such as `/en-gb/`) may 404: give the USD figure, name any local-currency figure as coming from a stored extract, and say it is unconfirmed on the live page. A `minimal` run on a "current version" question missed the latest patch release. For "latest" facts, still read the official page (SKILL.md Step 4).
 - Exa Agents can't reach Reddit or X, so "what users say" comes from store reviews, forums and blogs. When Reddit opinion matters, add a Reddit search.
 - `outputSchema`: give one for lists or tables. Use a top-level object, put rows in a named array with `maxItems`, include a source URL field per row, and a `coverage_notes` field.
 - To refine or extend, pass `previousRunId`, and `input.exclusion` to avoid repeats.
