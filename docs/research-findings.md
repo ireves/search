@@ -86,3 +86,29 @@ Sources read: Exa's official plugin skills ([`search`](https://github.com/exa-la
 2. Switch on Exa's advanced search in the connector, for date and site filters?
 3. Should the skill block Claude's built-in search entirely, or only prefer Exa and Parallel?
 4. Where will you use it: Claude Code, the Claude app, or both? This changes how the skill is installed.
+
+## 7. Round 2: niche software, design research and jobs
+
+Tested on 4 October 2026, with Parallel connected through a signed-in account.
+
+| Test | Exa | Parallel | Winner |
+|---|---|---|---|
+| Blender: Curve to Mesh profile twisting | Good forum answers (use Set Curve Normal, Z Up), mostly 2022 to 2025 | Official 5.2 manual, the same forum fix, a note that "Free" normal mode arrived in 4.1, and a related bug report | Parallel, slightly (more current) |
+| Figma: variable modes resetting nested instances | Main forum threads from 2023 and 2024 | Same main thread plus 2026 threads, including a Figma staff reply saying it's expected behaviour, and the official help page | Parallel |
+| Onboarding redesign case studies with real numbers | 6 genuine designer case studies with before and after figures | Mostly agency pages, a vendor blog, a Medium post and listicles. 1 good case study | Exa, clearly |
+| Research on cancellation dark patterns | 4 different sources: CHI 2024 paper, 2022 journal study, 2024 regulator sweep of 642 companies, the 2019 Princeton crawl | The same CHI paper 6 times (different copies), plus one newer 2025 paper Exa missed | Exa (more variety). Parallel found the newest paper |
+| Junior or mid 3D artist jobs, UK | 8 specific listings with dates, some with salaries (Framestore, Blue Zoo, Sanders Studios). 1 had already closed | Mostly job board search pages (Jooble, Indeed, Totaljobs) and a Vietnamese listing | Exa, clearly |
+| Product designer jobs at London fintechs | 7 real listings on company job pages, with dates and some salaries | Some real listings, but also non-fintech roles, the job site's own careers page and a huge Indeed search page | Exa |
+| Indeed connector (extra check) | n/a | n/a | Returned only 1 job for "Blender 3D artist" in the UK |
+
+**Patterns**
+- **Software help:** Parallel is a little better. It pulls in official manuals, bug reports and newer forum threads alongside the community answers. Exa's answers are good but older.
+- **Design research and case studies:** Exa is much better. Parallel tends to return marketing pages and listicles.
+- **Academic papers:** Exa gives more variety. Parallel repeats the same paper from several sites, but can surface newer papers.
+- **Job listings:** Exa is much better. It finds the actual job pages, while Parallel finds job board search pages. Exa can still return closed listings, so check the page.
+- **Size:** both now return very long results. A single Parallel result pointing at an Indeed search page was several thousand characters of tracking links.
+
+**Routing update**
+- Software questions: run both. Exa for community answers, Parallel for Reddit, official docs and the newest threads.
+- Design research, case studies and papers: Exa only.
+- Jobs: Exa first. Open each listing to check it's still open.
