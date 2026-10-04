@@ -1,6 +1,6 @@
 # Composio version of the skill
 
-A second version of the skill, `.claude/skills/web-research-composio/`, reaches Exa, Reddit, Parallel and (optionally) X through Composio instead of separate connectors. Tested on 4 October 2026 in a Claude Code cloud session.
+The skill, `.claude/skills/web-research-composio/`, reaches Exa, Reddit, Parallel and (optionally) X through Composio instead of separate connectors. Tested on 4 October 2026 in a Claude Code cloud session.
 
 ## Setup
 
@@ -10,9 +10,7 @@ A second version of the skill, `.claude/skills/web-research-composio/`, reaches 
    - **Reddit** (connected)
    - **Parallel** (connected)
    - **Twitter**: not used (see "X (Twitter)" below)
-3. Switch off one of the two skills, so Claude doesn't follow two sets of rules:
-   - Claude Code: delete or move the folder you don't want from `.claude/skills/`.
-   - Claude app: upload only one of the two zipped folders.
+3. The older skill that used separate Exa and Parallel connectors was removed on 4 October 2026. If you installed it in the Claude app or your personal skills folder, delete it there too.
 4. Switch off built-in web search as described in `setup.md`.
 
 ## What the testing found
