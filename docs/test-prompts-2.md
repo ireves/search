@@ -19,6 +19,7 @@ A second set of 15 prompts on topics that don't appear in the skill's examples o
 | 13 | How do customers rate Squarespace's customer support? | `PARALLEL_EXTRACT_WEB_CONTENT` on Trustpilot with an objective and `max_chars_total`; hedges on the star breakdown; summarises themes itself; says it's one platform's view |
 | 14 | What are designers on X saying about Figma's latest big announcement? | Exa confirms what the announcement was and its date first; Parallel limited to `x.com` with user-voice queries and `after_date`; then an Exa search for news articles that embed X posts; Reddit only if X is thin |
 | 15 | What are people on Quora saying about becoming a UX designer without a degree? | Says Quora can't be read; offers or runs Reddit and Exa (blogs, forums) instead and says that's what it did |
+| 16 | Find current developments of flat glass touchscreens that feel textured. Tanvas and Hap2u aren't active anymore but are there any companies that are? | Heavy job (helpers or an Exa Agent); searches several angles (start-ups, established display and glass firms, buyers of Hap2U's assets, trade shows, recent patents); checks each company's register in its own country and language (Vibra Nova, Hap2U's successor, went into liquidation in November 2025, so must not be listed as active); gives each company's newest dated activity; links patents on Google Patents, never `exa.ai/library` |
 
 Check every run for:
 

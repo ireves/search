@@ -35,6 +35,7 @@ The Composio tools carry a prefix that depends on how the user named the connect
    - **Simple** (one fact, one known page): one search or one read, plus one confirming read if it's a "latest" fact (see Step 4). No helpers.
    - **Moderate** (a few facts, one topic, up to about 4 searches): do the searches yourself.
    - **Heavy** (a "compare the top N" or "find all" list, more than about 4 searches, or more than 2 long documents): helper agents if available (Step 5); otherwise an Exa Agent at `auto` with a $1 budget, plus Reddit for any community opinion.
+4. **Spot hidden checks.** Some questions need a check the user didn't spell out. "Is X still active?", "who still makes Y?" and "is it still sold?" need a status check on every item (see "Status checks" in Step 4). Plan these from the start. A list of 4 or more companies or products with status checks is a Heavy job.
 
 ## Step 2: Pick the tool
 
@@ -127,16 +128,31 @@ Search results are close matches, not proof. After each round:
    - **The other services, within their lanes.** If opinion or experience is missing, add Reddit, X or Glassdoor. If facts, papers or listings are missing, widen Exa (new filters, `category`, another angle).
    - **Read the best page** with a focused question when an extract hints at the answer but is cut off.
    - **Exa Agent** when the question clearly needs many steps.
+   - **Do the check, don't hand it over.** If a check is possible with these tools (a register, a patent record, an official notice), run it before answering. List steps for the user only when the tools can't reach the source, and say you tried.
+   - **When one item fails a check, check the rest.** If the user corrects you, or a check overturns one item, run the same check on every other item in the answer before replying.
 3. Back up key facts (numbers, dates, prices, versions) with two independent sources where possible.
 4. **"Latest" facts need the official page.** For the current version, price, availability or status of something, read the official page with `maxAgeHours: 0`. Exa's stored copies can lag behind the live page. If the official address is obvious, batch the search and the read.
 5. **Prices:** state the currency, whether tax is included and the billing period. If the page shows another currency, say so and don't convert. Check prices from an Exa Agent on the official pages too.
 6. **Software instructions:** check the app version against each source's date. Advice from before a major release may describe settings that no longer exist. If most sources are over a year old, add a search of the current manual or release notes (`includeDomains` set to the vendor's docs site).
-7. **Stopping rule:** about 3 rounds. Then answer with what you have and list what you couldn't confirm. Never guess to fill a gap.
+7. **Stopping rule:** about 3 rounds. This doesn't excuse status checks: every item you present as active must have had one. Then answer with what you have and list what you couldn't confirm. Never guess to fill a gap.
 
 Search tips:
 - **Date filters** suit news, jobs, releases and prices. For troubleshooting, avoid them: the definitive answer (often a staff reply or a manual page) can be years old.
 - A result with no date, or only a year, is "undated". Don't guess how recent it is.
 - When sources disagree, order them by date and report the trend.
+
+### Status checks (companies, products, projects)
+
+A company's own pages (website, LinkedIn, press posts) are not proof that it is still trading. They often stay up long after it closes.
+
+1. **For every company you call active, check:**
+   - the official company register in its country, for insolvency, liquidation or dissolution (UK: Companies House; France: BODACC, or Pappers and societe.com which repeat it; US: the state register plus news). Search in the country's own language;
+   - the newest dated sign of activity (news, product, hire, filing) and its date;
+   - news of a closure, takeover, sale of assets or rename.
+2. **Follow up warning signs:** a predecessor that failed, no dated activity in the last 12 months, a website that won't load, founders who have moved on.
+3. **Patents:** check the current owner on Google Patents (`patents.google.com/patent/<number>`) or the European Patent Register, which list transfers. A patent shows interest, not a product.
+4. **"Who is doing X now" lists:** search several angles as separate calls: start-ups, established firms in the industry, buyers of failed players' patents or assets, exhibitors at recent trade shows, and recent patents with the owner named.
+5. In the answer, give each item's newest dated activity. Label any item you couldn't check "status not checked".
 
 ## Step 5: Helper agents (Claude Code and Claude Cowork only)
 
@@ -151,7 +167,7 @@ Use helpers when the job is heavy: more than about 4 searches, more than 2 long 
 ## Step 6: Answer
 
 - Lead with the answer. Link sources inline with descriptive link text.
-- **Link the original source,** never Exa's own library pages (`exa.ai/library/...`). For papers, use the DOI or publisher page (see `references/exa.md`); if there's none, say no original link was found.
+- **Link the original source,** never Exa's own library pages (`exa.ai/library/...`). For papers, use the DOI or publisher page (see `references/exa.md`); for patents, Google Patents (`patents.google.com/patent/<number>`); if there's none, say no original link was found. Before sending, check the answer and its source list for `exa.ai/library` and replace every one.
 - For Reddit, link the thread (add `https://www.reddit.com` to relative `/r/...` links), and say how many upvotes or comments backed a view when it matters.
 - Mark confidence where it matters:
   - **well supported**: two or more independent sources agree (mirrors of one page count once),

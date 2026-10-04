@@ -46,6 +46,7 @@ Return only:
   - primary source = straight from the thing itself (the paper, transcript or official page)
   - single source = only one secondary source says it
   - unconfirmed = implied or partly stated, not clearly sourced
+- Status (companies, products or projects only): for each, the newest dated activity and the company register result, or "status not checked"
 - Gaps: what you looked for and couldn't find
 - sources_reviewed: [total number of results across all your searches]
 Do not include raw tool output.
