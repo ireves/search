@@ -183,3 +183,14 @@ Each search cost $0.007.
 - A fresh download gives the same quality but can take up to 10 times longer. The skill should use the stored copy by default and only ask for a fresh download when the page is likely to have changed recently.
 - Searching for a document by title doesn't always land on the exact file. On the ACM site it chose the abstract page over the PDF. When the exact file matters, read the link directly with Parallel.
 - The connector doesn't say whether a page came from the stored copy or a fresh download. Only the time taken hints at it.
+
+## 12. Reading an exact link with Exa (pinning the address)
+
+`includeDomains` accepts full web addresses, not just site names. Putting a document's exact address there makes the advanced tool read that one document with question-focused highlights.
+
+| Document | Result |
+|---|---|
+| "Dark Patterns at Scale" PDF (`dl.acm.org/doi/pdf/10.1145/3359183`), which the title search had missed | Exact PDF returned. All 5 key facts (1,818 instances, 1,254 sites, about 11.1%, 234 deceptive instances, 183 sites). 4.5 s, $0.007 |
+| Figma forum thread (exact thread address) | Exact thread returned, with the staff replies and the user workaround. 6.5 s |
+
+**Routing update:** reading a specific link, long document or PDF now goes to **Exa first** (advanced tool, exact address pinned, question-focused highlights, full text off). Parallel's reader is the backup, and the first choice for Reddit and X links.
