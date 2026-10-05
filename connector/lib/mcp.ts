@@ -10,11 +10,11 @@ import { runVerify } from "./tools/verify.js";
 
 const PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
-export const INSTRUCTIONS = `Web search through Exa and Parallel, used instead of built-in web search and web fetch.
-- search: find pages. Results are ranked, de-duplicated and trimmed to the relevant passages, with dates and links. Pick a type for papers, people, companies, news, jobs, code, Reddit-style discussions, X posts or reviews.
-- fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
-- verify: check several factual claims at once against independent sources before stating them.
-- research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
+export const INSTRUCTIONS = `Web search through Exa and Parallel. Use instead of built-in web search and web fetch.
+- search: ranked, de-duplicated results with dates, links and the matching passages. Set type for news, discussions (Reddit, forums), x, reviews, papers, people, companies, code, jobs or financial.
+- fetch: read links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Always reads the live page. Add a question to get only the passages that answer it.
+- verify: evidence from independent sites for up to 8 claims; you judge each one.
+- research: an agent searches and reads for you and returns a cited answer. quick ~$0.01, standard ~$0.05, deep (two agents) ~$0.20.
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -24,36 +24,36 @@ export const TOOLS = [
     name: "search",
     title: "Search the web",
     description:
-      "Search the web with Exa and Parallel together. Returns ranked results with title, date, link and the passages that match. Describe the page you want in plain words rather than keywords.",
+      "Search the web with Exa and Parallel together. Returns up to 10 ranked results: title, date, link and the passages that match. Describe the ideal page in plain words, not keywords.",
     inputSchema: {
       type: "object",
       properties: {
         query: {
           type: "string",
-          description: "What to find, as a natural description of the ideal page or the question itself. Include names, versions, places and years.",
+          description: "The ideal page described in plain words, or the question itself. Include names, versions, places and years.",
         },
         type: {
           type: "string",
           enum: [...SEARCH_TYPES],
           description:
-            "web (default) | news | discussions (Reddit and forums: experiences, advice, fixes) | x (posts on X) | reviews (Trustpilot, Glassdoor, user reviews) | papers | people (professional profiles) | companies | code (docs, GitHub, Stack Overflow) | jobs (live postings) | financial (filings, earnings).",
+            "web (default) | news | discussions (Reddit and forums: experiences, advice, fixes) | x (posts on X) | reviews (Trustpilot, Glassdoor, user reviews) | papers | people (professional profiles) | companies (profiles; for one named company add its website, e.g. \"Monzo monzo.com\") | code (docs, GitHub, Stack Overflow) | jobs (live postings) | financial (filings, earnings).",
         },
         goal: {
           type: "string",
-          description: "Goal for this search: which sources should rank first or be left out, and which facts or figures to pull from them.",
+          description: "Goal for this search: which sources should rank first or be excluded, and which facts or figures to pull from them.",
         },
         after: { type: "string", description: "Only pages published on or after this date: YYYY-MM-DD, or relative such as 7d, 3m, 1y." },
         before: { type: "string", description: "Only pages published on or before this date (YYYY-MM-DD)." },
         sites: { type: "array", items: { type: "string" }, description: "Only these sites or site sections, e.g. [\"forum.figma.com\", \"reddit.com/r/blender\"]." },
         exclude_sites: { type: "array", items: { type: "string" }, description: "Leave out these sites." },
         country: { type: "string", description: "Two-letter country code to localise results, e.g. GB." },
-        max_results: { type: "integer", minimum: 1, maximum: 15, description: "Default 8." },
+        max_results: { type: "integer", minimum: 1, maximum: 15, description: "Default 10." },
         depth: {
           type: "string",
           enum: [...DEPTHS],
-          description: "fast (quickest, one engine) | standard (default) | thorough (engines search iteratively; slower, for hard or obscure questions).",
+          description: "standard (default, both engines) | thorough (deeper search; slower, for hard or obscure questions) | fast (one engine, cheapest).",
         },
-        fresh: { type: "boolean", description: "Re-download pages instead of using stored copies. For prices, stock, live status. Slower." },
+        fresh: { type: "boolean", description: "Re-download the result pages (live prices, stock, status). Slower." },
       },
       required: ["query"],
       additionalProperties: false,
@@ -64,14 +64,13 @@ export const TOOLS = [
     name: "fetch",
     title: "Read web pages",
     description:
-      "Read up to 5 links: web pages, PDFs, YouTube videos (transcript), Reddit threads (with comments), X posts. With a question, returns only the relevant passages from anywhere in the document; without one, returns the page from the top.",
+      "Read up to 5 links: web pages, PDFs, YouTube videos (transcript), Reddit threads (with comments), X posts. Always reads the live page. With a question, returns only the relevant passages from anywhere in the document; without one, the page from the top.",
     inputSchema: {
       type: "object",
       properties: {
         urls: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 5, description: "Full web addresses." },
-        question: { type: "string", description: "What you need from the page(s). Strongly recommended for long pages and PDFs." },
+        question: { type: "string", description: "What you need from the page(s). Use it for long pages and PDFs." },
         max_chars: { type: "integer", minimum: 500, maximum: 20000, description: "Per page. Default 4000 with a question, 6000 without." },
-        fresh: { type: "boolean", description: "Re-download instead of using a stored copy." },
       },
       required: ["urls"],
       additionalProperties: false,
@@ -103,7 +102,7 @@ export const TOOLS = [
     name: "research",
     title: "Deep research",
     description:
-      "Hand a multi-step research question to research agents that run many searches and readings themselves and return a cited report. quick (~1 min, ~$0.03), standard (~1-3 min, ~$0.10), deep (two independent agents, 3-10 min, up to ~$1.10). If it's still running, call again with the run_id it gives you.",
+      "A research agent runs its own searches and reading and returns a cited answer. quick (~$0.01, 10-20 s): one question needing several sources. standard (~$0.05, ~1 min): comparisons and multi-part questions. deep (~$0.20, 2-10 min): two independent agents' reports, for cross-checking. If it's still running, call again with the run_id it gives you.",
     inputSchema: {
       type: "object",
       properties: {

@@ -31,7 +31,10 @@ interface Plan {
 
 // Which engine does what. Exa finds pages by meaning and has the better index
 // for articles, papers, people, companies and jobs, but can't reach Reddit or
-// X. Parallel covers those and adds fresher pages to general searches.
+// X. Parallel covers those and adds official docs and fresher pages to general
+// searches. Tested October 2026 (docs/research-findings.md, round 3): Exa alone
+// ranked best per result; adding Parallel's advanced mode raised the number of
+// useful pages in a 10-result list by 14%, while its fast mode lowered quality.
 const PLANS: Record<SearchType, Plan> = {
   web: { exa: {}, parallel: { prefix: "" }, exaWeight: 1, parallelWeight: 0.8 },
   news: { exa: { category: "news" }, parallel: { prefix: "Recent news reporting: " }, exaWeight: 1, parallelWeight: 0.9 },
@@ -73,8 +76,16 @@ const PLANS: Record<SearchType, Plan> = {
   financial: { exa: { category: "financial report" }, exaWeight: 1, parallelWeight: 0 },
 };
 
-const EXA_TYPE: Record<Depth, ExaType> = { fast: "fast", standard: "auto", thorough: "deep" };
-const CHARS: Record<Depth, number> = { fast: 600, standard: 900, thorough: 1400 };
+// Exa's fast and auto cost the same and returned 7 of the same 8 pages, so
+// "fast" depth only drops the second engine. deep-lite beat deep on open-ended
+// questions in testing (same price, half the wait).
+const EXA_TYPE: Record<Depth, ExaType> = { fast: "auto", standard: "auto", thorough: "deep-lite" };
+// Parallel: advanced ($5/1k) found far better pages than fast ($1/1k) for
+// general searches; on Reddit-only searches fast was as good, basic worst.
+const PARALLEL_MODE: Record<Depth, ParallelMode> = { fast: "fast", standard: "advanced", thorough: "advanced" };
+const CHARS: Record<Depth, number> = { fast: 700, standard: 800, thorough: 1200 };
+const TOTAL_CHARS = 9000;
+const DEFAULT_RESULTS = 10;
 
 export interface SearchInput {
   query: string;
@@ -96,8 +107,8 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   const type: SearchType = SEARCH_TYPES.includes(input.type as SearchType) ? (input.type as SearchType) : "web";
   const depth: Depth = DEPTHS.includes(input.depth as Depth) ? (input.depth as Depth) : "standard";
   const plan = PLANS[type];
-  const limit = Math.min(Math.max(Math.round(input.max_results ?? 8), 1), 15);
-  const perResult = Math.max(400, Math.min(CHARS[depth], Math.floor(14_000 / limit)));
+  const limit = Math.min(Math.max(Math.round(input.max_results ?? DEFAULT_RESULTS), 1), 15);
+  const perResult = Math.max(400, Math.min(CHARS[depth], Math.floor((depth === "thorough" ? 14_000 : TOTAL_CHARS) / limit)));
   const after = parseDate(input.after) ?? parseDate(plan.exa?.defaultAfter);
   const before = parseDate(input.before);
   const sites = (input.sites ?? []).map(cleanDomain).filter(Boolean);
@@ -141,7 +152,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     );
   }
   if (parallelActive) {
-    const mode: ParallelMode = depth === "thorough" ? "advanced" : plan.parallel?.primary ? "basic" : depth === "fast" ? "turbo" : "fast";
+    const mode = PARALLEL_MODE[depth];
     const prefix = plan.parallel?.prefix ?? "";
     jobs.push(
       parallelSearch({

@@ -22,6 +22,10 @@ interface Page {
 // Sites Exa can't read (or reads badly) go straight to Parallel.
 const PARALLEL_FIRST = /(^|\.)(x\.com|twitter\.com|glassdoor\.[a-z.]+|trustpilot\.com|linkedin\.com|quora\.com)$/;
 
+// Published papers rarely change, and publishers often refuse or time out on a
+// live download (ACM, DOI and PubMed did in testing) while Exa's stored copy works.
+const STORED_FIRST = /(^|\.)(doi\.org|arxiv\.org|dl\.acm\.org|ncbi\.nlm\.nih\.gov|sciencedirect\.com|springer\.com|wiley\.com|ieeexplore\.ieee\.org|jstor\.org|nature\.com|science\.org|academic\.oup\.com|tandfonline\.com|sagepub\.com|cambridge\.org|researchgate\.net|semanticscholar\.org|ssrn\.com|biorxiv\.org|medrxiv\.org|plos\.org|frontiersin\.org|mdpi\.com)$/;
+
 function normaliseUrl(raw: string): string | null {
   const s = raw.trim();
   if (!s) return null;
@@ -50,7 +54,8 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   if (!urls.length) return { text: "Give 1 to 5 web addresses in urls.", isError: true };
   const question = input.question?.trim() || undefined;
   const maxChars = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), 20_000);
-  const fresh = Boolean(input.fresh);
+  // Pages are always read live now; `fresh` is still accepted from older skills.
+  const fresh = true;
 
   const pages = new Map<string, Page>();
   const reddit = urls.filter(isRedditThread);
@@ -72,34 +77,48 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     }
   };
 
-  const viaExa = async (targets: string[]) => {
-    if (!targets.length) return;
-    let retry: string[] = [];
-    try {
-      const results = await exaContents(targets, question, maxChars, fresh);
-      for (const r of results) {
-        if (r.ok && !looksThin(r.content, Boolean(question))) {
-          const cut = !question && r.content.length >= maxChars * 0.97;
-          pages.set(r.url, {
-            url: r.url,
-            title: r.title,
-            date: r.date,
-            content: r.content,
-            note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
-          });
-        } else {
-          retry.push(r.url);
+  // Exa reads the live page (stored copies of "latest" pages were out of date
+  // in testing), then its stored copy if the site blocked the download, then
+  // Parallel. Papers go the other way round.
+  const viaExa = async (targets: string[], order: readonly ("live" | "stored")[]) => {
+    let pending = targets;
+    for (const freshness of order) {
+      if (!pending.length) return;
+      const retry: string[] = [];
+      try {
+        const results = await exaContents(pending, question, maxChars, freshness);
+        for (const r of results) {
+          if (r.ok && !looksThin(r.content, Boolean(question))) {
+            const cut = !question && r.content.length >= maxChars * 0.97;
+            const note = r.capped
+              ? "Only the first 1,000 characters are available: this publisher limits automated reading. Look for other coverage of the same story if more is needed."
+              : cut
+                ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.`
+                : undefined;
+            pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: r.content, note });
+          } else {
+            retry.push(r.url);
+          }
         }
+      } catch (e) {
+        failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
+        retry.push(...pending);
+        if (e instanceof EngineError && (e.status === 0 || e.status === 401 || e.status === 402 || e.status === 403)) break;
       }
-    } catch (e) {
-      failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
-      retry = targets;
+      pending = retry;
     }
     // Backup reader for pages Exa refused or returned thin.
-    await viaParallel(retry);
+    await viaParallel(pending);
   };
 
-  await Promise.all([viaExa(exaFirst), viaParallel(parallelFirst), ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures))]);
+  const papers = exaFirst.filter((u) => STORED_FIRST.test(hostOf(u)));
+  const others = exaFirst.filter((u) => !papers.includes(u));
+  await Promise.all([
+    viaExa(others, ["live", "stored"]),
+    viaExa(papers, ["stored", "live"]),
+    viaParallel(parallelFirst),
+    ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures)),
+  ]);
 
   const blocks = urls.map((url) => {
     const p = pages.get(url);

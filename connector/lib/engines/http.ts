@@ -1,6 +1,8 @@
 import { readSecret } from "../store.js";
 
 export class EngineError extends Error {
+  retryAfterMs?: number;
+
   constructor(
     public engine: string,
     public status: number,
@@ -28,7 +30,30 @@ export async function apiKey(engine: "Exa" | "Parallel"): Promise<string> {
   return key;
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// One retry after a rate limit (429), and after a gateway error when the call
+// is safe to repeat. Claude often runs several searches at once, which can hit
+// a per-second limit.
 export async function callJson<T>(
+  engine: string,
+  url: string,
+  init: { method?: string; headers: Record<string, string>; body?: unknown; timeoutMs?: number; idempotent?: boolean },
+): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await callOnce<T>(engine, url, init);
+    } catch (error) {
+      const status = error instanceof EngineError ? error.status : 0;
+      const retryable = status === 429 || (init.idempotent !== false && (status === 502 || status === 503 || status === 504));
+      if (attempt >= 2 || !retryable) throw error;
+      const wait = error instanceof EngineError && error.retryAfterMs !== undefined ? error.retryAfterMs : 1500;
+      await sleep(Math.min(Math.max(wait, 500), 4000) + Math.floor(Math.random() * 400));
+    }
+  }
+}
+
+async function callOnce<T>(
   engine: string,
   url: string,
   init: { method?: string; headers: Record<string, string>; body?: unknown; timeoutMs?: number },
@@ -59,7 +84,10 @@ export async function callJson<T>(
     } catch {
       // keep raw text
     }
-    throw new EngineError(engine, response.status, message);
+    const err = new EngineError(engine, response.status, message);
+    const retryAfter = Number(response.headers.get("retry-after"));
+    if (Number.isFinite(retryAfter) && retryAfter > 0) err.retryAfterMs = retryAfter * 1000;
+    throw err;
   }
   try {
     return JSON.parse(text) as T;

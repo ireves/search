@@ -1,9 +1,13 @@
 // Parallel: keyword-plus-objective web search with live crawling, page
 // extraction, and the Task API for deep research. API reference: https://docs.parallel.ai
 
-import { cleanText, isoDay, joinExcerpts } from "../text.js";
+import { cleanText, hostOf, isoDay, joinExcerpts, tidyExcerpt } from "../text.js";
 import type { Hit } from "./exa.js";
 import { apiKey, callJson } from "./http.js";
+
+// Partner-database entries Parallel mixes into results (tagged
+// utm_source=parallel). They sit behind a login and rarely answer anything.
+const PARTNER_NOISE = /(^|\.)platform\.tracxn\.com$/;
 
 const BASE = "https://api.parallel.ai";
 const CLIENT_MODEL = "claude";
@@ -66,13 +70,18 @@ export async function parallelSearch(o: ParallelSearchOptions): Promise<Hit[]> {
     },
     timeoutMs: o.fresh || mode === "advanced" ? 40_000 : 20_000,
   });
-  return (data.results ?? []).map((r) => ({
-    url: r.url,
-    title: cleanText(r.title ?? "") || r.url,
-    date: isoDay(r.publish_date),
-    excerpt: joinExcerpts(r.excerpts ?? [], o.maxCharsPerResult),
-    engine: "parallel" as const,
-  }));
+  return (data.results ?? [])
+    .filter((r) => !PARTNER_NOISE.test(hostOf(r.url)))
+    .map((r) => {
+      const title = cleanText(r.title ?? "") || r.url;
+      return {
+        url: r.url,
+        title,
+        date: isoDay(r.publish_date),
+        excerpt: tidyExcerpt(joinExcerpts(r.excerpts ?? [], o.maxCharsPerResult), title),
+        engine: "parallel" as const,
+      };
+    });
 }
 
 export interface ParallelPage {
@@ -161,6 +170,7 @@ export async function parallelTaskStart(input: string, processor: Processor, des
       task_spec: { output_schema: { type: "text", description } },
     },
     timeoutMs: 20_000,
+    idempotent: false,
   });
 }
 
@@ -176,6 +186,82 @@ export async function parallelTaskResult(runId: string, waitSeconds: number): Pr
     if (status === 408 || status === -1) return null;
     throw error;
   }
+}
+
+// Responses API: a synchronous research agent that searches, reads and answers
+// with citations in about 10 seconds (low) to a minute (medium). Asking for a
+// JSON answer makes it number its citations against a source list; free text
+// only gets internal "[doc 103]" markers that can't be linked.
+export type ResponsesEffort = "low" | "medium" | "high";
+
+export interface CitedAnswer {
+  answer: string;
+  sources: { n: number; url: string; title: string }[];
+  // False when the [n] markers in the answer can't be matched to the sources.
+  numbered: boolean;
+  searches: number;
+  pagesRead: number;
+}
+
+const CITED_ANSWER_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["answer", "sources"],
+  properties: {
+    answer: {
+      type: "string",
+      description:
+        "Concise markdown answer. Cite every factual claim inline with [n] matching the sources list. Exact figures with dates and units. Where sources disagree, say so. End with 'Not verified:' listing anything that could not be confirmed, if any.",
+    },
+    sources: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["n", "url", "title"],
+        properties: { n: { type: "integer" }, url: { type: "string" }, title: { type: "string" } },
+      },
+    },
+  },
+};
+
+export async function parallelRespond(input: string, effort: ResponsesEffort, instructions: string, timeoutMs: number): Promise<CitedAnswer> {
+  const data = await callJson<{
+    output?: { type: string; action?: { type?: string }; content?: { text?: string; annotations?: { url?: string; title?: string }[] }[] }[];
+  }>("Parallel", `${BASE}/v1/responses`, {
+    headers: await headers(),
+    body: {
+      model: "parallel",
+      input: input.slice(0, 15_000),
+      instructions,
+      reasoning: { effort },
+      text: { format: { type: "json_schema", name: "cited_answer", schema: CITED_ANSWER_SCHEMA, strict: true } },
+    },
+    timeoutMs,
+  });
+  const output = data.output ?? [];
+  const message = output.find((o) => o.type === "message")?.content?.[0];
+  const searches = output.filter((o) => o.type === "web_search_call" && o.action?.type === "search").length;
+  const pagesRead = output.filter((o) => o.type === "web_search_call" && o.action?.type === "open_page").length;
+  const raw = message?.text ?? "";
+  // Every page the agent drew on, attached by Parallel whatever the format.
+  const seen = new Set<string>();
+  const annotated = (message?.annotations ?? [])
+    .filter((a) => a.url && !seen.has(a.url) && seen.add(a.url))
+    .map((a, i) => ({ n: i + 1, url: a.url!, title: a.title ?? "" }));
+  try {
+    const parsed = JSON.parse(raw) as { answer?: string; sources?: { n: number; url: string; title: string }[] };
+    if (typeof parsed.answer === "string") {
+      const listed = (parsed.sources ?? []).filter((x) => x?.url && Number.isInteger(x.n));
+      // The model sometimes leaves its list empty and numbers citations from
+      // its own reading list instead; those numbers can't be linked.
+      if (listed.length) return { answer: parsed.answer, sources: listed, numbered: true, searches, pagesRead };
+      return { answer: parsed.answer, sources: annotated, numbered: false, searches, pagesRead };
+    }
+  } catch {
+    // Fall through to plain text.
+  }
+  return { answer: raw, sources: annotated, numbered: false, searches, pagesRead };
 }
 
 export async function parallelCheck(key: string): Promise<number> {

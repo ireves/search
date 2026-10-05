@@ -34,9 +34,10 @@ test("web search merges both engines, removes duplicates and mirrors", async () 
   assert.doesNotMatch(text, /Section Title|https:\/\/x\.y\/z/);
   const exaCall = calls.find((c) => c.url.includes("exa.ai"))!;
   assert.equal(exaCall.headers["x-api-key"], "exa-test-key-123");
-  assert.equal(exaCall.body.contents.highlights.maxCharacters, 900);
+  assert.equal(exaCall.body.contents.highlights.maxCharacters, 800);
+  assert.equal(exaCall.body.numResults, 10);
   const parCall = calls.find((c) => c.url.includes("parallel.ai"))!;
-  assert.equal(parCall.body.mode, "fast");
+  assert.equal(parCall.body.mode, "advanced");
 });
 
 test("X searches go only to Parallel, limited to X", async () => {
@@ -146,9 +147,46 @@ test("verify gathers evidence per claim from different websites", async () => {
   assert.match(text, /Separate websites: 2/);
 });
 
-test("research returns a run_id while running, then the cited report", async () => {
+test("quick research returns Parallel's cited answer with its numbered sources", async () => {
+  mockNetwork((c) =>
+    c.url === "https://api.parallel.ai/v1/responses"
+      ? {
+          body: {
+            output: [
+              { type: "web_search_call", action: { type: "search", queries: ["q"] } },
+              { type: "web_search_call", action: { type: "open_page", url: "https://gov.uk/a" } },
+              {
+                type: "message",
+                content: [
+                  {
+                    text: JSON.stringify({
+                      answer: "The grant is £7,500 [2]. See [the guide](https://gov.uk/a).",
+                      sources: [
+                        { n: 1, url: "https://blog.example/x", title: "Blog" },
+                        { n: 2, url: "https://gov.uk/a", title: "GOV.UK" },
+                      ],
+                    }),
+                  },
+                ],
+              },
+            ],
+          },
+        }
+      : undefined,
+  );
+  const { text, isError } = await runResearch({ task: "How much is the heat pump grant?", effort: "quick" });
+  assert.equal(isError, false);
+  assert.equal(calls[0].body.reasoning.effort, "low");
+  assert.equal(calls[0].body.text.format.type, "json_schema");
+  assert.match(text, /1 searches, 1 pages read/);
+  assert.match(text, /The grant is £7,500 \[2\]\. See the guide \(https:\/\/gov\.uk\/a\)\./);
+  assert.match(text, /\[2\] GOV\.UK https:\/\/gov\.uk\/a/);
+});
+
+test("research falls back to Exa Agent, returns a run_id while running, then the report", async () => {
   let polls = 0;
   mockNetwork((c) => {
+    if (c.url === "https://api.parallel.ai/v1/responses") return { status: 500, body: { error: { message: "down" } } };
     if (c.url === "https://api.exa.ai/agent/runs" && c.method === "POST") return { body: { id: "agent_run_1", status: "queued" } };
     if (c.url === "https://api.exa.ai/agent/runs/agent_run_1") {
       polls++;
@@ -168,9 +206,137 @@ test("research returns a run_id while running, then the cited report", async () 
     return undefined;
   });
   const first = await runResearch({ task: "What is the answer?", effort: "quick" });
+  assert.match(first.text, /Parallel research failed/);
   assert.match(first.text, /run_id="exa:agent_run_1"/);
-  assert.equal(calls[0].body.effort, "low");
+  const start = calls.find((c) => c.url === "https://api.exa.ai/agent/runs")!;
+  assert.equal(start.body.effort, "low");
+  assert.match(start.body.systemPrompt, /language of the task/);
   const second = await runResearch({ run_id: "exa:agent_run_1" });
   assert.match(second.text, /The answer is 42\./);
   assert.match(second.text, /\[1\] Source A https:\/\/src\.com\/a \(confidence: high\)/);
+});
+
+test("deep research runs Exa Agent (medium) and a Parallel pro task side by side", async () => {
+  mockNetwork((c) => {
+    if (c.url === "https://api.exa.ai/agent/runs" && c.method === "POST") return { body: { id: "run_e", status: "queued" } };
+    if (c.url.startsWith("https://api.exa.ai/agent/runs/run_e")) return { body: { id: "run_e", status: "running" } };
+    if (c.url === "https://api.parallel.ai/v1/tasks/runs") return { body: { run_id: "run_p", status: "queued" } };
+    if (c.url.startsWith("https://api.parallel.ai/v1/tasks/runs/run_p/result"))
+      return {
+        body: {
+          run: { run_id: "run_p", status: "completed" },
+          output: { type: "text", content: "Report body [1].\n\n## References\n\n1. [  Official page\n](https://official.example/a)", basis: [] },
+        },
+      };
+    return undefined;
+  });
+  const { text } = await runResearch({ task: "Deep question", effort: "deep" });
+  assert.equal(calls.find((c) => c.url === "https://api.exa.ai/agent/runs")!.body.effort, "medium");
+  assert.equal(calls.find((c) => c.url === "https://api.parallel.ai/v1/tasks/runs")!.body.processor, "pro");
+  assert.match(text, /## References\n\n1\. Official page \(https:\/\/official\.example\/a\)/);
+  assert.match(text, /run_id="exa:run_e"/);
+});
+
+test("people results show current roles from Exa's structured history", async () => {
+  mockNetwork(
+    exaSearchReply([
+      {
+        url: "https://linkedin.com/in/fs",
+        title: "Francesco Siddi",
+        highlights: ["Producer"],
+        entities: [
+          {
+            type: "person",
+            properties: {
+              location: "Amsterdam",
+              workHistory: [
+                { title: "Chief Operating Officer", dates: { from: "2020-03-01", to: "2026-01-01" }, company: { id: null, name: "Blender" } },
+                { title: "CEO", dates: { from: "2026-01-01", to: null }, company: { id: "x", name: "Blender" } },
+              ],
+              educationHistory: [{ degree: "BA", dates: { from: "2009", to: "2009" }, institution: { id: null, name: "Bilgi University" } }],
+            },
+          },
+        ],
+      },
+    ]),
+  );
+  const { text } = await runSearch({ query: "Francesco Siddi Blender", type: "people" });
+  assert.match(text, /Work: CEO at Blender \(2026-01 to now\); Chief Operating Officer at Blender \(2020-03 to 2026-01\)/);
+  assert.match(text, /Education: BA, Bilgi University \(2009\)/);
+  assert.doesNotMatch(text, /object Object/);
+});
+
+test("fetch reads live first and falls back to the stored copy; papers go stored first", async () => {
+  mockNetwork((c) => {
+    if (c.url !== "https://api.exa.ai/contents") return undefined;
+    const live = c.body.maxAgeHours === 0;
+    const url = c.body.urls[0];
+    if (live) return { body: { results: [], statuses: [{ id: url, status: "error", error: { tag: "CRAWL_LIVECRAWL_TIMEOUT" } }] } };
+    return { body: { results: [{ id: url, url, title: "Stored", text: "The stored page text. ".repeat(30) }], statuses: [{ id: url, status: "success", source: "cached" }] } };
+  });
+  const site = await runFetch({ urls: ["https://site.org/report"] });
+  const siteCalls = calls.filter((c) => c.url === "https://api.exa.ai/contents");
+  assert.deepEqual(siteCalls.map((c) => c.body.maxAgeHours), [0, undefined]);
+  assert.match(site.text, /The stored page text/);
+
+  const before = calls.length;
+  const paper = await runFetch({ urls: ["https://dl.acm.org/doi/10.1145/3359183"] });
+  const paperCalls = calls.slice(before).filter((c) => c.url === "https://api.exa.ai/contents");
+  assert.deepEqual(paperCalls.map((c) => c.body.maxAgeHours), [undefined]);
+  assert.match(paper.text, /The stored page text/);
+});
+
+test("fetch says when a publisher caps the text at 1,000 characters", async () => {
+  mockNetwork((c) =>
+    c.url === "https://api.exa.ai/contents"
+      ? { body: { results: [{ id: "https://news.example/a", url: "https://news.example/a", title: "Story", text: "x".repeat(999) + "." }], statuses: [{ id: "https://news.example/a", status: "success" }] } }
+      : undefined,
+  );
+  const { text } = await runFetch({ urls: ["https://news.example/a"] });
+  assert.match(text, /Only the first 1,000 characters are available/);
+});
+
+test("search folds copies of the same document and drops Parallel's partner-database entries", async () => {
+  const passage = "We crawled 11K shopping websites and found 1,818 instances of dark patterns. These appeared on 1,254 websites, about 11.1% of the sample. Of these, 234 instances were deceptive and appeared on 183 websites.";
+  mockNetwork(
+    exaSearchReply([exaResult("https://dl.acm.org/doi/10.1145/3359183", "Dark Patterns at Scale", passage)]),
+    parallelSearchReply([
+      parallelResult("https://webtransparency.cs.princeton.edu/dark-patterns/assets/dark-patterns.pdf", "dark-patterns.pdf", passage),
+      parallelResult("https://platform.tracxn.com/a/d/company/1/x?utm_source=parallel", "Company X", "Name: X | Short Description: database entry"),
+    ]),
+  );
+  const { text } = await runSearch({ query: "dark patterns at scale findings" });
+  assert.equal((text.match(/^\[\d+\]/gm) ?? []).length, 1, text);
+  assert.match(text, /Same document also on: webtransparency\.cs\.princeton\.edu/);
+  assert.doesNotMatch(text, /tracxn/);
+});
+
+test("quick research drops citation numbers it can't link and lists the pages the agent used", async () => {
+  mockNetwork((c) =>
+    c.url === "https://api.parallel.ai/v1/responses"
+      ? {
+          body: {
+            output: [
+              {
+                type: "message",
+                content: [
+                  {
+                    text: JSON.stringify({ answer: "The grant is £7,500 [0][3].", sources: [] }),
+                    annotations: [
+                      { type: "url_citation", url: "https://gov.uk/a", title: "GOV.UK" },
+                      { type: "url_citation", url: "https://gov.uk/a", title: "GOV.UK" },
+                      { type: "url_citation", url: "https://ofgem.gov.uk/b", title: "Ofgem" },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }
+      : undefined,
+  );
+  const { text } = await runResearch({ task: "How much is the grant?", effort: "quick" });
+  assert.match(text, /The grant is £7,500\./);
+  assert.doesNotMatch(text, /\[0\]|\[3\]/);
+  assert.match(text, /Sources the agent used \(not linked to specific sentences\):\n\[1\] GOV\.UK https:\/\/gov\.uk\/a\n\[2\] Ofgem https:\/\/ofgem\.gov\.uk\/b/);
 });
