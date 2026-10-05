@@ -228,3 +228,144 @@ Each site tested with Exa (`includeDomains` set to that site) and, where Exa loo
 `site:reddit.com` in Parallel kept 10 of 10 results on Reddit, so limiting Parallel with `site:` reliably avoids duplicating Exa. Some Reddit pages carried Reddit's auto-generated "Related Answers" text, which isn't user content.
 
 **Skill update:** Parallel is now added alongside Exa for software help, buying advice, real-world experience, reactions to releases, creator posts, employer reviews and company review scores, but always limited to Reddit, X, Glassdoor or Trustpilot. Unrestricted Parallel web searches are no longer used.
+
+## 15. Round 3: settings, costs and quality of the Search connector (5 October 2026)
+
+Everything below was tested by calling the Exa and Parallel APIs directly with temporary keys, and then by running the connector's own tools against the live services. The test set had 16 everyday questions (facts, troubleshooting, opinions, news, papers, people, companies, jobs, prices), 14 pages to read (news, docs, a forum, a blog, a 30-page PDF, GOV.UK, Wikipedia, GitHub, Stack Overflow, YouTube, a shop page, an annual report, a review) and 2 research briefs. For the 8 hardest questions, every page any setting returned (about 200) was scored by hand: 2 = directly useful or authoritative, 1 = somewhat useful, 0 = off-topic, paywalled or junk.
+
+### 15.1 Answers to the six questions
+
+**1. Are we using everything useful that Exa and Parallel offer?** Mostly, with five gaps, now fixed:
+
+- Parallel ran in its cheapest search mode (`fast`) with one automatically built keyword query. That lowered the quality of merged results below Exa on its own. Its `advanced` mode, which Parallel recommends for agents that can wait, found far better pages.
+- Pages were read from stored copies. Stored copies of "latest" pages can be weeks old, so a "check the official page" step could confirm an out-of-date answer.
+- Parallel's Responses API (a synchronous research agent, launched July 2026) wasn't used. It gave the best research value of anything tested.
+- Exa's `deep-lite` mode wasn't used. It matched `deep` on price and did better on open-ended questions, in half the time.
+- People results printed "[object Object]" because Exa changed the shape of its work-history data.
+
+Settings tested and left out: Exa's "dynamic highlights" (see 15.3), Exa's `excludeSections` (made no difference), a positive `maxAgeHours` (returned the wrong document), Parallel's `basic` mode (worst on Reddit), Parallel's `high` research effort (no better than `medium` at five times the price), and Exa's `/answer` endpoint (cheap and quick, but leans on secondary sites; a candidate for later).
+
+**2. Best parameters and combinations** (now the connector's defaults):
+
+| Job | Engines and settings | Cost |
+|---|---|---|
+| General search | Exa `auto` + Parallel `advanced`, merged, 10 results, about 800 characters each | about $0.012 |
+| Hard or obscure search | Exa `deep-lite` + Parallel `advanced`, 1,200 characters each | about $0.017 |
+| Reddit, X, reviews | Parallel `advanced` limited to those sites, plus Exa for forums and review sites | about $0.012 |
+| Papers, people, companies, jobs, filings | Exa only, with its category | about $0.007 |
+| Read a page | Exa live download; with a question, only the matching passages (up to 4,000 characters) | about $0.001 a page |
+| Check claims | Exa `auto` + Parallel `advanced` per claim, 4 independent sites | about $0.012 a claim |
+| Research, quick / standard | Parallel Responses API, low / medium effort | about $0.01 / $0.05 |
+| Research, deep | Exa Agent `medium` + Parallel Task `pro`, side by side | about $0.20 |
+
+**3. Can the skill be clearer for cheaper models while staying flexible?** Yes. The everyday skill now opens with a numbered routing list ("first match wins") that maps each kind of question to one tool and its settings, with explicit defaults (for example 5 results for a single fact). Vague phrases such as "when needed" were replaced by rules, and the skill names the cases where a cheaper model typically goes wrong: trusting stale excerpts for "latest" facts, chaining many searches for comparisons, and treating a research agent's summary as proof.
+
+**4. Is the skill writing as cheap as it can be?** Close to it, and further squeezing isn't worth it. The everyday skill is about 730 tokens and loads only when used. One search result costs about 2,000 to 2,300 tokens, so a rule that saves one unnecessary search saves three times the whole skill. Turning the text into symbols and abbreviations would save perhaps 200 tokens a load but makes smaller models more likely to misread a rule. The tool descriptions, which sit in every conversation where the connector is on, stayed at about 1,200 tokens.
+
+**5. Can the server reduce clutter and the need for helper agents?** Yes, in four ways:
+
+- Exa's page text was already clean. The clutter came from Parallel and from gaps in the connector's own clean-up: menu links with hover titles slipped through, and so did script-fallback notices, X and Reddit page furniture and paragraphs repeated on the same page. These are now removed. Exa's `excludeSections` setting changed only 1 of 14 pages, by 4%, so it isn't used.
+- Copies of the same document (the same passages on another site, up to 40% of one result set) are now shown once.
+- Reading with a question returns only the passages that answer it, from anywhere in a document.
+- The research tool now returns a finished, cited answer in 10 to 60 seconds for one to five cents. That does the job of a helper agent without filling Claude's context with raw results, so the skills no longer suggest helper agents for searching.
+
+**6. Best cost-to-quality ratio for most questions.**
+
+| Kind of question | Typical calls | Cost | Context added |
+|---|---|---|---|
+| One fact | 1 search (5 results) | about $0.012 | about 1,200 tokens |
+| Latest or current fact | 1 search + 1 live page read | about $0.015 | about 2,500 tokens |
+| Opinion or experience | 1 or 2 searches (discussions, reviews) | $0.012 to $0.024 | 2,000 to 4,500 tokens |
+| Comparison or several facts | research quick or standard + 1 verify | $0.03 to $0.08 | 2,000 to 3,000 tokens |
+| Deep research report | research deep + 3 to 5 searches + 2 to 4 page reads + up to 2 verify calls | $0.30 to $0.50 | 15,000 to 25,000 tokens |
+
+### 15.2 Search results
+
+**Exa excerpt settings** (16 questions, 8 results each; every setting found all 14 checkable facts):
+
+| Setting | Average characters per search |
+|---|---|
+| Fixed 900 characters per result, steered by the question (previous default) | 7,584 |
+| Exa's own sizing (`highlights: true`) | 21,741 |
+| Dynamic highlights, low | 5,164 |
+| Dynamic highlights, medium | 7,664 |
+
+Dynamic highlights spend one shared budget across all results. In practice they gave one or two pages most of it and left the others about 250 characters each (one comparison search: 5,130 characters on one page, about 250 on each of the other seven). That suits single-answer questions but loses breadth on comparisons and opinions, so fixed per-result budgets stay.
+
+**Parallel excerpt sizes** without a cap were large (`fast`: 18,499 characters on average; one search returned 75,800 because of a 62,000-character annual report excerpt), so the connector keeps its caps.
+
+**Engines and modes, scored by hand** (8 hardest questions, top 8 results, maximum 128):
+
+| Setting | Score | Very useful results | Useless results |
+|---|---|---|---|
+| Exa `auto` alone | 100 | 40 | 4 |
+| Exa `deep-lite` alone | 94 | 37 | 5 |
+| Exa `deep` alone | 85 | 32 | 8 |
+| Parallel `advanced`, connector's keyword query | 82 | 31 | 13 |
+| Parallel `advanced`, two hand-written queries | 74 | 24 | 14 |
+| Parallel `fast`, two hand-written queries | 61 | 21 | 24 |
+| Parallel `fast`, connector's keyword query (previous) | 34 | 11 | 17 |
+| Previous merge: Exa `auto` + Parallel `fast` | 86 | 32 | 10 |
+| New merge: Exa `auto` + Parallel `advanced`, 10 results (out of 160) | 114 | 44 | 10 |
+
+The mode mattered far more than the queries: Parallel `advanced` with the connector's own crude keyword query beat `fast` with hand-written queries. Exa `fast` costs the same as `auto` and returned 7 of the same 8 pages. On 8 obscure factual questions every mode found the answer, so the slower modes earn their keep on open-ended questions only. Parallel's best additions were official documentation (the Blender manual, Figma's help centre), newer pages (python.org's 3.14.8 release page) and counter-evidence (a BBC piece on firms where the four-day week failed).
+
+**Reddit and X.** On Reddit-only searches, Parallel `fast` and `advanced` both stayed on topic; `basic`, which the connector used before, pulled in off-topic threads (r/sunglasses for "Blender") and page clutter. On X, every mode was dominated by official accounts.
+
+**People and companies.** A people search for "Ton Roosendaal, founder of Blender" returned a different Ton Roosendaal; confirming identity matters. A company search for "Monzo, UK digital bank" returned Starling, Metro Bank and Nomo but not Monzo, because the company category finds companies *like* the description; "Monzo Bank, monzo.com" put Monzo first.
+
+### 15.3 Reading pages
+
+| Test | Result |
+|---|---|
+| python.org "latest release" page | Exa's stored copy: Python 3.14.7 (5 August). Live download: 3.14.8 (30 September), the correct answer |
+| Live download of all 14 pages | All worked, in 0.4 to 4 seconds, with the same quality as stored copies |
+| `maxAgeHours: 24` or `168` on the four-day-week PDF | Returned a Polish law paper from Exa's library under the PDF's address, three times out of three. `0` and no setting returned the right document |
+| Live download of paper links (ACM, DOI, PubMed) | Timed out or refused; Exa's stored copies of the same links worked |
+| Guardian article and PCMag review | Exactly 1,000 characters from Exa (a publisher limit); Parallel got 453 characters and nothing |
+| Questions on 9 pages, Exa vs Parallel | Exa found the facts on 8 of 9 pages; on the 30-page PDF Exa found 6 of 6 key figures and Parallel 1 of 6 |
+| `excludeSections` (header, navigation, footer and so on) | No change on stored copies; on live copies, 1 of 14 pages shrank by 4% |
+| Parallel full page text | Kept menus as links with hover titles, which the connector's clean-up then missed |
+
+### 15.4 Research agents (2 briefs: a 5-product comparison and a UK heat pump cost question)
+
+| Option | Cost | Time | Verdict |
+|---|---|---|---|
+| Exa `/answer` | $0.005 | 3 s | Good short answer, mostly secondary sites |
+| Parallel Responses, low | $0.01 | 9 to 18 s | Good; up to 31 sources |
+| Exa Agent, low | $0.025 | 28 to 35 s | Answered one English brief in Spanish |
+| Parallel Task, base / core | $0.01 / $0.025 | 2 to 4 min | Good |
+| Parallel Responses, medium | $0.05 | 36 s | Excellent; found the newest audits and official statistics |
+| Exa Agent, medium | $0.10 | 61 to 72 s | Excellent, used Ofgem's own figures; missed one 2026 audit |
+| Parallel Task, pro | $0.10 | 97 to 104 s | Excellent, the longest report |
+| Parallel Responses, high | $0.25 | 75 to 82 s | No better than medium |
+
+Asking Parallel's Responses API for a JSON answer makes it number its citations against a source list. In free text it uses internal markers such as "[doc 103]" that can't be linked, and once in JSON it numbered citations from its own reading list and left the source list empty; the connector now removes numbers it can't link and lists the pages the agent used.
+
+### 15.5 Old and new connector, end to end
+
+The same 8 hard questions through both versions of the connector, scored as above:
+
+| Version | Results | Score | Score per result | Characters |
+|---|---|---|---|---|
+| Before | 61 | 80 | 1.31 | 59,776 |
+| After | 80 | 110 | 1.38 | 65,104 |
+
+38% more useful material for 9% more text. Reading python.org's latest release page now gives 3.14.8 in 437 characters, where the previous version gave the outdated 3.14.7 in 4,043. Deep research took under 2 minutes and about $0.20 for two independent reports with working reference links.
+
+### 15.6 Changes made
+
+- Search: Parallel `advanced` instead of `fast`/`basic`/`turbo`; 10 results by default; Exa `deep-lite` for `thorough`; Parallel partner-database entries dropped; copies folded by content.
+- Reading: live download first, then Exa's stored copy, then Parallel; published papers try the stored copy first (live downloads from ACM, DOI and PubMed failed in testing while stored copies worked); never the positive `maxAgeHours` that caused the wrong-document result; note for publisher-capped pages.
+- Verify: Parallel `advanced`.
+- Research: Parallel Responses API for `quick` and `standard`, with numbered citations; `deep` is Exa Agent `medium` + Parallel Task `pro` (about $0.20, down from up to $1.10); all agents told to prefer primary sources and use the task's language; report links kept.
+- Clean-up: menu links with hover titles, script notices, X and Reddit furniture, repeated paragraphs, title echoes and tiny fragments removed.
+- People results: readable work and education history, current roles first.
+- One automatic retry after a rate limit; Claude often runs several searches at once, and Exa's limit was hit during testing.
+- Skills: routing list, live reading for "latest" facts, research agents in place of helper agents, updated costs.
+
+### 15.7 Limits of these tests
+
+- Relevance scores are one person's judgement on 8 questions, and results vary between runs of the same search.
+- Research options were compared on 2 briefs only.
+- The separate-connectors skill (`.claude/skills/web-research`) wasn't changed, because it uses Exa's and Parallel's hosted connectors, which don't offer these settings.
