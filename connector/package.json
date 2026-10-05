@@ -1,0 +1,22 @@
+{
+  "name": "search-connector",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One Claude connector for Exa and Parallel web search, hosted on Vercel.",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "compile": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "rm -rf dist && tsc -p tsconfig.json && node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
