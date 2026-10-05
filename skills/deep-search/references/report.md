@@ -4,9 +4,9 @@ Skeleton (create before researching): title = question as short headline; byline
 
 Sections in order:
 1. Bottom line: 3-5 sentences; direct answer + overall confidence; say "it depends"/"not known" if true.
-2. Key findings: 4-8 bullets; one fact each; inline source link; label confirmed/likely/unconfirmed; exact figures with units and dates.
+2. Key findings: 4-8 bullets; one fact each; inline source link; label confirmed/likely/unconfirmed; exact figures with units and dates. Every organisation, product or person presented as current carries its status and the date of the evidence ("trading, last filing Mar 2026"; "in administration since Aug 2025").
 3. Where sources disagree (only if they do): each side, who says it, which is better supported and why.
-4. Not confirmed (only if needed): what was sought, why unverified (no source, paywall, login, conflicting data).
+4. Not confirmed (only if needed): what was sought, the angles tried, why unverified (no source, paywall, login, conflicting data).
 5. Sources: numbered; title, publisher/site, date, link; primary first; each source once regardless of mirrors.
 Optional: one comparison table, <=6 rows, only if it helps a decision.
 

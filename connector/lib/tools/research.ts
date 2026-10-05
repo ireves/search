@@ -12,9 +12,10 @@ export interface ResearchInput {
   run_id?: string;
 }
 
-// How long one call waits before handing back a run_id. Claude allows 240
-// seconds per tool call; this leaves a margin.
-const WAIT_MS = Number(process.env.RESEARCH_WAIT_MS ?? 170_000);
+// How long one call waits before handing back a run_id. Some Claude clients
+// give up on a tool call after 60 seconds, which loses the run_id of a run
+// that is already being paid for, so this stays well under that.
+const WAIT_MS = Number(process.env.RESEARCH_WAIT_MS ?? 45_000);
 const REPORT_CHARS = 7000;
 const MAX_SOURCES = 15;
 

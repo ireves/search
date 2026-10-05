@@ -26,7 +26,7 @@ export async function runVerify(input: VerifyInput): Promise<{ text: string; isE
 
   const blocks = await Promise.all(
     claims.map(async (claim, i) => {
-      const objective = `Find sources that confirm, correct or contradict this statement. Prefer primary and official sources and pages that state the exact figure or date: ${claim}`;
+      const objective = `Find sources that confirm, correct or contradict this statement, including newer information that changes it (for example a closure, takeover, new version or new price). Prefer primary and official sources and pages that state the exact figure or date: ${claim}`;
       const [exa, par] = await Promise.all([
         exaSearch({ query: claim, objective, highlightQuery: claim, numResults: 6, type: "auto", maxChars: CHARS }).catch((e) => {
           note(e);
@@ -40,15 +40,16 @@ export async function runVerify(input: VerifyInput): Promise<{ text: string; isE
       const picked = pickIndependent(fuse([{ hits: exa, weight: 1 }, { hits: par, weight: 1 }], 12), PER_CLAIM);
       const sites = new Set(picked.map((h) => hostOf(h.url))).size;
       const lines = picked.map((h, j) => renderHit(h, `${i + 1}.${j + 1}`));
+      const newest = picked.map((h) => h.date).filter(Boolean).sort().pop();
       return [
         `Claim ${i + 1}: ${claim}`,
         lines.length ? lines.join("\n\n") : "No evidence found.",
-        `Separate websites: ${sites}`,
+        `Separate websites: ${sites} · newest dated evidence: ${newest ?? "none dated"}`,
       ].join("\n\n");
     }),
   );
 
-  const header = `Evidence for ${claims.length} claim${claims.length === 1 ? "" : "s"} · today is ${today()}\nJudge each claim from the excerpts: supported, contradicted, outdated or not found. Copies of the same story count once.`;
+  const header = `Evidence for ${claims.length} claim${claims.length === 1 ? "" : "s"} · today is ${today()}\nJudge each claim from the excerpts: supported, contradicted, outdated or not found. Copies of the same story count once. A claim about the present (still trading, still the latest, still in the role) needs recent dated evidence; a page describing the subject is not proof it is still current.`;
   const anyEvidence = blocks.some((b) => !b.includes("No evidence found."));
   return { text: [header, ...blocks, ...(failures.size ? [[...failures].join("\n")] : [])].join("\n\n---\n\n"), isError: !anyEvidence && failures.size > 0 };
 }

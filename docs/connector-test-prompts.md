@@ -23,5 +23,7 @@ Check: no built-in web search, two to four calls at most, sources linked, uncert
 | 8 | /deep-search deep research: evidence on four-day working week trials in the UK | No menu (effort given). Claude Doc skeleton first, `research` with `effort: "deep"`, own searches across papers, news and discussions, `verify`, report of 2 pages or less |
 | 9 | /deep-search Who is the current CEO of Arm, and since when? | Auto, simple path: official page plus `verify`; date stated |
 | 10 | /deep-search Compare the five most popular open-source password managers | Auto, heavy path: `research` standard plus own searches; table only if useful |
+| 11 | /deep-search auto: who are the key players in UK vertical farming? | Status check: one news search for closures, then `verify` per company. Jones Food Company (administration April 2025) and Vertical Future (administration August 2025) not listed as active |
+| 12 | (web-search) How do I stop macOS stealing Blender's Ctrl+Space shortcut, and has Blender changed it? | Finds the macOS fix, then follows the lead about Blender changing the Mac default (issue tracker or release notes) |
 
-Check: every key figure has a primary source or two independent ones; disagreements and gaps reported; report sections match `skills/deep-search/references/report.md`.
+Check: every key figure has a primary source or two independent ones; disagreements and gaps reported; report sections match `skills/deep-search/references/report.md`; no "not sure" without a search behind it; every entity called current has a dated status.

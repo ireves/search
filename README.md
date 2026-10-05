@@ -13,4 +13,4 @@ The connector does the engine-specific work itself (choosing the engine, trimmin
 
 What the new skills do, in plain English: [`docs/skills-guide.md`](docs/skills-guide.md).
 
-Research behind both versions: [`docs/research-findings.md`](docs/research-findings.md).
+Research behind both versions: [`docs/research-findings.md`](docs/research-findings.md). Search depth and settings tests: [`docs/search-depth-tests.md`](docs/search-depth-tests.md).

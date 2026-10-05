@@ -54,6 +54,27 @@ export function withinDates(hit: Hit, after?: string, before?: string): boolean 
   return true;
 }
 
+// Pages that only describe something (its own site, a profile, a directory
+// entry) say nothing about whether it still exists. These notes make the age
+// of the evidence visible so Claude checks before calling anything current.
+export function freshnessNote(hits: Hit[], todayIso: string, profiles = false): string | undefined {
+  const dates = hits.map((h) => h.date).filter((d): d is string => Boolean(d)).sort();
+  const yearAgo = `${Number(todayIso.slice(0, 4)) - 1}${todayIso.slice(4)}`;
+  const notes: string[] = [];
+  if (dates.length) {
+    const newest = dates[dates.length - 1];
+    notes.push(
+      newest < yearAgo
+        ? `Newest dated result: ${newest}. Everything here is over a year old, so it can't show current status; look for newer information before calling anything current.`
+        : `Newest dated result: ${newest}.`,
+    );
+  }
+  if (profiles) {
+    notes.push("Profiles show how an organisation or person describes itself, not whether it is still active. Check status (news, official register) before calling it current.");
+  }
+  return notes.length ? notes.join(" ") : undefined;
+}
+
 export function renderHit(hit: Ranked, n: number | string): string {
   const head = `[${n}] ${hit.title}${hit.date ? ` (${hit.date})` : ""}`;
   const lines = [head, hit.url];
