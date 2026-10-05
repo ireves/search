@@ -1,5 +1,7 @@
 # Setting up the web-research skill
 
+> This guide is for the version that uses Exa's and Parallel's own connectors. For the single self-hosted connector with the web-search and deep-search skills, see [connector-setup.md](connector-setup.md).
+
 The skill lives in `.claude/skills/web-research/`. It needs two connectors and works best with Claude's built-in web search switched off.
 
 ## 1. Connect Exa and Parallel (all apps)
