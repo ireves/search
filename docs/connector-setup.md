@@ -17,7 +17,13 @@ You'll need: a Vercel account (the free plan works), an Exa account and a Parall
 
 ## 2. Put the connector on Vercel (one time)
 
-You can ask Claude to do this for you if the Vercel connector is switched on in your chat. Otherwise:
+Already done for your account: the project is at [search-connector.vercel.app](https://search-connector.vercel.app) with private key storage connected. Only the admin password is left:
+
+1. Open [the project's environment variables](https://vercel.com/iuri7/search-connector/settings/environment-variables).
+2. Add `ADMIN_PASSWORD` with a password of at least 12 characters. Tick **Sensitive** so it can't be read back.
+3. Ask Claude to redeploy the connector, or open **Deployments** and redeploy the latest one.
+
+To set it up on another account, ask Claude (with the Vercel connector switched on), or:
 
 1. Go to [vercel.com/new](https://vercel.com/new) and import the GitHub repository `ireves/search`.
 2. Under **Root Directory**, choose `connector`.
@@ -29,7 +35,8 @@ You can ask Claude to do this for you if the Vercel connector is switched on in 
    - Open the project's **Storage** tab and select **Create**, then **Blob**.
    - Set access to **Private**, then connect it to this project.
    - Open **Deployments** and redeploy the latest one, so it picks up the storage.
-6. Note your project's main address, shown under **Domains**, for example `https://search-yourname.vercel.app`. Use this one, not the long address of a single deployment: Vercel puts a login in front of those.
+6. Under **Settings**, then **Deployment Protection**, set Vercel Authentication to **Only Preview Deployments**. Otherwise Vercel puts its own login in front of the connector and Claude can't reach it.
+7. Note your project's main address, shown under **Domains**, for example `https://search-yourname.vercel.app`. Use this one, not the long address of a single deployment: Vercel puts a login in front of those.
 
 This is the only time you need the Vercel dashboard. If you ever change `ADMIN_PASSWORD`, every Claude connection signs out and saved keys need adding again.
 
@@ -118,6 +125,6 @@ Vercel's free plan covers personal use of the connector itself.
 |---|---|
 | "has no API key" | Add the key on the settings page. |
 | "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa or Parallel. |
-| "Storage not connected" on the settings page | Repeat step 2.5. |
+| "Storage not connected" on the settings page | Connect a private Blob store (step 2, sub-step 5). |
 | Claude asks you to reconnect | Normal after "Sign out all connections" or a password change. Reconnect in Claude's connector settings. |
 | "Setup needed" page | `ADMIN_PASSWORD` is missing or shorter than 12 characters. Add it in Vercel and redeploy. |

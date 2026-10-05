@@ -11,4 +11,6 @@ Web research for Claude using Exa and Parallel. There are two versions.
 
 The connector does the engine-specific work itself (choosing the engine, trimming results, removing duplicates, reading Reddit threads with comments), so the skills only describe what Claude should find, not how each engine works. Details: [`connector/README.md`](connector/README.md).
 
+What the new skills do, in plain English: [`docs/skills-guide.md`](docs/skills-guide.md).
+
 Research behind both versions: [`docs/research-findings.md`](docs/research-findings.md).
