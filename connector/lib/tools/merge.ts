@@ -32,19 +32,47 @@ export function fuse(lists: { hits: Hit[]; weight: number }[], limit: number): R
   const sorted = [...byUrl.values()].sort((a, b) => b.score - a.score);
   const byTitle = new Map<string, Ranked>();
   const out: Ranked[] = [];
+  const sentenceSets = new Map<Ranked, Set<string>>();
   for (const hit of sorted) {
     const tk = titleKey(hit.title);
-    const twin = tk.length >= 30 ? byTitle.get(tk) : undefined;
-    if (twin && hostOf(twin.url) !== hostOf(hit.url)) {
+    // Same title on another site, or mostly the same passages (copies of a
+    // paper, syndicated news): one source, shown once.
+    const titleTwin = tk.length >= 30 ? byTitle.get(tk) : undefined;
+    const twin = titleTwin && hostOf(titleTwin.url) !== hostOf(hit.url) ? titleTwin : copyOf(hit, out, sentenceSets);
+    if (twin) {
       twin.score += hit.score;
       const host = hostOf(hit.url);
-      if (!twin.mirrors.includes(host)) twin.mirrors.push(host);
+      if (host !== hostOf(twin.url) && !twin.mirrors.includes(host)) twin.mirrors.push(host);
       continue;
     }
     if (tk.length >= 30) byTitle.set(tk, hit);
+    sentenceSets.set(hit, sentences(hit.excerpt));
     out.push(hit);
   }
   return out.slice(0, limit);
+}
+
+function sentences(text: string): Set<string> {
+  return new Set(
+    text
+      .split(/\n|(?<=[.!?])\s+/)
+      .map((x) => x.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim())
+      .filter((x) => x.length >= 30),
+  );
+}
+
+// A result whose passages are at least 70% already shown under another result.
+function copyOf(hit: Ranked, kept: Ranked[], sets: Map<Ranked, Set<string>>): Ranked | undefined {
+  const mine = sentences(hit.excerpt);
+  if (mine.size < 3) return undefined;
+  for (const other of kept) {
+    const theirs = sets.get(other);
+    if (!theirs) continue;
+    let shared = 0;
+    for (const x of mine) if (theirs.has(x)) shared++;
+    if (shared / mine.size >= 0.7) return other;
+  }
+  return undefined;
 }
 
 export function withinDates(hit: Hit, after?: string, before?: string): boolean {

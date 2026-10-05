@@ -1,7 +1,14 @@
 import { exaAgentGet, exaAgentStart, type AgentRun, type ExaEffort } from "../engines/exa.js";
 import { EngineError } from "../engines/http.js";
-import { parallelTaskResult, parallelTaskStart, type TaskResult } from "../engines/parallel.js";
-import { cleanText, truncate } from "../text.js";
+import {
+  parallelRespond,
+  parallelTaskResult,
+  parallelTaskStart,
+  type CitedAnswer,
+  type ResponsesEffort,
+  type TaskResult,
+} from "../engines/parallel.js";
+import { cleanReport, cleanText, truncate } from "../text.js";
 
 export const EFFORTS = ["quick", "standard", "deep"] as const;
 export type Effort = (typeof EFFORTS)[number];
@@ -18,19 +25,31 @@ const WAIT_MS = Number(process.env.RESEARCH_WAIT_MS ?? 170_000);
 const REPORT_CHARS = 7000;
 const MAX_SOURCES = 15;
 
-const EXA_SYSTEM =
-  "Prefer primary and official sources (the organisation, the paper, the filing, the official docs) over commentary. " +
+const GUIDANCE =
+  "Prefer primary and official sources (the organisation, the paper, the filing, the official docs) over commentary and SEO pages. " +
   "Give exact figures with their dates and units. Where sources disagree, say so and give both. " +
-  "State clearly what you could not verify. Be concise: no filler, no repetition.";
+  "State clearly what you could not verify. Write in the language of the task. Be concise: no filler, no repetition.";
 
 const PARALLEL_SPEC =
   "A concise markdown report (under 900 words) that answers the task directly. Use inline citations. " +
   "Give exact figures with dates. Add a short 'Conflicting evidence' section and an 'Unverified' section when relevant.";
 
-const PLANS: Record<Effort, { exa: ExaEffort; parallel?: "pro" }> = {
-  quick: { exa: "low" },
-  standard: { exa: "medium" },
-  deep: { exa: "auto", parallel: "pro" },
+// Tested October 2026 on the same briefs (docs/research-findings.md, round 3):
+// Parallel's Responses API at low effort ($0.01, ~15 s) matched Exa Agent at
+// low ($0.025, which once answered in Spanish); at medium ($0.05, ~40 s) it was
+// as current as the $0.10 agents. Deep runs two independent agents so their
+// reports can be cross-checked; Exa Agent at auto cost up to $1 for little gain.
+interface Plan {
+  respond?: ResponsesEffort; // synchronous Parallel answer
+  exa?: ExaEffort; // Exa Agent (also the fallback when Parallel fails)
+  task?: "pro"; // Parallel Task API report
+  cost: string;
+}
+
+const PLANS: Record<Effort, Plan> = {
+  quick: { respond: "low", exa: "low", cost: "$0.01" },
+  standard: { respond: "medium", exa: "medium", cost: "$0.05" },
+  deep: { exa: "medium", task: "pro", cost: "$0.20" },
 };
 
 interface Ids {
@@ -68,13 +87,25 @@ export async function runResearch(input: ResearchInput): Promise<{ text: string;
     if (!task) return { text: "Give a task (the full research question) or a run_id.", isError: true };
     const effort: Effort = EFFORTS.includes(input.effort as Effort) ? (input.effort as Effort) : "standard";
     const plan = PLANS[effort];
+
+    // Quick and standard: one synchronous, cited answer from Parallel.
+    if (plan.respond) {
+      try {
+        const answer = await parallelRespond(task, plan.respond, GUIDANCE, Math.max(30_000, WAIT_MS - 10_000));
+        if (answer.answer.trim()) return { text: formatRespond(answer, plan.respond, plan.cost), isError: false };
+        startNotes.push("Parallel returned an empty answer; Exa Agent ran instead.");
+      } catch (e) {
+        startNotes.push(`Parallel research failed (${friendly(e)}); Exa Agent ran instead.`);
+      }
+    }
+
     ids = {};
     const [exa, par] = await Promise.allSettled([
-      exaAgentStart(task, plan.exa, EXA_SYSTEM, 1),
-      plan.parallel ? parallelTaskStart(task, plan.parallel, PARALLEL_SPEC) : Promise.resolve(null),
+      plan.exa ? exaAgentStart(task, plan.exa, GUIDANCE) : Promise.resolve(null),
+      plan.task ? parallelTaskStart(task, plan.task, PARALLEL_SPEC) : Promise.resolve(null),
     ]);
-    if (exa.status === "fulfilled") ids.exa = exa.value.id;
-    else startNotes.push(`Exa Agent didn't start: ${friendly(exa.reason)}`);
+    if (exa.status === "fulfilled" && exa.value) ids.exa = exa.value.id;
+    else if (exa.status === "rejected") startNotes.push(`Exa Agent didn't start: ${friendly(exa.reason)}`);
     if (par.status === "fulfilled" && par.value) ids.par = par.value.run_id;
     else if (par.status === "rejected") startNotes.push(`Parallel research didn't start: ${friendly(par.reason)}`);
     if (!ids.exa && !ids.par) return { text: startNotes.join("\n"), isError: true };
@@ -137,7 +168,7 @@ async function waitExa(id: string, deadline: number): Promise<Outcome> {
 async function waitParallel(id: string, deadline: number): Promise<Outcome> {
   try {
     const seconds = Math.floor((deadline - Date.now()) / 1000);
-    if (seconds < 5) return { kind: "pending", text: "" };
+    if (seconds < 1) return { kind: "pending", text: "" };
     const result = await parallelTaskResult(id, seconds);
     if (!result) return { kind: "pending", text: "" };
     if (result.run.status === "failed") return { kind: "failed", text: result.run.error?.message ?? "failed" };
@@ -146,6 +177,29 @@ async function waitParallel(id: string, deadline: number): Promise<Outcome> {
   } catch (e) {
     return { kind: "failed", text: friendly(e) };
   }
+}
+
+export function formatRespond(a: CitedAnswer, effort: ResponsesEffort, cost: string): string {
+  const head = `## Research answer (Parallel, ${effort} effort, ~${cost}; ${a.searches} searches, ${a.pagesRead} pages read)`;
+  // Citation markers that point at nothing would mislead; drop them.
+  const known = new Set(a.numbered ? a.sources.map((s) => s.n) : []);
+  const answer = a.answer
+    .replace(/\s?\[docs? [\d,–\- ]+\]/g, "")
+    .replace(/\s?\[(\d{1,3})\]/g, (m, n: string) => (known.has(Number(n)) ? m : ""));
+  const body = truncate(cleanReport(answer), REPORT_CHARS);
+  // Keep every source the answer cites, then fill up to the cap.
+  const cited = new Set([...body.matchAll(/\[(\d{1,3})\]/g)].map((m) => Number(m[1])));
+  const ordered = [...a.sources.filter((s) => cited.has(s.n)), ...a.sources.filter((s) => !cited.has(s.n))];
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const s of ordered) {
+    if (seen.has(s.url) || (lines.length >= MAX_SOURCES && !cited.has(s.n))) continue;
+    seen.add(s.url);
+    lines.push(`[${s.n}] ${s.title ? `${cleanText(s.title)} ` : ""}${s.url}`);
+  }
+  lines.sort((x, y) => Number(/^\[(\d+)\]/.exec(x)?.[1]) - Number(/^\[(\d+)\]/.exec(y)?.[1]));
+  const label = a.numbered ? "Sources:" : "Sources the agent used (not linked to specific sentences):";
+  return [head, body, lines.length ? `${label}\n${lines.join("\n")}` : "No sources were returned."].join("\n\n");
 }
 
 export function formatExa(run: AgentRun): string {
@@ -157,7 +211,7 @@ export function formatExa(run: AgentRun): string {
         ? " · stopped at its time limit, so may be incomplete"
         : "";
   const head = `## Exa Agent report${cost !== undefined ? ` (cost $${cost.toFixed(3)})` : ""}${stop}`;
-  const body = truncate(cleanText(run.output?.text ?? "(no text returned)"), REPORT_CHARS);
+  const body = truncate(cleanReport(run.output?.text ?? "(no text returned)"), REPORT_CHARS);
   const seen = new Map<string, { title?: string; confidence?: string }>();
   for (const g of run.output?.grounding ?? []) {
     for (const c of g.citations ?? []) {
@@ -173,9 +227,17 @@ export function formatExa(run: AgentRun): string {
 
 export function formatParallel(result: TaskResult): string {
   const content = result.output?.content;
-  const text = typeof content === "string" ? content : JSON.stringify(content, null, 1);
+  const text = cleanReport(typeof content === "string" ? content : JSON.stringify(content, null, 1));
   const basis = result.output?.basis ?? [];
   const confidence = basis.find((b) => b.confidence)?.confidence;
+  const head = `## Parallel research report${confidence ? ` (overall confidence: ${confidence})` : ""}`;
+  // Pro reports end with their own numbered "References", matching the [n]
+  // in the text. Keep that list whole; otherwise list the cited pages.
+  const split = text.search(/\n#{1,4}\s*(References|Sources|Citations)\s*\n/i);
+  if (split > 0) {
+    const refs = text.slice(split).trim().split("\n").slice(0, 32).join("\n");
+    return [head, truncate(text.slice(0, split).trim(), REPORT_CHARS), refs].join("\n\n");
+  }
   const seen = new Set<string>();
   const sources: string[] = [];
   for (const b of basis) {
@@ -185,6 +247,5 @@ export function formatParallel(result: TaskResult): string {
       sources.push(`[${sources.length + 1}] ${c.title ? `${cleanText(c.title)} ` : ""}${c.url}`);
     }
   }
-  const head = `## Parallel research report${confidence ? ` (overall confidence: ${confidence})` : ""}`;
-  return [head, truncate(cleanText(text), REPORT_CHARS), sources.length ? `Sources:\n${sources.join("\n")}` : ""].filter(Boolean).join("\n\n");
+  return [head, truncate(text, REPORT_CHARS), sources.length ? `Sources:\n${sources.join("\n")}` : ""].filter(Boolean).join("\n\n");
 }

@@ -5,7 +5,7 @@ This explains what the two search skills do and how to use them. The skill files
 Both skills use your Search connector, which combines two search engines:
 
 - **Exa** finds pages by meaning. It's best for articles, research papers, people, companies, job listings and official pages.
-- **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
+- **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot. In general searches it adds official documentation and newer pages that Exa misses. It is also the backup page reader, and it runs the quick research agents.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
@@ -15,14 +15,16 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 **What it does:**
 
-1. Runs one search, described the way you'd describe the ideal page.
-2. Answers straight from the results if they're clear.
-3. Otherwise reads the one or two best pages, looking only for the part that answers your question.
-4. Stops there. Most questions take one or two steps, never more than about four.
+1. Picks the kind of search that suits the question: a normal web search, news, Reddit and forum discussions, reviews, and so on.
+2. Runs one search, described the way you'd describe the ideal page.
+3. Answers straight from the results if they're clear.
+4. Otherwise reads the one or two best pages, looking only for the part that answers your question. Pages are always read as they are today, not from a stored copy.
+5. For questions with several parts (a comparison, a list, "the top 5"), it asks a research agent for a cited answer instead of running many searches, then double-checks the key numbers and dates.
+6. Stops there. Most questions take one or two steps, never more than about four.
 
 **How it keeps answers accurate:**
 
-- For anything "latest" or "current" (a version, price or who holds a job), it checks the official website rather than news articles.
+- For anything "latest" or "current" (a version, price or who holds a job), it reads the official website as it is today. News articles and stored copies of pages can be out of date: in testing, a stored copy of python.org still showed the previous release five days after a new one came out.
 - If an important number or date comes from only one source, it checks it against other websites first.
 - It says "as of" a date for things that change, and tells you when something couldn't be confirmed.
 
@@ -36,8 +38,8 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 - **Auto:** Claude picks the right amount of work for the question.
   - A single fact: one search, checked against the official source.
-  - A few facts on one topic: a handful of searches from different angles, then the key facts are cross-checked.
-  - A big comparison or list: a research agent does the heavy lifting, then Claude fills gaps and checks the facts.
+  - A few facts on one topic: a quick research agent answers first (about one cent), Claude fills any gaps itself, then the key facts are cross-checked.
+  - A big comparison or list: a more thorough research agent (about five cents) does the heavy lifting, then Claude fills gaps (including Reddit or X opinion) and checks the facts.
   - The answer appears in the chat, usually under 250 words.
 - **Deep research:** a short, cited report.
   1. A Claude Doc opens straight away and fills in as the research goes on.
@@ -62,7 +64,7 @@ Claude never fills a gap with a guess. If something couldn't be found, the answe
 
 ## Costs
 
-Each search costs a little under one US cent. A Deep research report costs up to about $1.10, mostly for the two research agents. Auto usually costs a few cents.
+Each search costs about one US cent. Reading a page costs a tenth of a cent. A quick research answer costs about one cent and a standard one about five cents. A Deep research report costs about 20 cents for the two research agents, plus a few cents of searches. Auto usually costs a few cents.
 
 ## If something goes wrong
 

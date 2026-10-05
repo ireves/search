@@ -126,10 +126,11 @@ So Claude always uses the connector:
 
 | Action | Cost |
 |---|---|
-| A normal `search` (both engines) | about $0.008 |
-| A `fetch` of one page | about $0.001 to $0.002 |
-| `verify`, per claim | about $0.008 |
-| `research` quick / standard / deep | about $0.03 / $0.10 / up to $1.10 |
+| A normal `search` (both engines) | about $0.012 |
+| A quick `search` (`depth: fast`, Exa only) | about $0.007 |
+| A `fetch` of one page | about $0.001 to $0.003 |
+| `verify`, per claim | about $0.012 |
+| `research` quick / standard / deep | about $0.01 / $0.05 / $0.20 |
 
 Vercel's free plan covers personal use of the connector itself.
 

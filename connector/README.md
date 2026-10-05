@@ -9,7 +9,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 | `search` | Up to 15 ranked results: title, date, link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged |
 | `fetch` | Up to 5 pages as clean text, or only the passages answering a question | Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
-| `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
+| `research` | A cited answer from a research agent, or two independent reports for `deep` | Parallel Responses API (`quick`: low, `standard`: medium); `deep`: Exa Agent (`medium`) and Parallel Task API (`pro`) side by side |
 
 The server also sends a short `instructions` text when Claude connects, so Claude knows the tools without a skill.
 
@@ -19,29 +19,32 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 **Exa** finds pages by meaning, from its own index. It works best with a description of the ideal page, accepts a separate `objective`, and returns "highlights": the passages of each page that match a query, sized by a character limit. It can't reach Reddit or X at all.
 
-- Every search asks for highlights only (never full text), capped at 600 / 900 / 1,400 characters per result for `fast` / `standard` / `thorough`, and steered by `query + goal`.
+- Every search asks for highlights only (never full text), capped at 700 / 800 / 1,200 characters per result for `fast` / `standard` / `thorough` (and about 9,000 in total), and steered by `query + goal`. Exa's newer "dynamic" highlights were tested and not used: they gave one or two pages most of the budget and left the rest with about 250 characters each, which loses breadth on comparison and opinion questions.
 - `goal` is passed as Exa's `objective`, using the wording Exa recommends for agent tools.
 - `type` maps to Exa's `category` (`news`, `publication`, `people`, `company`, `financial report`) or to a short description prefix (for discussions, reviews, code, jobs), because Exa ranks by the kind of page described.
-- `people` and `company` searches reject date and exclude filters, so those are dropped for those types.
-- `depth` maps to Exa's search modes: `fast`, `auto`, `deep` (iterative search).
-- `fresh` sets `maxAgeHours: 0` (re-download). Jobs are always fresh and default to the last 30 days.
-- Structured `entities` (work history, funding, authors, DOI) are condensed to two or three lines. Exa library links are replaced by the paper's DOI.
+- `people` and `company` searches reject date and exclude filters (`company` with an exclude filter silently returns nothing), so those are dropped for those types. `company` finds companies *like* the description; for one named company, its website in the query puts it first.
+- `depth` maps to Exa's search modes: `auto` for `fast` and `standard` (`fast` costs the same and returned 7 of the same 8 pages), `deep-lite` for `thorough` (same price as `deep`, half the wait, and better on open-ended questions in testing).
+- `fresh` sets `maxAgeHours: 0` (re-download). Jobs are always fresh and default to the last 30 days. A positive `maxAgeHours` is never sent: in testing it returned a different document from Exa's paper library under the requested address.
+- Structured `entities` (work history with dates, funding, authors, DOI) are condensed to two or three lines, current roles first. Exa library links are replaced by the paper's DOI.
 
 **Parallel** combines an `objective` with short keyword queries (3 to 6 words), crawls live, and is the only one of the two that reaches Reddit, X, Glassdoor and Trustpilot well.
 
 - Queries are built from the query's keywords; the full question goes in `objective`.
 - Excerpts are capped per result and in total (`max_chars_total`), which the hosted Parallel connector couldn't do.
 - `discussions`, `x` and `reviews` limit Parallel to the right sites with `source_policy.include_domains`, so it never repeats what Exa found.
-- Modes: `turbo` for fast lookups, `fast` when merged with Exa, `basic` (longer snippets) when Parallel is the main source, `advanced` for `thorough`.
+- Modes: `advanced` for `standard` and `thorough`, `fast` for `depth: fast`. In testing, `fast` with an automatically built query lowered the quality of merged results below Exa alone; `advanced` raised the number of useful pages. `basic` was the worst on Reddit-only searches (off-topic threads and page clutter).
+- Partner-database entries that Parallel mixes in (`platform.tracxn.com`, login-walled) are dropped.
 - Reddit threads are read through their `/.json` address with full content, then rebuilt as a list of comments sorted by votes. Plain thread reads often miss the comments.
 
-**Merging.** Results from both engines are combined with reciprocal rank fusion (Exa weighted slightly higher for general searches). The same page found twice, tracking parameters, arXiv abs/pdf/html copies and old/new Reddit addresses fold into one entry; the same title on another site is shown once with "Same document also on: ...". Results dated outside the requested window are dropped; undated ones are kept.
+**Merging.** Results from both engines are combined with reciprocal rank fusion (Exa weighted slightly higher for general searches), 10 results by default. The same page found twice, tracking parameters, arXiv abs/pdf/html copies and old/new Reddit addresses fold into one entry. The same title on another site, or a result whose passages are at least 70% the same as one already shown, is shown once with "Same document also on: ...". Results dated outside the requested window are dropped; undated ones are kept.
 
-**Clean-up.** Markdown links and images, Parallel's "Section Title" labels, cookie and navigation lines, and Reddit's "Related Answers" and "People also ask" filler are removed before Claude sees anything.
+**Clean-up.** Markdown links (including menu links with hover titles) and images, Parallel's "Section Title" labels, cookie and navigation lines, script-fallback notices, X and Reddit page furniture ("user avatar", "Expand user menu"), paragraphs repeated on the same page, excerpt lines that only repeat the title, and Reddit's "Related Answers" and "People also ask" filler are removed before Claude sees anything. Research reports keep their link addresses, because those are the citations.
 
-**Reading.** With a question, Exa returns only the relevant passages from anywhere in the document (better than cutting from the top). If Exa refuses a page or returns something thin or full of gaps, Parallel reads it instead. Pages cut at the limit say so.
+**Reading.** Pages are read live (`maxAgeHours: 0`): Exa's stored copy of python.org's "latest release" page was one release behind. If the live download fails, Exa's stored copy is tried, then Parallel. Published papers (DOI, arXiv, ACM, PubMed and other publishers) go the other way round: they rarely change, and publishers often refuse or time out on a live download while Exa's stored copy works. With a question, Exa returns only the relevant passages from anywhere in the document (better than cutting from the top). Pages cut at the limit say so, and so do pages a publisher caps at exactly 1,000 characters (seen with the Guardian and PCMag).
 
-**Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
+**Research.** `quick` and `standard` call Parallel's Responses API (low and medium effort, about $0.01 and $0.05, 10 to 60 seconds) and ask for a JSON answer, so its citations are numbered against a source list; numbers that can't be matched to a link are removed. If Parallel fails, Exa Agent runs instead. `deep` runs Exa Agent (`medium`) and Parallel's Task API (`pro`) side by side (about $0.20 together), so Claude gets two independent reports to cross-check. Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. All agents are told to prefer primary sources and to write in the language of the task (Exa Agent once answered an English brief in Spanish).
+
+**Retries.** A rate-limit reply (429) is retried once after a short wait, as are gateway errors on calls that are safe to repeat. Claude often runs several searches at once.
 
 ## Security
 

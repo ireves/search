@@ -1,7 +1,7 @@
 // Exa: semantic (meaning-based) search over its own index, page reading,
 // and the Exa Agent for multi-step research. API reference: https://exa.ai/docs
 
-import { cleanText, isoDay, joinExcerpts } from "../text.js";
+import { cleanText, isoDay, joinExcerpts, tidyExcerpt } from "../text.js";
 import { apiKey, callJson } from "./http.js";
 
 const BASE = "https://api.exa.ai";
@@ -36,6 +36,7 @@ export interface ExaSearchOptions {
 }
 
 interface ExaResult {
+  id?: string;
   url: string;
   title?: string | null;
   publishedDate?: string | null;
@@ -80,34 +81,59 @@ export async function exaSearch(o: ExaSearchOptions): Promise<Hit[]> {
   return (data.results ?? []).map((r) => toHit(r, o.maxChars));
 }
 
+const LIBRARY = /^https?:\/\/(www\.)?exa\.ai\/library\//;
+
 function toHit(r: ExaResult, maxChars: number): Hit {
   const entity = r.entities?.[0];
   let url = r.url;
   // Papers sometimes come back as Exa library pages; prefer the DOI.
-  if (/^https?:\/\/(www\.)?exa\.ai\/library\//.test(url) && entity?.properties?.doi) {
+  if (LIBRARY.test(url) && entity?.properties?.doi) {
     url = `https://doi.org/${String(entity.properties.doi).replace(/^https?:\/\/doi\.org\//, "")}`;
   }
+  const title = cleanText(r.title ?? "") || url;
   return {
     url,
-    title: cleanText(r.title ?? "") || url,
+    title,
     date: isoDay(r.publishedDate),
     author: r.author ?? undefined,
-    excerpt: joinExcerpts(r.highlights?.length ? r.highlights : [r.summary ?? r.text ?? ""], maxChars),
+    excerpt: tidyExcerpt(joinExcerpts(r.highlights?.length ? r.highlights : [r.summary ?? r.text ?? ""], maxChars), title),
     engine: "exa",
     facts: entity ? entityFacts(entity) : undefined,
   };
 }
 
-const s = (v: unknown) => (v === null || v === undefined || v === "" ? "" : String(v));
+const s = (v: unknown): string => {
+  if (v === null || v === undefined || v === "") return "";
+  if (typeof v === "object") return s((v as any).name ?? (v as any).title ?? "");
+  return String(v);
+};
+
+// Exa sends dates as {from, to}; older responses used plain strings.
+const span = (d: any): string => {
+  if (!d) return "";
+  if (typeof d !== "object") return String(d);
+  const from = s(d.from).slice(0, 7);
+  const to = d.to ? s(d.to).slice(0, 7) : "now";
+  if (!from) return "";
+  return from === to ? from : `${from} to ${to}`;
+};
 
 export function entityFacts(entity: { type: string; properties: Record<string, any> }): string | undefined {
   const p = entity.properties ?? {};
   const parts: string[] = [];
   if (entity.type === "person") {
     if (p.location) parts.push(`Location: ${s(p.location)}`);
-    const jobs = (p.workHistory ?? []).slice(0, 4).map((w: any) => [s(w.title), w.company ? `at ${s(w.company)}` : "", w.dates ? `(${s(w.dates)})` : ""].filter(Boolean).join(" "));
+    // Current roles first, then the most recent past ones.
+    const history = [...(p.workHistory ?? [])].sort((a: any, b: any) => {
+      const current = (w: any) => (w?.dates && typeof w.dates === "object" && !w.dates.to ? 1 : 0);
+      return current(b) - current(a) || s(b?.dates?.from ?? "").localeCompare(s(a?.dates?.from ?? ""));
+    });
+    const jobs = history.slice(0, 4).map((w: any) => [s(w.title), w.company ? `at ${s(w.company)}` : "", span(w.dates) ? `(${span(w.dates)})` : ""].filter(Boolean).join(" "));
     if (jobs.length) parts.push(`Work: ${jobs.join("; ")}`);
-    const study = (p.educationHistory ?? []).slice(0, 2).map((e: any) => [s(e.degree), s(e.institution), e.dates ? `(${s(e.dates)})` : ""].filter(Boolean).join(", "));
+    const study = (p.educationHistory ?? []).slice(0, 2).map((e: any) => {
+      const what = [s(e.degree), s(e.institution)].filter(Boolean).join(", ");
+      return span(e.dates) ? `${what} (${span(e.dates)})` : what;
+    });
     if (study.length) parts.push(`Education: ${study.join("; ")}`);
   } else if (entity.type === "company") {
     if (p.description) parts.push(cleanText(s(p.description)).slice(0, 300));
@@ -140,31 +166,43 @@ export interface ExaPage {
   date?: string;
   content: string;
   error?: string;
+  // Some publishers only let Exa return the first 1,000 characters.
+  capped?: boolean;
 }
 
+const sameUrl = (a: string, b: string) => a.replace(/\/+$/, "").toLowerCase() === b.replace(/\/+$/, "").toLowerCase();
+
 // Reads known pages. With a question, returns only the passages that answer it.
-export async function exaContents(urls: string[], question: string | undefined, maxChars: number, fresh: boolean): Promise<ExaPage[]> {
+// "live" downloads the page now (current prices, versions, "latest" pages);
+// "stored" uses Exa's copy. Never a positive maxAgeHours: in testing (October
+// 2026) that returned a different document from Exa's paper library under the
+// requested address. (Library IDs alone prove nothing: DOI and PubMed links
+// legitimately come back with them.)
+export async function exaContents(urls: string[], question: string | undefined, maxChars: number, freshness: "live" | "stored"): Promise<ExaPage[]> {
   const body: Record<string, unknown> = { urls };
   if (question) body.highlights = { query: question, maxCharacters: maxChars };
   else body.text = { maxCharacters: maxChars, verbosity: "compact" };
-  if (fresh) {
+  if (freshness === "live") {
     body.maxAgeHours = 0;
     body.livecrawlTimeout = 20000;
   }
   const data = await callJson<{
     results?: ExaResult[];
     statuses?: { id: string; status: string; error?: { tag?: string; httpStatusCode?: number | null } | null }[];
-  }>("Exa", `${BASE}/contents`, { headers: await headers(), body, timeoutMs: fresh ? 45_000 : 30_000 });
+  }>("Exa", `${BASE}/contents`, { headers: await headers(), body, timeoutMs: freshness === "live" ? 45_000 : 30_000 });
 
-  const byUrl = new Map((data.results ?? []).map((r) => [r.url, r]));
+  const results = data.results ?? [];
   return urls.map((url, i) => {
-    const status = data.statuses?.find((st) => st.id === url);
-    const r = byUrl.get(url) ?? data.results?.[i];
+    const status = data.statuses?.find((st) => sameUrl(st.id, url));
+    const r =
+      results.find((x) => sameUrl(x.url, url) || (x.id !== undefined && sameUrl(x.id, url))) ??
+      (results.length === urls.length ? results[i] : undefined);
     if (!r || status?.status === "error") {
       return { url, ok: false, content: "", error: status?.error?.tag ?? "not available" };
     }
     const content = question ? joinExcerpts(r.highlights ?? [], maxChars) : cleanText(r.text ?? "");
-    return { url, ok: content.length > 0, title: cleanText(r.title ?? "") || undefined, date: isoDay(r.publishedDate), content };
+    const capped = !question && maxChars > 1000 && (r.text ?? "").length === 1000;
+    return { url, ok: content.length > 0, title: cleanText(r.title ?? "") || undefined, date: isoDay(r.publishedDate), content, capped };
   });
 }
 
@@ -186,7 +224,7 @@ export interface AgentRun {
 export async function exaAgentStart(query: string, effort: ExaEffort, systemPrompt: string, maxCostDollars?: number): Promise<AgentRun> {
   const body: Record<string, unknown> = { query, effort, systemPrompt };
   if (effort === "auto") body.budget = { maxCostDollars: maxCostDollars ?? 1 };
-  return callJson<AgentRun>("Exa", `${BASE}/agent/runs`, { headers: await headers(), body, timeoutMs: 20_000 });
+  return callJson<AgentRun>("Exa", `${BASE}/agent/runs`, { headers: await headers(), body, timeoutMs: 20_000, idempotent: false });
 }
 
 export async function exaAgentGet(id: string): Promise<AgentRun> {

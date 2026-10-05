@@ -32,7 +32,7 @@ export async function runVerify(input: VerifyInput): Promise<{ text: string; isE
           note(e);
           return [] as Hit[];
         }),
-        parallelSearch({ objective, queries: [keywords(claim, 7)], mode: "fast", maxResults: 6, maxCharsPerResult: CHARS }).catch((e) => {
+        parallelSearch({ objective, queries: [keywords(claim, 7)], mode: "advanced", maxResults: 6, maxCharsPerResult: CHARS }).catch((e) => {
           note(e);
           return [] as Hit[];
         }),

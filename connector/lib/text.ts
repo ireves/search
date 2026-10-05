@@ -43,7 +43,17 @@ export function titleKey(title: string): string {
 }
 
 const BOILERPLATE =
-  /^(accept( all)?( cookies)?|cookie (settings|policy|preferences)|we use cookies.*|sign ?in|log ?in|sign ?up|subscribe( now)?|skip to (main )?content|toggle navigation|share( this)?|menu|search|advertisement|open in app|get the app|reply|report|save|follow|more replies|continue this thread|view (more )?comments?|load more|show more|read more)$/i;
+  /^(accept( all)?( cookies)?|cookie (settings|policy|preferences)|we use cookies.*|sign ?in|log ?in|sign ?up|subscribe( now)?|skip to (main )?content|toggle navigation|share( this)?|menu|search|advertisement|open in app|get the app|reply|report|save|follow|more replies|continue this thread|view (more )?comments?|load more|show more|read more|post|user avatar|relevant people|open (menu|navigation|settings menu)|expand user menu|go to reddit home|log in to reddit|get the reddit app|like|copy link|copied)$/i;
+
+// Site chrome that turns up mid-line (X and Reddit page furniture, script
+// fallback notices). Only long, distinctive phrases, so real text is safe.
+const INLINE_CHROME = [
+  /Notice: This page displays a fallback because interactive scripts did not run\.( Possible causes include disabled JavaScript or failure to load scripts or stylesheets\.)?/g,
+  /\b(Skip to main content|Open menu Open navigation|Go to Reddit Home|Expand user menu|Open settings menu|Log in to Reddit|Get the Reddit app)\b/g,
+  /\b(Post Log in Sign up|See what[’']s happening|Log in with username or email|Sign up now to get your own personalized timeline!?|Don[’']t miss what[’']s happening|People on X are the first to know\.?)/gi,
+];
+// X puts "user avatar" before each post's author.
+const AVATAR = /(^|\n)([*-]\s*)?user avatar\s+/gi;
 
 const CUT_MARKERS = /\n(?:#+\s*)?(Related Answers|People also ask|More posts you may like|Related posts|Top Posts|Trending Today|You may also like|Recommended for you)\b[\s\S]*$/i;
 
@@ -54,18 +64,77 @@ export function cleanText(input: string | null | undefined): string {
   // Parallel's section labels.
   s = s.replace(/Section Title:[^\n]*\nContent:\n?/g, "");
   s = s.replace(/\.{3}\s*\(content truncated\)/gi, "…");
-  // Images and link targets cost tokens and add nothing.
+  // Images and link targets cost tokens and add nothing. Links may carry a
+  // hover title ([text](url "title")), common in menus.
   s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, "");
-  s = s.replace(/\[([^\]]{1,300})\]\((?:[^()\s]|\([^)]*\))+\)/g, "$1");
+  s = s.replace(/\[\]\((?:[^()]|\([^)]*\))*\)/g, "");
+  s = s.replace(/\[([^\]]{1,300})\]\((?:[^()\s]|\([^)]*\))+(?:\s+"[^"]*")?\)/g, "$1");
   s = s.replace(/<[^>]{1,200}>/g, "");
   s = s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  for (const re of INLINE_CHROME) s = s.replace(re, " ");
+  s = s.replace(AVATAR, "$1$2");
+  const seen = new Set<string>();
   const lines = s
     .split("\n")
     .map((l) => l.replace(/[ \t]+/g, " ").trim())
     .filter((l) => !(l.length < 60 && BOILERPLATE.test(l.replace(/[^\w\s']/g, "").trim())))
-    .filter((l) => !/^[|\-:\s]+$/.test(l) || l === "");
+    .filter((l) => !/^[|\-:*#\s]+$/.test(l) || l === "")
+    // A paragraph repeated on the same page (headers shown twice, sticky banners).
+    .filter((l) => {
+      if (l.length < 40) return true;
+      const key = l.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   s = lines.join("\n").replace(/\n{3,}/g, "\n\n");
   return s.trim();
+}
+
+// For research reports, where link targets are the citations: keeps each
+// link's address ("text (url)") and only drops images and excess blank lines.
+export function cleanReport(input: string | null | undefined): string {
+  if (!input) return "";
+  let s = input.replace(/\r\n?/g, "\n");
+  s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, "");
+  s = s.replace(/\[\s*([^\]]{0,300}?)\s*\]\(((?:[^()\s]|\([^)]*\))+)(?:\s+"[^"]*")?\)/g, (_m, text: string, url: string) => {
+    const label = text.replace(/\s+/g, " ").replace(/\s*\(new window\)\s*/gi, " ").trim();
+    return !label || label === url ? url : `${label} (${url})`;
+  });
+  s = s.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n");
+  return s.trim();
+}
+
+// Excerpts often repeat the page title as their first line, and Exa's
+// highlights leave tiny fragments between "..." gaps. Both cost tokens only.
+export function tidyExcerpt(text: string, title: string): string {
+  const titleKeyNorm = title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const lines = text.split("\n").map((l) => l.trim());
+  const isGap = (l: string | undefined) => l === "..." || l === "…";
+  const out: string[] = [];
+  lines.forEach((line, i) => {
+    const bare = line.replace(/^#+\s*/, "");
+    if (titleKeyNorm && bare && bare.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === titleKeyNorm) return;
+    const words = line.replace(/\.{3}|…/g, " ").trim();
+    // Code, table rows and list items are short on purpose; keep them.
+    const structured = /^(```|\||[-*+]\s|#)/.test(line) || /[`{}<>=$\\/|]/.test(line);
+    const fragment =
+      !isGap(line) &&
+      !structured &&
+      words.length < 18 &&
+      !/\d/.test(words) &&
+      !/[.!?:]$/.test(words) &&
+      (/\.{3}|…/.test(line) || isGap(lines[i - 1]) || isGap(lines[i + 1]));
+    if (isGap(line) || fragment) {
+      if (out.length && out[out.length - 1] !== "…") out.push("…");
+      return;
+    }
+    if (line === "" && (out.length === 0 || out[out.length - 1] === "")) return;
+    out.push(line);
+  });
+  while (out.length && (out[0] === "…" || out[0] === "")) out.shift();
+  while (out.length && (out[out.length - 1] === "…" || out[out.length - 1] === "")) out.pop();
+  return out.join("\n").replace(/\n{2,}/g, "\n");
 }
 
 export function truncate(text: string, max: number): string {
