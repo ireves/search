@@ -1,6 +1,6 @@
 # Search connector
 
-A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai). It runs as three Vercel Functions with no framework and one runtime dependency (`@vercel/blob`). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
+A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai). It runs as three Vercel Functions with no framework and two runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
 
 ## Tools
 
@@ -47,9 +47,10 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 - **One secret.** Everything is derived from `ADMIN_PASSWORD` (PBKDF2, 210,000 rounds, then HKDF): the key that encrypts stored API keys and the key that signs tokens.
 - **Write-only secrets.** API keys are encrypted with AES-256-GCM (bound to their name) and stored in a private Vercel Blob store. No page, response or tool returns a stored value. The settings page shows only "saved", "set in Vercel", "not set" or "needs re-entering".
+- **Passkeys.** Sign-in uses a passkey (Face ID, Touch ID, Windows Hello or a security key), as in icloud-mcp. Only the public key is stored; each sign-in signs a fresh challenge that travels in a signed five-minute token and works once. User verification is required, and a passkey works only on the hostname it was made for (`PUBLIC_URL`). The first passkey is added from the settings page after signing in with the admin password, which plays the role of icloud-mcp's setup code. Once one exists, the password no longer signs in (it still derives the server-side keys); `ALLOW_PASSWORD_SIGN_IN=true` turns it back on for recovery, and removing the last passkey does the same. Up to 5 passkeys. Verification uses [SimpleWebAuthn](https://simplewebauthn.dev); the browser half is `/passkey.js`, served by this server.
 - **Sign-in.** OAuth 2.1 with dynamic client registration and PKCE (S256), as Claude requires. Codes go only to `https://claude.ai/api/mcp/auth_callback` or a local address (Claude Code); extra exact addresses can be allowed with `ALLOWED_REDIRECT_URIS`. Access tokens last 1 hour, refresh tokens 90 days.
 - **Sign out everything.** The settings page can invalidate every token and session at once.
-- **Pages.** No JavaScript; strict content security policy; no framing; CSRF tokens and `SameSite=Strict` cookies; wrong passwords are slowed and limited per address.
+- **Pages.** One script (`/passkey.js`, same origin, no inline code); strict content security policy; no framing; CSRF tokens and `SameSite=Strict` cookies; wrong passwords are slowed and limited per address.
 - **Stateless.** No database beyond the one encrypted Blob file, so nothing else to secure or pay for.
 
 Known limits: codes and refresh tokens aren't single-use (that would need a database); PKCE, short code lifetimes and the sign-out-all switch cover the realistic risks for a one-person server.
@@ -61,7 +62,8 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 | `ADMIN_PASSWORD` | Yes | At least 12 characters |
 | `BLOB_STORE_ID` | Added by Vercel | Set when a Blob store is connected |
 | `EXA_API_KEY`, `PARALLEL_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority |
-| `PUBLIC_URL` | No | Fixes the public address if you use several domains |
+| `PUBLIC_URL` | Recommended | The final address, e.g. `https://search-connector.vercel.app`. Passkeys are tied to its hostname, so set it before adding one |
+| `ALLOW_PASSWORD_SIGN_IN` | No | `true` lets the admin password sign in even when passkeys exist. For recovering from a lost passkey; remove afterwards |
 | `ALLOWED_REDIRECT_URIS` | No | Extra OAuth callback addresses, comma-separated |
 
 ## Files
@@ -74,6 +76,7 @@ lib/engines/      Exa and Parallel API calls
 lib/tools/        search, fetch, verify, research, and result merging
 lib/mcp.ts        JSON-RPC handling, tool definitions, server instructions
 lib/oauth.ts      authorisation server
+lib/passkeys.ts   passkey registration and sign-in, and the browser script
 lib/settings.ts   settings page
 lib/store.ts      encrypted secret storage
 lib/crypto.ts     key derivation, encryption, signed tokens

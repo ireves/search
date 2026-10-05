@@ -14,11 +14,24 @@ export interface StoredSecret extends Sealed {
   updatedAt: string;
 }
 
+// A passkey's public half. Not secret: it can only check signatures.
+export interface StoredPasskey {
+  id: string;
+  publicKey: string;
+  counter: number;
+  transports?: string[];
+  name: string;
+  createdAt: string;
+  lastUsedAt?: string;
+  synced?: boolean;
+}
+
 export interface State {
   v: 1;
   // Bumped to sign out every Claude connection and settings session.
   epoch: number;
   secrets: Record<string, StoredSecret>;
+  passkeys?: StoredPasskey[];
 }
 
 export interface Backend {
@@ -95,7 +108,7 @@ export async function loadState(fresh = false): Promise<State> {
   return state;
 }
 
-async function saveState(state: State): Promise<void> {
+export async function saveState(state: State): Promise<void> {
   const store = backend();
   if (!store) throw new Error("No storage connected. Connect a private Vercel Blob store to this project.");
   await store.write(JSON.stringify(state));

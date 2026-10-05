@@ -1,7 +1,8 @@
 // A minimal OAuth 2.1 authorisation server for one owner.
 //
 // Claude registers itself (Dynamic Client Registration), sends the owner to
-// /authorize, where they type the admin password, then swaps the code for
+// /authorize, where they sign in with a passkey (or, until one exists, the
+// admin password), then swaps the code for
 // tokens at /token. Everything is stateless: client IDs, codes and tokens are
 // signed with a key derived from ADMIN_PASSWORD. "Sign out all connections" on
 // the settings page bumps an epoch stored with the secrets, which invalidates
@@ -9,7 +10,8 @@
 
 import { adminPassword, baseUrl, clientIp } from "./config.js";
 import { getKeys, nowSeconds, randomId, safeEqual, sha256b64url, signToken, verifyToken, type TokenPayload } from "./crypto.js";
-import { esc, json, page, setupNeededPage } from "./html.js";
+import { esc, json, page, passkeyFields, setupNeededPage } from "./html.js";
+import { passwordSignInAllowed, verifySignin } from "./passkeys.js";
 import { clearFailures, isLocked, recordFailure } from "./ratelimit.js";
 import { loadState } from "./store.js";
 
@@ -235,16 +237,28 @@ export async function authorize(request: Request): Promise<Response> {
 
   const target = new URL(p.redirect_uri);
   const formTargets = [target.origin];
+  const state = await loadState(true);
+  const hasPasskey = Boolean(state.passkeys?.length);
+  const passwordAllowed = passwordSignInAllowed(state);
   let message = "";
 
   if (request.method === "POST") {
     if (form.decision === "deny") return errorRedirect(p, "access_denied", "The owner declined.", base);
     const ip = clientIp(request);
+    let ok = false;
     if (isLocked(ip)) {
-      message = "Too many wrong passwords. Wait 10 minutes and try again.";
-    } else if (await safeEqual(form.password ?? "", adminPassword()!)) {
+      message = "Too many failed attempts. Wait 10 minutes and try again.";
+    } else if (form.passkey) {
+      ok = await verifySignin(request, form.passkey, form.pktoken);
+      if (!ok) message = "That passkey wasn't accepted. Try again.";
+    } else if (!passwordAllowed) {
+      message = "Password sign-in is off because a passkey is set up. Use your passkey.";
+    } else {
+      ok = await safeEqual(form.password ?? "", adminPassword()!);
+      if (!ok) message = "That password isn't right.";
+    }
+    if (ok) {
       clearFailures(ip);
-      const state = await loadState();
       const code = await signToken(key, {
         typ: "code",
         exp: nowSeconds() + CODE_TTL,
@@ -258,16 +272,21 @@ export async function authorize(request: Request): Promise<Response> {
       if (p.state) target.searchParams.set("state", p.state);
       target.searchParams.set("iss", base);
       return new Response(null, { status: 302, headers: { location: target.toString(), "cache-control": "no-store" } });
-    } else {
-      await recordFailure(ip);
-      message = "That password isn't right.";
     }
+    if (message && !isLocked(ip)) await recordFailure(ip);
   }
 
   const hidden = (Object.keys(p) as (keyof AuthorizeParams)[])
     .map((k) => `<input type="hidden" name="${k}" value="${esc(p[k])}">`)
     .join("");
   const local = isLoopback(target);
+  const passkeyPart = hasPasskey
+    ? `<div class="row"><button type="button" data-passkey="signin">Connect with passkey</button></div>${passkeyFields()}`
+    : "";
+  const passwordPart = passwordAllowed
+    ? `${hasPasskey ? '<p class="muted">Or use the admin password:</p>' : ""}<label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" ${hasPasskey ? "" : "required autofocus"}>
+<div class="row"><button type="submit" name="decision" value="allow"${hasPasskey ? ' class="plain"' : ""}>Connect${hasPasskey ? " with password" : ""}</button></div>`
+    : "";
   return page({
     title: "Connect to Claude",
     formTargets,
@@ -278,8 +297,9 @@ export async function authorize(request: Request): Promise<Response> {
 ${local ? '<p class="muted">Only continue if you just started this connection from Claude Code on this computer.</p>' : ""}
 ${message ? `<p class="bad">${esc(message)}</p>` : ""}
 <form method="post" action="${esc(base)}/authorize">${hidden}
-<label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
-<div class="row"><button type="submit" name="decision" value="allow">Connect</button><button type="submit" name="decision" value="deny" class="plain" formnovalidate>Cancel</button></div>
+${passkeyPart}
+${passwordPart}
+<div class="row"><button type="submit" name="decision" value="deny" class="plain" formnovalidate>Cancel</button></div>
 </form></div>`,
   });
 }

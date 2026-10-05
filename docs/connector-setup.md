@@ -46,11 +46,25 @@ This is the only time you need the Vercel dashboard. If you ever change `ADMIN_P
 2. Paste the Exa key into **Exa API key** and select **Save**. Do the same for Parallel.
 3. Select **Check keys work**. Both should show **works**.
 
+Then add a passkey, so you can sign in with Face ID, Touch ID or a security key:
+
+4. On the same page, under **Passkeys**, type a name (for example "iPhone") and select **Add a passkey**.
+5. Follow your device's prompt.
+   - On an iPhone, iPad or Mac, the passkey is saved in iCloud Keychain and works on all your Apple devices.
+   - On another computer, choose "use a phone or tablet" and scan the QR code with your phone.
+6. From now on, sign-in uses the passkey only. The admin password no longer signs in, so someone who learns it still can't get in.
+
+About passkeys:
+
+- A passkey only works at `search-connector.vercel.app`, so a fake lookalike site can't use it. Always open the connector at that address.
+- You can add up to 5, for example a phone and a hardware security key as a backup.
+- Lost every passkey? In Vercel, add the setting `ALLOW_PASSWORD_SIGN_IN` with the value `true` and redeploy. Sign in with the password, remove the old passkey, add a new one, then delete the setting.
+
 How the keys are protected:
 
 - They're encrypted before they're stored, in private storage that only this project can read.
 - Once saved, a key can be replaced or removed, but never displayed again: not on the settings page, not to Claude, not anywhere.
-- The settings page only opens with your admin password, and blocks repeated wrong guesses.
+- The settings page only opens with your passkey (or, before you add one, your admin password), and blocks repeated wrong guesses.
 - You can add other secrets the same way under **Add another secret**.
 
 ## 4. Connect Claude
@@ -59,12 +73,12 @@ How the keys are protected:
 
 1. Go to [claude.ai/customize/connectors](https://claude.ai/customize/connectors) and add a custom connector.
 2. Name it `Search` and paste `https://<your-address>/mcp` as the address.
-3. Select **Connect**. A page from your connector opens: type your admin password and select **Connect**.
+3. Select **Connect**. A page from your connector opens: select **Connect with passkey** (or, if you haven't added one, type your admin password).
 4. Remove the old Exa and Parallel connectors (and any Composio search tools), so Claude doesn't see two sets of search tools.
 
 ### Claude Code
 
-Run this once in a terminal, then type `/mcp` inside Claude Code and sign in:
+Run this once in a terminal, then type `/mcp` inside Claude Code and sign in with your passkey in the browser window that opens:
 
 ```
 claude mcp add --transport http search https://<your-address>/mcp

@@ -1,4 +1,5 @@
-// Small HTML helpers for the sign-in and settings pages. No JavaScript is used.
+// Small HTML helpers for the sign-in and settings pages. The only script is
+// /passkey.js, loaded from this server on pages with a passkey button.
 
 export function esc(value: unknown): string {
   return String(value ?? "")
@@ -34,14 +35,14 @@ export interface PageOptions {
 }
 
 export function page({ title, body, status = 200, formTargets = [], headers = {} }: PageOptions): Response {
-  const html = `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title><style>${STYLE}</style></head><body><main>${body}</main></body></html>`;
+  const html = `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title><style>${STYLE}</style></head><body><main>${body}</main>${body.includes("data-passkey") ? '<script src="/passkey.js" defer></script>' : ""}</body></html>`;
   const formAction = ["'self'", ...formTargets].join(" ");
   return new Response(html, {
     status,
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "no-store",
-      "content-security-policy": `default-src 'none'; style-src 'unsafe-inline'; form-action ${formAction}; frame-ancestors 'none'; base-uri 'none'`,
+      "content-security-policy": `default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; connect-src 'self'; form-action ${formAction}; frame-ancestors 'none'; base-uri 'none'`,
       "x-frame-options": "DENY",
       "referrer-policy": "no-referrer",
       "x-content-type-options": "nosniff",
@@ -73,4 +74,9 @@ export function setupNeededPage(): Response {
     body: `<h1>Setup needed</h1><p>This connector has no admin password yet.</p>
 <div class="note">In Vercel, add an environment variable called <code>ADMIN_PASSWORD</code> (at least 12 characters), then redeploy. This is the only setting that needs the Vercel dashboard.</div>`,
   });
+}
+
+// Hidden fields and messages a passkey button needs inside its form.
+export function passkeyFields(): string {
+  return `<input type="hidden" name="passkey" value=""><input type="hidden" name="pktoken" value=""><p class="bad" data-passkey-error hidden role="alert"></p><p class="muted" data-passkey-unsupported hidden>This browser can't use passkeys. Try Safari, Chrome or Edge on a device with a screen lock.</p>`;
 }
