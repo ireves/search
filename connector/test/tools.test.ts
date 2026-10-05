@@ -174,3 +174,27 @@ test("research returns a run_id while running, then the cited report", async () 
   assert.match(second.text, /The answer is 42\./);
   assert.match(second.text, /\[1\] Source A https:\/\/src\.com\/a \(confidence: high\)/);
 });
+
+test("search notes the newest result date and warns when everything is old", async () => {
+  mockNetwork(exaSearchReply([exaResult("https://old.example.com/a", "Old news", "Opened a farm.", "2019-05-01")]), parallelSearchReply([]));
+  const { text } = await runSearch({ query: "vertical farming companies" });
+  assert.match(text, /Newest dated result: 2019-05-01\. Everything here is over a year old/);
+});
+
+test("company searches remind Claude that profiles don't show current status", async () => {
+  mockNetwork(exaSearchReply([exaResult("https://acme.example.com", "Acme", "Acme grows salad.", "2026-09-01")]));
+  const { text } = await runSearch({ query: "UK salad growers", type: "companies" });
+  assert.match(text, /Newest dated result: 2026-09-01\./);
+  assert.doesNotMatch(text, /over a year old/);
+  assert.match(text, /not whether it is still active/);
+});
+
+test("verify reports the newest dated evidence and asks for newer information", async () => {
+  mockNetwork(
+    exaSearchReply([exaResult("https://news.example.com/a", "Firm enters administration", "Administrators appointed.", "2025-08-13")]),
+    parallelSearchReply([parallelResult("https://firm.example.com", "Firm", "We are a leading grower.")]),
+  );
+  const { text } = await runVerify({ claims: ["Firm Ltd is still trading"] });
+  assert.match(text, /newest dated evidence: 2025-08-13/);
+  assert.match(calls.find((c) => c.url.includes("exa.ai"))!.body.objective, /newer information/);
+});

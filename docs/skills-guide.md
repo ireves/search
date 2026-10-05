@@ -15,16 +15,20 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 **What it does:**
 
-1. Runs one search, described the way you'd describe the ideal page.
-2. Answers straight from the results if they're clear.
-3. Otherwise reads the one or two best pages, looking only for the part that answers your question.
-4. Stops there. Most questions take one or two steps, never more than about four.
+1. Works out what a complete answer needs.
+2. Runs a search, described the way you'd describe the ideal page.
+3. After each search, checks which parts of the answer are settled and which are still open.
+4. Searches again from a different angle for anything still open, and reads promising pages to check they really answer the question.
+5. Stops when everything is answered, or after three different attempts at a point. Simple questions take one or two steps; harder ones up to about eight.
 
 **How it keeps answers accurate:**
 
-- For anything "latest" or "current" (a version, price or who holds a job), it checks the official website rather than news articles.
+- It never says it's unsure about something it hasn't searched for.
+- Anything described as current (a company still trading, the latest version, who holds a job) needs a dated source from the last year. A company's own website doesn't count, because it won't mention going bust.
+- For lists, such as the key companies in a sector, it searches the news for closures and takeovers, then checks each company it keeps.
+- For "latest" facts, it re-reads the official page instead of using a stored copy, which can be months old.
 - If an important number or date comes from only one source, it checks it against other websites first.
-- It says "as of" a date for things that change, and tells you when something couldn't be confirmed.
+- It says "as of" a date for things that change, and tells you what it tried when something couldn't be confirmed.
 
 **Kinds of search it can do:** news, Reddit and forum discussions, posts on X, reviews, research papers, people's professional backgrounds, company facts, technical documentation, job listings and financial reports.
 
@@ -51,6 +55,8 @@ The connector decides which engine to use, removes duplicates and trims results,
      - **Not confirmed** (only if something couldn't be checked).
      - **Sources:** a numbered list.
   6. If you'd rather have the report in the chat or somewhere else, just say so.
+
+Both options use the same checking loop as web-search: open points get searched again from new angles, and anything described as current gets a status check with a date.
 
 **Confidence labels you'll see:**
 

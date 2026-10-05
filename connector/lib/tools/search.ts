@@ -2,7 +2,7 @@ import { exaSearch, type ExaType, type Hit } from "../engines/exa.js";
 import { EngineError } from "../engines/http.js";
 import { parallelSearch, type ParallelMode } from "../engines/parallel.js";
 import { cleanDomain, keywords, parseDate, today } from "../text.js";
-import { fuse, renderHit, withinDates } from "./merge.js";
+import { freshnessNote, fuse, renderHit, withinDates } from "./merge.js";
 
 export const SEARCH_TYPES = [
   "web",
@@ -175,6 +175,8 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   ];
   if (after || before) header.push(`Published ${after ? `from ${after}` : ""}${after && before ? " " : ""}${before ? `to ${before}` : ""} (undated pages kept).`);
   if (fresh) header.push("Pages re-downloaded for freshness.");
+  const age = freshnessNote(results, today(), type === "companies" || type === "people");
+  if (age && results.length) notes.push(age);
   if (!results.length) {
     notes.push("No results. Describe the page you want in more words, loosen filters, or try another type.");
   }

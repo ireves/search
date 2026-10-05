@@ -15,7 +15,8 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel, used instead o
 - fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
-Cite the links you rely on. If a result says an engine is unavailable, tell the user.`;
+Before calling anything current (a company trading, a version the latest, a person in a role), find recent dated evidence; an organisation's own site or profile is not enough. Read official pages with fresh for "latest" facts.
+If results don't settle a point, search again from a different angle rather than guessing. Cite the links you rely on. If a result says an engine is unavailable, tell the user.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
@@ -40,7 +41,7 @@ export const TOOLS = [
         },
         goal: {
           type: "string",
-          description: "Goal for this search: which sources should rank first or be left out, and which facts or figures to pull from them.",
+          description: "Which facts or figures to pull from the pages (shapes the excerpts more than the ranking). To find different pages, run another search with a different query.",
         },
         after: { type: "string", description: "Only pages published on or after this date: YYYY-MM-DD, or relative such as 7d, 3m, 1y." },
         before: { type: "string", description: "Only pages published on or before this date (YYYY-MM-DD)." },
