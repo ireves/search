@@ -21,7 +21,8 @@ Accuracy:
 - Numbers/dates the answer hinges on, stated by only one secondary source: one verify call (multiple claims per call).
 - Check result dates; say "as of <date>" for changing facts.
 - Copies of one story = one source (search already folds mirrors).
-- Never fill gaps from memory; state what's unconfirmed.
+- Before answering, check every part of the question is answered. Gap one fetch of the official page would settle -> fetch it (counts toward budget). Never write "didn't check"; say where you looked.
+- Never fill gaps from memory; state what's unconfirmed and where you looked.
 
 Answer: lead with the answer; inline links with descriptive text to original pages; brief uncertainty notes (one source / unconfirmed / sources disagree); no pasted results, quote only proof.
 

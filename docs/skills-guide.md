@@ -24,6 +24,7 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 - For anything "latest" or "current" (a version, price or who holds a job), it checks the official website rather than news articles.
 - If an important number or date comes from only one source, it checks it against other websites first.
+- Before answering, it makes sure every part of your question is covered. If one look at the official page would fill a gap, it does that.
 - It says "as of" a date for things that change, and tells you when something couldn't be confirmed.
 
 **Kinds of search it can do:** news, Reddit and forum discussions, posts on X, reviews, research papers, people's professional backgrounds, company facts, technical documentation, job listings and financial reports.
@@ -37,8 +38,8 @@ The connector decides which engine to use, removes duplicates and trims results,
 - **Auto:** Claude picks the right amount of work for the question.
   - A single fact: one search, checked against the official source.
   - A few facts on one topic: a handful of searches from different angles, then the key facts are cross-checked.
-  - A big comparison or list: a research agent does the heavy lifting, then Claude fills gaps and checks the facts.
-  - The answer appears in the chat, usually under 250 words.
+  - A comparison or long list: a research agent does the heavy lifting, Claude reads each product's official pages (such as pricing and documentation), then fills gaps and checks the facts.
+  - The answer appears in the chat, usually under 250 words. Comparisons can be longer, so nothing you asked for is left out.
 - **Deep research:** a short, cited report.
   1. A Claude Doc opens straight away and fills in as the research goes on.
   2. Two independent research agents (one from Exa, one from Parallel) investigate the question in the background.
@@ -58,7 +59,9 @@ The connector decides which engine to use, removes duplicates and trims results,
 - **Likely:** one reliable source says so.
 - **Unconfirmed:** only hinted at, or sources conflict. Claude says what conflicts.
 
-Claude never fills a gap with a guess. If something couldn't be found, the answer says so.
+**Before answering, Claude checks for gaps.** It lists every fact your question needs (for a comparison, every cell of the table). For anything missing, only "likely", or taken from a research agent without checking, it goes to the official page to find it. It does this up to two times. Only then does it say something couldn't be found, and it names the page it checked.
+
+Claude never fills a gap with a guess, and never says "I didn't check" when a check was possible.
 
 ## Costs
 
