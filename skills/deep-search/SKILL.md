@@ -1,6 +1,7 @@
 ---
 name: deep-search
-description: Verified web research via the Search connector (Exa + Parallel). Use when the user runs /deep-search or asks for research they can rely on ("fact-check", "verify", "make sure this is correct", "deep research", "research report"). Offers Auto (sized to the question) or Deep research (concise cited report, max 2 pages, Claude Doc by default). Every key claim is checked against independent sources.
+description: Verified web research via the Search connector (Exa + Parallel). Run only when the user types /deep-search. Offers Auto (sized to the question) or Deep research (concise cited report, max 2 pages, Claude Doc by default). Every key claim is checked against independent sources.
+disable-model-invocation: true
 ---
 
 Purpose: user needs the answer factual and correct. Accuracy > speed; brevity > coverage. Never state an unsourced fact.

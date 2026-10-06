@@ -10,7 +10,7 @@ import { runVerify } from "./tools/verify.js";
 
 const PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
-export const INSTRUCTIONS = `Web search through Exa and Parallel, used instead of built-in web search and web fetch.
+export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tools only when the user explicitly asks for this connector or runs /web-search or /deep-search; otherwise leave them alone.
 - search: find pages. Results are ranked, de-duplicated and trimmed to the relevant passages, with dates and links. Pick a type for papers, people, companies, news, jobs, code, Reddit-style discussions, X posts or reviews.
 - fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
 - verify: check several factual claims at once against independent sources before stating them.

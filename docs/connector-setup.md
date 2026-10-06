@@ -4,7 +4,7 @@ The Search connector is one Claude connector that combines Exa and Parallel. It 
 
 It comes with two skills:
 
-- **web-search**: everyday searching in normal chats, replacing Claude's built-in web search. Short and light on usage.
+- **web-search**: everyday searching. Type `/web-search` followed by your question. Short and light on usage.
 - **deep-search**: for when you need to be sure the answer is right. Type `/deep-search` and pick **Auto** or **Deep research** (a cited report of 2 pages or less, saved as a Claude Doc).
 
 You'll need: a Vercel account (the free plan works), an Exa account and a Parallel account.
@@ -102,23 +102,25 @@ Copy the folders into your personal skills folder:
 cp -r skills/web-search skills/deep-search ~/.claude/skills/
 ```
 
-## 6. Switch off built-in web search
+## 6. Keep searches manual
 
-So Claude always uses the connector:
+Both skills only run when you type `/web-search` or `/deep-search`. Claude won't start them by itself (set by `disable-model-invocation: true` in each `SKILL.md`).
 
-1. **Claude apps:** turn off **Web search** in the chat's tools menu.
-2. **Claude Code:** add this to `~/.claude/settings.json`:
-   ```json
-   { "permissions": { "deny": ["WebSearch", "WebFetch"] } }
-   ```
-3. **Personal preferences** (Settings, then Profile), as a backup. Paste:
-   > For anything from the web, use the web-search skill with the Search connector. Never use built-in web search or web fetch. When I say /deep-search or ask for verified facts, use the deep-search skill.
+To stop Claude calling the connector's tools without a skill:
+
+1. Go to [claude.ai/customize/connectors](https://claude.ai/customize/connectors) and open the Search connector.
+2. Under its tool permissions, set `search`, `fetch`, `verify` and `research` to need your approval.
+3. You can also turn the connector off in a chat's tools menu and switch it on only when you want it.
+
+The Claude app's own web search is separate. Turn off **Web search** in the chat's tools menu if you don't want Claude searching at all unless asked.
 
 ## 7. Check it works
 
 1. In a new chat, ask: "What's the latest version of Blender?"
-   - Claude should load **web-search**, call `search`, and confirm the version on blender.org.
-2. Type `/deep-search` followed by a question.
+   - Claude should **not** load web-search or call the connector.
+2. Type `/web-search What's the latest version of Blender?`
+   - Claude should call `search` and confirm the version on blender.org.
+3. Type `/deep-search` followed by a question.
    - Claude should ask **Auto** or **Deep research** before searching.
    - With Deep research, a Claude Doc should appear first and fill in as the research progresses.
 

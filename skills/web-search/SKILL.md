@@ -1,6 +1,7 @@
 ---
 name: web-search
-description: Default web search and page reading via the Search connector (Exa + Parallel); replaces built-in web search and web fetch. Use for anything from the web (current facts, news, prices, versions, docs, software help, reviews, Reddit/X opinion, papers, people, companies, jobs) or to read a link, PDF or YouTube video, even if the user doesn't say "search".
+description: Web search and page reading via the Search connector (Exa + Parallel). Run only when the user types /web-search. Covers current facts, news, prices, versions, docs, software help, reviews, Reddit/X opinion, papers, people, companies, jobs, and reading a link, PDF or YouTube video.
+disable-model-invocation: true
 ---
 
 Tools: search, fetch, verify, research from the Search connector. Names may be prefixed (Search:search, mcp__search__search); match the suffix. Never use built-in web_search/web_fetch. Tools missing -> tell user to add the connector; stop.

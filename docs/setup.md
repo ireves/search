@@ -54,7 +54,7 @@ A deny rule at any level overrides any allow rule. Use the plain names as shown;
 
 - Turn off **Web search** in the chat's tools menu.
 - Team and Enterprise admins can switch it off for everyone (Admin settings, then Capabilities).
-- As a backup, add a line to your personal preferences: "For web research, use the web-research skill with Exa and Parallel. Never use built-in web search."
+- The skill only runs when you type `/web-research`. Claude won't start it by itself.
 
 ### Cowork
 
@@ -64,6 +64,6 @@ A [reported bug](https://github.com/anthropics/claude-code/issues/54087) says de
 
 Ask one of the questions in `docs/test-prompts.md` and confirm that:
 
-- Claude loads the web-research skill,
+- typing `/web-research` loads the skill (Claude won't load it by itself),
 - it calls Exa or Parallel tools (not built-in search),
 - Exa searches include `textMaxCharacters: 1` and a `highlightsQuery`.
