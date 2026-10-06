@@ -85,6 +85,8 @@ The skills install as one package (a "plugin") straight from this GitHub reposit
 
 ## Costs
 
+Every answer that used the Search connector ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It covers all searches made for that answer. Exa reports its own cost. Parallel's is worked out from its published prices, so it's an estimate.
+
 Each search costs a little under one US cent. A Deep research report costs up to about $1.10, mostly for the two research agents. Auto usually costs a few cents.
 
 ## If something goes wrong

@@ -1,12 +1,25 @@
 // Parallel: keyword-plus-objective web search with live crawling, page
 // extraction, and the Task API for deep research. API reference: https://docs.parallel.ai
 
+import { addCost } from "../cost.js";
 import { cleanText, isoDay, joinExcerpts } from "../text.js";
 import type { Hit } from "./exa.js";
 import { apiKey, callJson } from "./http.js";
 
 const BASE = "https://api.parallel.ai";
 const CLIENT_MODEL = "claude";
+
+// Parallel doesn't return a price, so costs come from its price list
+// (docs.parallel.ai/getting-started/pricing, checked 6 October 2026).
+// Update these if Parallel changes its prices.
+export const PARALLEL_PRICES = {
+  search: { turbo: 0.001, fast: 0.001, basic: 0.005, advanced: 0.005 },
+  // Each result past the 10 included in a search.
+  extraResult: 0.001,
+  extractPerUrl: 0.001,
+  // Per completed task run; failed runs aren't charged.
+  task: { lite: 0.005, base: 0.01, core: 0.025, pro: 0.1, ultra: 0.3 },
+} as const;
 
 export type ParallelMode = "turbo" | "fast" | "basic" | "advanced";
 
@@ -66,6 +79,8 @@ export async function parallelSearch(o: ParallelSearchOptions): Promise<Hit[]> {
     },
     timeoutMs: o.fresh || mode === "advanced" ? 40_000 : 20_000,
   });
+  const count = data.results?.length ?? 0;
+  addCost("parallel", PARALLEL_PRICES.search[mode] + Math.max(0, count - 10) * PARALLEL_PRICES.extraResult);
   return (data.results ?? []).map((r) => ({
     url: r.url,
     title: cleanText(r.title ?? "") || r.url,
@@ -108,6 +123,7 @@ export async function parallelExtract(
     },
     timeoutMs: 60_000,
   });
+  addCost("parallel", urls.length * PARALLEL_PRICES.extractPerUrl);
   return urls.map((url) => {
     const r =
       data.results?.find((x) => x.url === url) ??

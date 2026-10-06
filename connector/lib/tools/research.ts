@@ -1,6 +1,7 @@
 import { exaAgentGet, exaAgentStart, type AgentRun, type ExaEffort } from "../engines/exa.js";
 import { EngineError } from "../engines/http.js";
-import { parallelTaskResult, parallelTaskStart, type TaskResult } from "../engines/parallel.js";
+import { addCost } from "../cost.js";
+import { PARALLEL_PRICES, parallelTaskResult, parallelTaskStart, type TaskResult } from "../engines/parallel.js";
 import { cleanText, truncate } from "../text.js";
 
 export const EFFORTS = ["quick", "standard", "deep"] as const;
@@ -27,10 +28,12 @@ const PARALLEL_SPEC =
   "A concise markdown report (under 900 words) that answers the task directly. Use inline citations. " +
   "Give exact figures with dates. Add a short 'Conflicting evidence' section and an 'Unverified' section when relevant.";
 
-const PLANS: Record<Effort, { exa: ExaEffort; parallel?: "pro" }> = {
+const PARALLEL_PROCESSOR = "pro";
+
+const PLANS: Record<Effort, { exa: ExaEffort; parallel?: typeof PARALLEL_PROCESSOR }> = {
   quick: { exa: "low" },
   standard: { exa: "medium" },
-  deep: { exa: "auto", parallel: "pro" },
+  deep: { exa: "auto", parallel: PARALLEL_PROCESSOR },
 };
 
 interface Ids {
@@ -121,6 +124,8 @@ async function waitExa(id: string, deadline: number): Promise<Outcome> {
   try {
     for (;;) {
       const run = await exaAgentGet(id);
+      // Charged once, when the run finishes, so a run collected later is counted then.
+      if (run.status === "completed" || run.status === "failed" || run.status === "cancelled") addCost("exa", run.costDollars?.total);
       if (run.status === "completed") return { kind: "done", text: formatExa(run) };
       if (run.status === "failed" || run.status === "cancelled") {
         return { kind: "failed", text: run.error?.message ?? run.status };
@@ -142,6 +147,7 @@ async function waitParallel(id: string, deadline: number): Promise<Outcome> {
     if (!result) return { kind: "pending", text: "" };
     if (result.run.status === "failed") return { kind: "failed", text: result.run.error?.message ?? "failed" };
     if (!result.output) return { kind: "pending", text: "" };
+    addCost("parallel", PARALLEL_PRICES.task[PARALLEL_PROCESSOR]);
     return { kind: "done", text: formatParallel(result) };
   } catch (e) {
     return { kind: "failed", text: friendly(e) };

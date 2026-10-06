@@ -5,6 +5,7 @@ import { runSearch } from "../lib/tools/search.js";
 import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
 import { runVerify } from "../lib/tools/verify.js";
 import { runResearch } from "../lib/tools/research.js";
+import { callTool } from "../lib/mcp.js";
 
 beforeEach(async () => {
   await freshStore();
@@ -173,4 +174,27 @@ test("research returns a run_id while running, then the cited report", async () 
   const second = await runResearch({ run_id: "exa:agent_run_1" });
   assert.match(second.text, /The answer is 42\./);
   assert.match(second.text, /\[1\] Source A https:\/\/src\.com\/a \(confidence: high\)/);
+});
+
+test("every tool reply ends with the Exa and Parallel cost of that call", async () => {
+  mockNetwork(
+    (c) =>
+      c.url === "https://api.exa.ai/search"
+        ? { body: { results: [exaResult("https://a.com/1", "Page one", "Fact one.")], costDollars: { total: 0.007 } } }
+        : undefined,
+    parallelSearchReply(Array.from({ length: 12 }, (_, i) => parallelResult(`https://p${i}.com/`, `Result ${i}`, "Text."))),
+  );
+  const { text, isError } = await callTool("search", { query: "how the thing works", depth: "thorough" });
+  assert.equal(isError, false);
+  const mode = calls.find((c) => c.url.includes("parallel.ai"))!.body.mode;
+  const parallel = (mode === "basic" || mode === "advanced" ? 0.005 : 0.001) + 2 * 0.001;
+  const total = 0.007 + parallel;
+  assert.match(text, new RegExp(`Search cost of this call: \\$${total.toFixed(total < 0.01 ? 4 : 3)} \\(Exa \\$0\\.0070, Parallel \\$${parallel.toFixed(parallel < 0.01 ? 4 : 3)}\\)$`));
+});
+
+test("a failed call still reports its cost line", async () => {
+  await freshStore(false);
+  mockNetwork();
+  const { text } = await callTool("search", { query: "anything" });
+  assert.match(text, /Search cost of this call: \$0\.000 \(Exa \$0\.000, Parallel \$0\.000\)$/);
 });
