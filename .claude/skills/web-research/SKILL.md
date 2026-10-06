@@ -1,6 +1,7 @@
 ---
 name: web-research
-description: Web search and research using the Exa and Parallel connectors instead of Claude's built-in web search and web fetch. Use this whenever you need information from the web - current facts, prices, releases, documentation, software help (Blender, Figma, DaVinci Resolve and similar), product recommendations, Reddit or X discussions, employer reviews, design research, case studies, academic papers, PDFs, job listings, people or companies - or need to read a link, document or YouTube video. Use it even when the user doesn't say "search", and whenever you would otherwise reach for built-in web search.
+description: Web search and research using the Exa and Parallel connectors. Run only when the user types /web-research. Covers current facts, prices, releases, documentation, software help (Blender, Figma, DaVinci Resolve and similar), product recommendations, Reddit or X discussions, employer reviews, design research, case studies, academic papers, PDFs, job listings, people or companies, and reading a link, document or YouTube video.
+disable-model-invocation: true
 ---
 
 # Web research with Exa and Parallel

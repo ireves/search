@@ -11,7 +11,7 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 ## web-search: everyday searching
 
-**When it's used:** automatically, whenever Claude needs anything from the web. You don't need to ask for it. It replaces Claude's built-in web search.
+**When it's used:** only when you type `/web-search` followed by your question. Claude won't use it by itself.
 
 **What it does:**
 
@@ -30,7 +30,7 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 ## deep-search: when you need to be sure
 
-**When it's used:** when you type `/deep-search` followed by your question, or ask Claude to fact-check, verify or research something properly.
+**When it's used:** only when you type `/deep-search` followed by your question. Claude won't use it by itself.
 
 **First, it asks how thorough to be** (unless you've already said):
 
