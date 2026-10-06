@@ -3,6 +3,7 @@
 // every conversation where the connector is switched on.
 
 import { SERVER_NAME, SERVER_TITLE, SERVER_VERSION } from "./config.js";
+import { costLine, metered } from "./cost.js";
 import { runFetch } from "./tools/fetch.js";
 import { EFFORTS, runResearch } from "./tools/research.js";
 import { DEPTHS, runSearch, SEARCH_TYPES } from "./tools/search.js";
@@ -15,7 +16,8 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tool
 - fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
-Cite the links you rely on. If a result says an engine is unavailable, tell the user.`;
+Cite the links you rely on. If a result says an engine is unavailable, tell the user.
+Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
@@ -138,6 +140,12 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
 }
 
 export async function callTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {
+  const { value, meter } = await metered(() => runTool(name, args));
+  if (!TOOLS.some((t) => t.name === name)) return value;
+  return { ...value, text: `${value.text}\n\n${costLine(meter)}` };
+}
+
+async function runTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {
   try {
     switch (name) {
       case "search":

@@ -2,6 +2,7 @@
 // and the Exa Agent for multi-step research. API reference: https://exa.ai/docs
 
 import { cleanText, isoDay, joinExcerpts } from "../text.js";
+import { addCost } from "../cost.js";
 import { apiKey, callJson } from "./http.js";
 
 const BASE = "https://api.exa.ai";
@@ -50,6 +51,9 @@ async function headers(): Promise<Record<string, string>> {
   return { "x-api-key": await apiKey("Exa") };
 }
 
+// Exa's own estimate of what a request cost.
+type ExaCost = { total?: number } | null;
+
 // Category searches for people and companies reject date and exclude filters.
 const NO_DATE_FILTERS = new Set(["people", "company"]);
 
@@ -72,11 +76,12 @@ export async function exaSearch(o: ExaSearchOptions): Promise<Hit[]> {
   if (o.endPublishedDate && datesAllowed) body.endPublishedDate = `${o.endPublishedDate}T23:59:59.999Z`;
   if (o.userLocation) body.userLocation = o.userLocation.toUpperCase();
 
-  const data = await callJson<{ results?: ExaResult[] }>("Exa", `${BASE}/search`, {
+  const data = await callJson<{ results?: ExaResult[]; costDollars?: ExaCost }>("Exa", `${BASE}/search`, {
     headers: await headers(),
     body,
     timeoutMs: o.type === "deep" ? 45_000 : o.fresh ? 40_000 : 25_000,
   });
+  addCost("exa", data.costDollars?.total);
   return (data.results ?? []).map((r) => toHit(r, o.maxChars));
 }
 
@@ -154,7 +159,9 @@ export async function exaContents(urls: string[], question: string | undefined, 
   const data = await callJson<{
     results?: ExaResult[];
     statuses?: { id: string; status: string; error?: { tag?: string; httpStatusCode?: number | null } | null }[];
+    costDollars?: ExaCost;
   }>("Exa", `${BASE}/contents`, { headers: await headers(), body, timeoutMs: fresh ? 45_000 : 30_000 });
+  addCost("exa", data.costDollars?.total);
 
   const byUrl = new Map((data.results ?? []).map((r) => [r.url, r]));
   return urls.map((url, i) => {
