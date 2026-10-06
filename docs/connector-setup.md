@@ -86,21 +86,25 @@ claude mcp add --transport http search https://<your-address>/mcp
 
 ## 5. Install the skills
 
-The skills are in the `skills` folder of this repository.
+The skills install as one plugin straight from this GitHub repository, so later changes arrive on their own.
 
 ### Claude apps and Cowork
 
-1. Zip each skill folder on its own: `skills/web-search` and `skills/deep-search` (zip the folder itself, so `SKILL.md` sits inside it).
-2. In Claude, open **Settings**, find **Skills** (under **Capabilities** at the time of writing) and upload each zip.
-3. Custom skills need a paid plan with code execution switched on.
+1. If you uploaded the skills before, delete those copies under **Customize**, then **Skills**.
+2. Open **Customize**, then **Plugins**, and select **Add marketplace**.
+3. Enter `ireves/search` and turn on **Sync automatically**.
+4. Find **search** in the list and select **Install**. Its skills also work in chat and Claude Code.
+
+To get a change straight away, select **Check for updates** on the marketplace.
 
 ### Claude Code
 
-Copy the folders into your personal skills folder:
+```
+/plugin marketplace add ireves/search
+/plugin install search@ireves-search
+```
 
-```
-cp -r skills/web-search skills/deep-search ~/.claude/skills/
-```
+Then, in `/plugin`, open **Marketplaces**, select **ireves-search** and choose **Enable auto-update**.
 
 ## 6. Keep searches manual
 
