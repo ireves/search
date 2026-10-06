@@ -63,6 +63,26 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 Claude never fills a gap with a guess, and never says "I didn't check" when a check was possible.
 
+## Installing and updating the skills
+
+The skills install as one package (a "plugin") straight from this GitHub repository. Once set up, changes merged here reach Claude on their own, with no downloading or uploading.
+
+**One-off setup**
+
+1. Remove the old uploaded copies of web-search and deep-search, so you don't have two of each.
+   - In the Claude app, open **Customize**, then **Skills**, and delete both.
+2. Add this repository as a plugin source.
+   - Open **Customize**, then **Plugins**.
+   - Select **Add marketplace** and enter `ireves/search`.
+   - Turn on **Sync automatically**.
+3. Install the plugin.
+   - Find **search** in the list and select **Install**.
+   - It works in chat, Cowork and Claude Code.
+
+**After that:** when a change is merged here, Claude picks it up the next time it syncs. To get it straight away, select **Check for updates** on the marketplace.
+
+**Note:** plugin skills may show with the plugin's name in front, such as `/search:deep-search`.
+
 ## Costs
 
 Each search costs a little under one US cent. A Deep research report costs up to about $1.10, mostly for the two research agents. Auto usually costs a few cents.

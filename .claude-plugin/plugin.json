@@ -1,0 +1,7 @@
+{
+  "name": "search",
+  "description": "web-search for everyday questions and deep-search for verified research, using the Search connector (Exa + Parallel)",
+  "author": {
+    "name": "Iuri Reves"
+  }
+}

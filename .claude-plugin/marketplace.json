@@ -1,0 +1,14 @@
+{
+  "name": "ireves-search",
+  "description": "Web search skills that use the Search connector (Exa + Parallel)",
+  "owner": {
+    "name": "Iuri Reves"
+  },
+  "plugins": [
+    {
+      "name": "search",
+      "source": "./",
+      "description": "web-search for everyday questions and deep-search for verified research"
+    }
+  ]
+}
