@@ -5,7 +5,7 @@ The Search connector is one Claude connector that combines Exa and Parallel. It 
 It comes with two skills:
 
 - **better-search**: everyday searching. Type `/better-search` followed by your question and pick **Auto** or **Deep**. Useful links, no formal citations.
-- **uni-search**: for when every fact needs a source. Type `/uni-search` and pick **Auto** or **Research** (a cited report of up to 3 pages, as a Claude Doc or in the chat).
+- **uni-search**: for when every fact needs a source. Type `/uni-search` and pick **Auto** or **Research** (a cited report of up to 3 pages, as a Claude Doc or in the chat). Sources can be given as links or as Harvard references.
 
 Both hand the searching to Haiku workers where the Claude app supports them. Version 1 (web-search and deep-search) is kept as a backup: see [`v1/README.md`](../v1/README.md).
 

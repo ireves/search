@@ -26,6 +26,7 @@ Check: no built-in web search; Auto uses 1 to 4 calls; helpful links but no cita
 | 9 | /uni-search auto: Who is the current CEO of Arm, and since when? | Simple path: one worker chains search, read of the official page, and `verify` if only one site states it; date stated |
 | 10 | /uni-search auto: Compare the five most popular open-source password managers | Heavy path: research worker (`standard`) plus read workers for each product's official pages; source check; table with a source per row |
 | 11 | /uni-search research, in chat: Did the UK ban new petrol cars in 2030? | Premise check: the question is a simplification, so the answer opens with what the rule actually covers (which cars, which year, any changes since it was announced), from the official GOV.UK page |
+| 12 | /uni-search auto, Harvard: What does the research say about the effect of phone bans in UK schools? | No reference menu (Harvard named); source check with REFS; in-text (Author, Year) citations; reference list in Cite Them Right format; DOI for journal articles with no accessed date; no invented details |
 
 Check: every key figure has a primary source or two independent ones; disagreements and gaps reported; nothing stated without a source; the main Claude never calls the connector itself when workers are available.
 
@@ -33,4 +34,4 @@ Check: every key figure has a primary source or two independent ones; disagreeme
 
 | # | Setup | Expected behaviour |
 |---|---|---|
-| 12 | Any prompt above in a chat without Cowork features (no workers) | Claude makes the same calls itself; answer quality unchanged |
+| 13 | Any prompt above in a chat without Cowork features (no workers) | Claude makes the same calls itself; answer quality unchanged |

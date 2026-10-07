@@ -2,7 +2,7 @@ import { exaContents } from "../engines/exa.js";
 import { firecrawlKey, firecrawlScrape } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
 import { parallelExtract } from "../engines/parallel.js";
-import { cleanText, hostOf, relevantPassages, truncate } from "../text.js";
+import { cleanAuthor, cleanText, hostOf, relevantPassages, truncate } from "../text.js";
 
 export interface FetchInput {
   urls: string[] | string;
@@ -15,6 +15,7 @@ interface Page {
   url: string;
   title?: string;
   date?: string;
+  author?: string;
   content: string;
   note?: string;
   error?: string;
@@ -91,6 +92,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
         url: r.url,
         title: r.title,
         date: r.date,
+        author: r.author,
         content,
         note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
       });
@@ -123,6 +125,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
             url: r.url,
             title: r.title,
             date: r.date,
+            author: r.author,
             content: r.content,
             note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
           });
@@ -152,7 +155,8 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     if (!p || !p.content) {
       return `## ${url}\nCouldn't read this page${p?.error ? ` (${p.error})` : ""}. It may need a login, block automated readers, or no longer exist.`;
     }
-    const meta = [p.url, p.date ? `published ${p.date}` : ""].filter(Boolean).join(" · ");
+    const by = cleanAuthor(p.author);
+    const meta = [p.url, p.date ? `published ${p.date}` : "", by ? `by ${by}` : ""].filter(Boolean).join(" · ");
     return [`## ${p.title ?? hostOf(url)}`, meta, p.content, p.note ? `[${p.note}]` : ""].filter(Boolean).join("\n");
   });
   const anyOk = urls.some((u) => pages.get(u)?.content);

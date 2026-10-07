@@ -143,6 +143,7 @@ export interface ExaPage {
   ok: boolean;
   title?: string;
   date?: string;
+  author?: string;
   content: string;
   error?: string;
 }
@@ -171,7 +172,7 @@ export async function exaContents(urls: string[], question: string | undefined, 
       return { url, ok: false, content: "", error: status?.error?.tag ?? "not available" };
     }
     const content = question ? joinExcerpts(r.highlights ?? [], maxChars) : cleanText(r.text ?? "");
-    return { url, ok: content.length > 0, title: cleanText(r.title ?? "") || undefined, date: isoDay(r.publishedDate), content };
+    return { url, ok: content.length > 0, title: cleanText(r.title ?? "") || undefined, date: isoDay(r.publishedDate), author: r.author ?? undefined, content };
   });
 }
 

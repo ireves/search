@@ -222,3 +222,11 @@ export function relevantPassages(text: string, question: string, max: number): s
   chosen.sort((a, b) => a.i - b.i);
   return chosen.map((s, k) => (k > 0 && s.i !== chosen[k - 1].i + 1 ? `…\n${s.block}` : s.block)).join("\n\n");
 }
+
+// Author names as the engines give them, for references. Drops values that
+// are a link or an empty byline, and caps long author lists.
+export function cleanAuthor(author: string | null | undefined): string | undefined {
+  const a = cleanText(String(author ?? "")).replace(/^by\s+/i, "").trim();
+  if (!a || /^https?:\/\//i.test(a) || /^(unknown|admin|n\/a|none)$/i.test(a)) return undefined;
+  return a.length > 120 ? `${a.slice(0, 117).replace(/[,;\s]+\S*$/, "")} et al.` : a;
+}

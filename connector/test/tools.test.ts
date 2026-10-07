@@ -269,3 +269,29 @@ test("a failed call still reports its cost line", async () => {
   const { text } = await callTool("search", { query: "anything" });
   assert.match(text, /Search cost of this call: \$0\.000 \(Exa \$0\.000, Parallel \$0\.000\)$/);
 });
+
+test("search and fetch show the author when the engine gives one", async () => {
+  mockNetwork(
+    exaSearchReply([
+      { ...exaResult("https://journal.example/a", "Four-day week trial results", "Productivity held steady.", "2025-03-01"), author: "Smith, Jane; Patel, Ravi" },
+      { ...exaResult("https://site.example/b", "No byline here", "Some text."), author: "https://site.example/staff" },
+    ]),
+    parallelSearchReply([]),
+  );
+  const { text } = await runSearch({ query: "four-day week trial" });
+  assert.match(text, /Four-day week trial results \(2025-03-01\) · by Smith, Jane; Patel, Ravi/);
+  assert.doesNotMatch(text, /by https:/);
+
+  mockNetwork((c) =>
+    c.url === "https://api.exa.ai/contents"
+      ? {
+          body: {
+            results: [{ url: "https://news.example/c", title: "Trial ends", author: "By Alex Brown", publishedDate: "2025-04-02T00:00:00.000Z", highlights: ["A long relevant passage. ".repeat(20)] }],
+            statuses: [{ id: "https://news.example/c", status: "success" }],
+          },
+        }
+      : undefined,
+  );
+  const read = await runFetch({ urls: ["https://news.example/c"], question: "what happened" });
+  assert.match(read.text, /https:\/\/news\.example\/c · published 2025-04-02 · by Alex Brown/);
+});

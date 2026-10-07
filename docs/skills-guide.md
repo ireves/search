@@ -58,6 +58,14 @@ The connector decides which engine to use, removes duplicates and trims results,
      - **Not confirmed** (only if something couldn't be checked).
      - **Sources:** a numbered list.
 
+**Harvard references (optional):**
+
+- Choose **Harvard** instead of **Links** when Claude asks how to reference sources. The question is part of a menu Claude already shows, so it doesn't add an extra step.
+- Or say it upfront, for example `/uni-search auto, Harvard: ...`. Once chosen, Claude keeps it for the rest of the conversation.
+- You get citations in the text, like (Smith, 2024), and a reference list in the Cite Them Right Harvard style, which most UK universities use.
+- Before writing, a worker opens every cited page and collects the author, date, title, journal details and DOI. Claude never guesses a missing detail: no author becomes the organisation's name, no date becomes "no date".
+- Universities differ in small ways, such as whether the reference list names every author or uses "et al.". Claude names every author, so check your own university's guide.
+
 **Confidence labels you'll see:**
 
 - **Confirmed:** from the official source, or two or more independent sources agree.

@@ -1,5 +1,5 @@
 import type { Hit } from "../engines/exa.js";
-import { hostOf, titleKey, urlKey } from "../text.js";
+import { cleanAuthor, hostOf, titleKey, urlKey } from "../text.js";
 
 export interface Ranked extends Hit {
   score: number;
@@ -24,6 +24,7 @@ export function fuse(lists: { hits: Hit[]; weight: number }[], limit: number): R
           existing.excerpt = existing.excerpt.length >= hit.excerpt.length ? existing.excerpt : hit.excerpt;
         }
         existing.facts ??= hit.facts;
+        existing.author ??= hit.author;
       } else {
         byUrl.set(key, { ...hit, score: add, mirrors: [] });
       }
@@ -55,7 +56,8 @@ export function withinDates(hit: Hit, after?: string, before?: string): boolean 
 }
 
 export function renderHit(hit: Ranked, n: number | string): string {
-  const head = `[${n}] ${hit.title}${hit.date ? ` (${hit.date})` : ""}`;
+  const by = cleanAuthor(hit.author);
+  const head = `[${n}] ${hit.title}${hit.date ? ` (${hit.date})` : ""}${by ? ` · by ${by}` : ""}`;
   const lines = [head, hit.url];
   if (hit.facts) lines.push(hit.facts);
   if (hit.excerpt) lines.push(hit.excerpt);

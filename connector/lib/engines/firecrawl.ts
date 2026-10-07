@@ -21,6 +21,7 @@ export interface FirecrawlPage {
   ok: boolean;
   title?: string;
   date?: string;
+  author?: string;
   content: string;
   error?: string;
 }
@@ -65,6 +66,7 @@ async function scrapeOne(key: string, url: string, fresh: boolean): Promise<Fire
     ok: content.length > 0,
     title: cleanText(text(meta.ogTitle) ?? text(meta.title) ?? "") || undefined,
     date: isoDay(text(meta.publishedTime) ?? text(meta["article:published_time"])),
+    author: text(meta.author) ?? text(meta["article:author"]),
     content,
   };
 }
