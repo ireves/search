@@ -18,7 +18,7 @@ search: call search with the given params.
 read: call fetch with the urls and question.
 verify: call verify with the claims (max 8 per call).
 research: call research with task and effort. Result has a run_id -> call research again with only that run_id until done (max 4 collects). Never start a second run.
-check: for each [n] claim + url: fetch the url with question = the claim. Claims sharing a url -> one fetch, question lists them all. Up to 5 urls per call, independent calls together. Report each claim separately. With REFS, end each question with "Also give the author(s), publication date, title, publisher or journal, volume, issue, pages and DOI."
+check: for each [n] claim + url: fetch the url with question = the claim. Claims sharing a url -> one fetch, question lists them all. Up to 5 urls per call, independent calls together. Report each claim separately. With REFS, end each question with "Also give every author's name (the full list), publication date, title, publisher or journal, volume, issue, pages and DOI."
 
 RULES
 - Copy numbers, dates, versions, prices, names and units exactly. Never round, convert, combine or average.
@@ -58,6 +58,6 @@ check jobs add:
 - [n] stated: "<quote>" | different: "<quote>" | not stated | link failed (<error>) | <url>
 
 REFS (only when the brief asks; one line per url; copy exactly, "not given" when missing, never guess)
-- <url> | author(s) as given, or organisation | title | site, publisher or journal | date as given | type: web page, journal article, news, report, video, book, thesis, post | volume(issue), pages, DOI
+- <url> | every author as given (full list), or organisation | title | site, publisher or journal | date as given | type: web page, journal article, news, report, video, book, thesis, post | volume(issue), pages, DOI
 
 Last line, always: COST: $X (Exa $Y, Parallel $Z) = sum of every "Search cost of this call" line you received; add ", Firecrawl N credits" inside the brackets when any line has it.

@@ -63,8 +63,8 @@ The connector decides which engine to use, removes duplicates and trims results,
 - Choose **Harvard** instead of **Links** when Claude asks how to reference sources. The question is part of a menu Claude already shows, so it doesn't add an extra step.
 - Or say it upfront, for example `/uni-search auto, Harvard: ...`. Once chosen, Claude keeps it for the rest of the conversation.
 - You get citations in the text, like (Smith, 2024), and a reference list in the Cite Them Right Harvard style, which most UK universities use.
-- Before writing, a worker opens every cited page and collects the author, date, title, journal details and DOI. Claude never guesses a missing detail: no author becomes the organisation's name, no date becomes "no date".
-- Universities differ in small ways, such as whether the reference list names every author or uses "et al.". Claude names every author, so check your own university's guide.
+- Before writing, a worker opens every cited page and collects the author, date, title, journal details and DOI. Claude never guesses a missing detail: no author becomes the organisation's name, and no date becomes "n.d."
+- The reference list names every author. "et al." is only used in the text, for sources with four or more authors, for example (Smith et al., 2024).
 
 **Confidence labels you'll see:**
 

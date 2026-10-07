@@ -224,9 +224,9 @@ export function relevantPassages(text: string, question: string, max: number): s
 }
 
 // Author names as the engines give them, for references. Drops values that
-// are a link or an empty byline, and caps long author lists.
+// are a link or an empty byline. Keeps every name; only a very long list is cut.
 export function cleanAuthor(author: string | null | undefined): string | undefined {
   const a = cleanText(String(author ?? "")).replace(/^by\s+/i, "").trim();
   if (!a || /^https?:\/\//i.test(a) || /^(unknown|admin|n\/a|none)$/i.test(a)) return undefined;
-  return a.length > 120 ? `${a.slice(0, 117).replace(/[,;\s]+\S*$/, "")} et al.` : a;
+  return a.length > 1000 ? `${a.slice(0, 1000).replace(/[,;\s]+\S*$/, "")} and others (list cut; full list on the page)` : a;
 }
