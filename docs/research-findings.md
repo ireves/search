@@ -245,3 +245,24 @@ Firecrawl's `/v2/scrape` (markdown, main content only) tried on the kinds of pag
 Pages cost 1 credit each; pages that return 403 or 404 still cost 1; PDFs cost 1 per PDF page. The test used 11 of the 1,000 free monthly credits.
 
 **Connector update:** Firecrawl reads pages first when its key is set, except Reddit, NYT, LinkedIn, X, PDFs and YouTube. Anything it can't read goes on to Exa and Parallel as before.
+
+## 16. Which sites Firecrawl can open (October 2026)
+
+Firecrawl's `/v2/scrape` on 42 well-known sites, free plan, one page each. "Works" means the main content came back, checked by hand. YouTube was tested separately: title, description, chapters and comments, but **no transcript** (YouTube only loads it after a button click).
+
+| Result | Sites |
+|---|---|
+| Works, full content | Wikipedia, GitHub, Stack Overflow, Hacker News, Medium, Substack, GOV.UK, NHS, BBC News, Reuters, Guardian, Telegraph, Amazon (product, rating, reviews), eBay search, Trustpilot, Tripadvisor, Booking.com, IMDb, Steam, Apple App Store, G2, Glassdoor, Indeed, Quora, Zillow, Rightmove, Mastodon |
+| Opens, but only the first paragraphs (paywall) | WSJ, Bloomberg, Economist, Washington Post. The FT article in section 15 was a free-registration one |
+| Opens, but empty | Bluesky (only the trending list; the posts load later) |
+| Refused ("we do not support this site") | Reddit, NYT, LinkedIn (profiles and jobs), Yelp, Instagram, Facebook, TikTok, Threads, Pinterest, Craigslist |
+| Works, but expensive | X (about 30 credits a page) |
+
+Other findings:
+
+- The free plan allows about 10 pages a minute as well as 2 at a time. Requests over that are turned away (HTTP 429) without charge.
+- Refused sites appear to cost 1 credit each, judging by the credit balance.
+- The whole test used about 55 credits.
+
+**Connector update:** the refused sites are added to the list that skips Firecrawl, so they go straight to Exa or Parallel without wasting a credit. Pages turned away for the per-minute limit, and Bluesky's near-empty page, already fall through to Exa and Parallel.
+

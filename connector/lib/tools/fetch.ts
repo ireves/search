@@ -24,10 +24,11 @@ interface Page {
 const PARALLEL_FIRST = /(^|\.)(x\.com|twitter\.com|glassdoor\.[a-z.]+|trustpilot\.com|linkedin\.com|quora\.com)$/;
 
 // When a Firecrawl key is set, Firecrawl reads pages first, to save Exa and
-// Parallel usage. Skipped where it refuses the site (Reddit, NYT, LinkedIn),
-// charges far more (X: about 30 credits a page; PDFs: a credit per page) or
-// where Exa does better (YouTube transcripts).
-const FIRECRAWL_SKIP = /(^|\.)(reddit\.com|redd\.it|nytimes\.com|linkedin\.com|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
+// Parallel usage. Skipped where it refuses the site (see section 16 of
+// docs/research-findings.md), charges far more (X: about 30 credits a page;
+// PDFs: a credit per page) or where Exa does better (YouTube transcripts).
+const FIRECRAWL_SKIP =
+  /(^|\.)(reddit\.com|redd\.it|nytimes\.com|linkedin\.com|yelp\.[a-z.]+|instagram\.com|facebook\.com|tiktok\.com|threads\.(net|com)|pinterest\.[a-z.]+|craigslist\.org|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
 
 function looksLikePdf(url: string): boolean {
   const path = new URL(url).pathname.toLowerCase();

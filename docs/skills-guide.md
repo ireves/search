@@ -6,7 +6,7 @@ Both skills use your Search connector, which combines two search engines:
 
 - **Exa** finds pages by meaning. It's best for articles, research papers, people, companies, job listings and official pages.
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
-- **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It can also read Quora.
+- **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It can also read Quora. It refuses some sites, such as Reddit, Instagram, Facebook, TikTok and LinkedIn, so those go to Exa or Parallel.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 

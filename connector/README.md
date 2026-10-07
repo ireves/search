@@ -43,9 +43,9 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 **Firecrawl (optional).** When `FIRECRAWL_API_KEY` is set, Firecrawl reads pages first, to save Exa and Parallel usage (its free plan gives 1,000 pages a month). Pages it refuses, returns with an error status or returns thin go on to the usual Exa / Parallel route.
 
-- Skipped for Reddit, NYT and LinkedIn (it refuses them), X (about 30 credits a page), PDFs (a credit per PDF page) and YouTube (Exa returns the transcript).
+- Skipped for Reddit, NYT, LinkedIn, Yelp, Instagram, Facebook, TikTok, Threads, Pinterest and Craigslist (it refuses them), X (about 30 credits a page), PDFs (a credit per PDF page) and YouTube (Exa returns the transcript).
 - Reads the whole page. With a question, the connector picks the paragraphs that share the most uncommon words with the question, in page order, instead of paying Firecrawl's extra 4 credits a page for its own question format. This matches words, not meaning, so it is a little less precise than Exa.
-- Two pages at a time (the free plan's limit). A rejected key or empty credit is reported once and the remaining pages skip Firecrawl.
+- Two pages at a time (the free plan's limit). The free plan also allows only about 10 pages a minute; pages turned away for that go to Exa and Parallel. A rejected key or empty credit is reported once and the remaining pages skip Firecrawl.
 - Results show credits used: "Firecrawl 2 credits" in the cost line.
 
 **Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
