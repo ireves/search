@@ -16,6 +16,11 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "Reddit, X, Glassdoor and Trustpilot, backup reader, deep research.",
     link: "https://platform.parallel.ai",
   },
+  FIRECRAWL_API_KEY: {
+    label: "Firecrawl API key (optional)",
+    help: "Reads pages first when set, to save Exa and Parallel usage. Also reads some sites they can't, such as Quora. The free plan gives 1,000 pages a month.",
+    link: "https://www.firecrawl.dev/app/api-keys",
+  },
 };
 
 export function adminPassword(): string | null {

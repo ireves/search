@@ -5,6 +5,7 @@
 import { adminPassword, baseUrl, clientIp, KNOWN_SECRETS, SERVER_TITLE } from "./config.js";
 import { getKeys, nowSeconds, randomId, safeEqual, signToken, verifyToken, type TokenPayload } from "./crypto.js";
 import { exaCheck } from "./engines/exa.js";
+import { firecrawlCheck } from "./engines/firecrawl.js";
 import { parallelCheck } from "./engines/parallel.js";
 import { esc, json, page, passkeyFields, redirect, setupNeededPage } from "./html.js";
 import { mcpUrl } from "./oauth.js";
@@ -129,8 +130,12 @@ export async function handleSettings(request: Request): Promise<Response> {
         return redirect(`${base}/settings?m=signedout`, { "set-cookie": sessionCookie(request, "", 0) });
       }
       if (action === "check") {
-        const [exa, parallel] = await Promise.all([checkKey("EXA_API_KEY", exaCheck), checkKey("PARALLEL_API_KEY", parallelCheck)]);
-        return redirect(`${base}/settings?exa=${exa}&parallel=${parallel}`);
+        const [exa, parallel, firecrawl] = await Promise.all([
+          checkKey("EXA_API_KEY", exaCheck),
+          checkKey("PARALLEL_API_KEY", parallelCheck),
+          checkKey("FIRECRAWL_API_KEY", firecrawlCheck),
+        ]);
+        return redirect(`${base}/settings?exa=${exa}&parallel=${parallel}&firecrawl=${firecrawl}`);
       }
     } catch {
       return redirect(`${base}/settings?m=failed`);
@@ -187,7 +192,11 @@ async function dashboard(base: string, csrf: string, params: URLSearchParams): P
   const store = backend();
   const secrets = await listSecrets(Object.keys(KNOWN_SECRETS));
   const flash = MESSAGES[params.get("m") ?? ""];
-  const checks: Record<string, string | null> = { EXA_API_KEY: params.get("exa"), PARALLEL_API_KEY: params.get("parallel") };
+  const checks: Record<string, string | null> = {
+    EXA_API_KEY: params.get("exa"),
+    PARALLEL_API_KEY: params.get("parallel"),
+    FIRECRAWL_API_KEY: params.get("firecrawl"),
+  };
   const token = `<input type="hidden" name="csrf" value="${esc(csrf)}">`;
   const state = await loadState(true);
   const passkeys = state.passkeys ?? [];

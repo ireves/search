@@ -60,7 +60,7 @@ STEP 6 ANSWER
 - Tables: source link in every cell, or one source per row/column.
 - Auto: short as completeness allows (usually <250 words; comparisons longer). Deep research: references/report.md, <=2 pages.
 - No raw tool output; quote only proof.
-- Last line of every reply that used the connector: "Search cost: $X (Exa $Y, Parallel $Z)" = sum of each tool result's "Search cost of this call" line since your last reply. Deep research: put it in the chat reply, not the Doc.
+- Last line of every reply that used the connector: "Search cost: $X (Exa $Y, Parallel $Z)" = sum of each tool result's "Search cost of this call" line since your last reply; add ", Firecrawl N credits" inside the brackets when any line has it. Deep research: put it in the chat reply, not the Doc.
 
 ERRORS
 - "no API key" / "rejected the API key": user adds/replaces key at connector settings page (connector URL with /settings instead of /mcp).

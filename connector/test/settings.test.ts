@@ -61,5 +61,5 @@ test("check reports whether each key works without revealing it", async () => {
   await settings.fetch(req("/settings", { method: "POST", headers: { cookie }, form: { action: "save", name: "EXA_API_KEY", value: "k1", csrf } }));
   await settings.fetch(req("/settings", { method: "POST", headers: { cookie }, form: { action: "save", name: "PARALLEL_API_KEY", value: "k2", csrf } }));
   const res = await settings.fetch(req("/settings", { method: "POST", headers: { cookie }, form: { action: "check", csrf } }));
-  assert.equal(res.headers.get("location"), "https://search.example.com/settings?exa=200&parallel=401");
+  assert.equal(res.headers.get("location"), "https://search.example.com/settings?exa=200&parallel=401&firecrawl=missing");
 });

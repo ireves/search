@@ -1,7 +1,8 @@
 import { exaContents } from "../engines/exa.js";
+import { firecrawlKey, firecrawlScrape } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
 import { parallelExtract } from "../engines/parallel.js";
-import { cleanText, hostOf, truncate } from "../text.js";
+import { cleanText, hostOf, relevantPassages, truncate } from "../text.js";
 
 export interface FetchInput {
   urls: string[] | string;
@@ -21,6 +22,25 @@ interface Page {
 
 // Sites Exa can't read (or reads badly) go straight to Parallel.
 const PARALLEL_FIRST = /(^|\.)(x\.com|twitter\.com|glassdoor\.[a-z.]+|trustpilot\.com|linkedin\.com|quora\.com)$/;
+
+// When a Firecrawl key is set, Firecrawl reads pages first, to save Exa and
+// Parallel usage. Skipped where it refuses the site (see section 16 of
+// docs/research-findings.md), charges far more (X: about 30 credits a page;
+// PDFs: a credit per page) or where Exa does better (YouTube transcripts).
+const FIRECRAWL_SKIP =
+  /(^|\.)(reddit\.com|redd\.it|nytimes\.com|linkedin\.com|yelp\.[a-z.]+|instagram\.com|facebook\.com|tiktok\.com|threads\.(net|com)|pinterest\.[a-z.]+|craigslist\.org|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
+
+// Short pages that are only a bot check, a block or a login wall.
+const BLOCK_PAGE = /captcha|checking your browser|verify you are human|are you a robot|access denied|log ?in to (a free account|continue)|sign ?in to continue/i;
+
+function looksBlocked(content: string): boolean {
+  return content.length < 2000 && BLOCK_PAGE.test(content);
+}
+
+function looksLikePdf(url: string): boolean {
+  const path = new URL(url).pathname.toLowerCase();
+  return path.endsWith(".pdf") || (hostOf(url) === "arxiv.org" && path.startsWith("/pdf/"));
+}
 
 function normaliseUrl(raw: string): string | null {
   const s = raw.trim();
@@ -54,9 +74,28 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
 
   const pages = new Map<string, Page>();
   const reddit = urls.filter(isRedditThread);
-  const parallelFirst = urls.filter((u) => !reddit.includes(u) && PARALLEL_FIRST.test(hostOf(u)));
-  const exaFirst = urls.filter((u) => !reddit.includes(u) && !parallelFirst.includes(u));
   const failures: string[] = [];
+
+  // Firecrawl first where it suits; whatever it can't read goes on to the others.
+  let others = urls.filter((u) => !reddit.includes(u));
+  const firecrawlFirst = (await firecrawlKey()) ? others.filter((u) => !FIRECRAWL_SKIP.test(hostOf(u)) && !looksLikePdf(u)) : [];
+  const viaFirecrawl = async () => {
+    if (!firecrawlFirst.length) return;
+    const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh);
+    if (problem) failures.push(`${problem.friendly} Exa and Parallel read the pages instead.`);
+    for (const r of read) {
+      if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) continue;
+      const content = question ? relevantPassages(r.content, question, maxChars) : truncate(r.content, maxChars);
+      const cut = !question && r.content.length > maxChars;
+      pages.set(r.url, {
+        url: r.url,
+        title: r.title,
+        date: r.date,
+        content,
+        note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
+      });
+    }
+  };
 
   const viaParallel = async (targets: string[]) => {
     if (!targets.length) return;
@@ -99,7 +138,14 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     await viaParallel(retry);
   };
 
-  await Promise.all([viaExa(exaFirst), viaParallel(parallelFirst), ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures))]);
+  const viaOthers = async () => {
+    await viaFirecrawl();
+    others = others.filter((u) => !pages.get(u)?.content);
+    const parallelFirst = others.filter((u) => PARALLEL_FIRST.test(hostOf(u)));
+    await Promise.all([viaExa(others.filter((u) => !parallelFirst.includes(u))), viaParallel(parallelFirst)]);
+  };
+
+  await Promise.all([viaOthers(), ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures))]);
 
   const blocks = urls.map((url) => {
     const p = pages.get(url);

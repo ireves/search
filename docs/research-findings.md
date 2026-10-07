@@ -228,3 +228,81 @@ Each site tested with Exa (`includeDomains` set to that site) and, where Exa loo
 `site:reddit.com` in Parallel kept 10 of 10 results on Reddit, so limiting Parallel with `site:` reliably avoids duplicating Exa. Some Reddit pages carried Reddit's auto-generated "Related Answers" text, which isn't user content.
 
 **Skill update:** Parallel is now added alongside Exa for software help, buying advice, real-world experience, reactions to releases, creator posts, employer reviews and company review scores, but always limited to Reddit, X, Glassdoor or Trustpilot. Unrestricted Parallel web searches are no longer used.
+
+## 15. Firecrawl on the pages both engines failed (October 2026)
+
+Firecrawl's `/v2/scrape` (markdown, main content only) tried on the kinds of page that failed for Exa and Parallel, using the free plan.
+
+| Page | Exa / Parallel | Firecrawl |
+|---|---|---|
+| Quora question | Error page from both | Full answers (the page starts with Quora's "Something went wrong" banner, but the answers follow) |
+| FT article (free-registration article) | Nothing | Whole article text. Not tested on a subscriber-only article |
+| LinkedIn profile | Failed | Refused: people profiles are a separate paid feature |
+| Glassdoor reviews | Parallel worked | Full reviews |
+| X profile | Parallel worked | Worked, but marked as 30 credits |
+| Reddit thread, NYT | Parallel / Exa worked | Refused: "we do not support this site" (HTTP 403) |
+
+Pages cost 1 credit each; pages that return 403 or 404 still cost 1; PDFs cost 1 per PDF page. The test used 11 of the 1,000 free monthly credits.
+
+**Connector update:** Firecrawl reads pages first when its key is set, except Reddit, NYT, LinkedIn, X, PDFs and YouTube. Anything it can't read goes on to Exa and Parallel as before.
+
+## 16. Which sites Firecrawl can open (October 2026)
+
+Firecrawl's `/v2/scrape` on 42 well-known sites, free plan, one page each. "Works" means the main content came back, checked by hand. YouTube was tested separately: title, description, chapters and comments, but **no transcript** (YouTube only loads it after a button click).
+
+| Result | Sites |
+|---|---|
+| Works, full content | Wikipedia, GitHub, Stack Overflow, Hacker News, Medium, Substack, GOV.UK, NHS, BBC News, Reuters, Guardian, Telegraph, Amazon (product, rating, reviews), eBay search, Trustpilot, Tripadvisor, Booking.com, IMDb, Steam, Apple App Store, G2, Glassdoor, Indeed, Quora, Zillow, Rightmove, Mastodon |
+| Opens, but only the first paragraphs (paywall) | WSJ, Bloomberg, Economist, Washington Post. The FT article in section 15 was a free-registration one |
+| Opens, but empty | Bluesky (only the trending list; the posts load later) |
+| Refused ("we do not support this site") | Reddit, NYT, LinkedIn (profiles and jobs), Yelp, Instagram, Facebook, TikTok, Threads, Pinterest, Craigslist |
+| Works, but expensive | X (about 30 credits a page) |
+
+Other findings:
+
+- The free plan allows about 10 pages a minute as well as 2 at a time. Requests over that are turned away (HTTP 429) without charge.
+- Refused sites appear to cost 1 credit each, judging by the credit balance.
+- The whole test used about 55 credits.
+
+**Connector update:** the refused sites are added to the list that skips Firecrawl, so they go straight to Exa or Parallel without wasting a credit. Pages turned away for the per-minute limit, and Bluesky's near-empty page, already fall through to Exa and Parallel.
+
+## 17. Firecrawl on research, UX design, job and startup-idea sites (October 2026)
+
+Same method as section 16: one page each, free plan, checked by hand. About 75 credits.
+
+**Research**
+
+| Result | Sites |
+|---|---|
+| Full text | arXiv (HTML version), PubMed Central, Nature (open article), Springer (open article), PLOS ONE |
+| Abstract and details only | arXiv abstract page, Semantic Scholar (abstract and citations), ResearchGate (abstract and citing passages), SSRN, ScienceDirect, IEEE Xplore, ACM Digital Library (abstract and references), OpenReview, bioRxiv, NBER |
+| Search results | Google Scholar (titles and snippets) |
+| Blocked | PubMed (bot check page), JSTOR (login wall) |
+
+**UX design**
+
+| Result | Sites |
+|---|---|
+| Full content | Nielsen Norman Group, Smashing Magazine, UX Collective articles, UX Planet, Laws of UX, Baymard, Apple Human Interface Guidelines, A List Apart, Growth.Design, Page Flows |
+| Lists only (the work itself is images) | Behance (project titles), Awwwards (site names), Mobbin (screen categories), Material Design (thin) |
+| Nothing useful | Dribbble (filters and colours only), Figma Community (menu only) |
+
+**Jobs**
+
+| Result | Sites |
+|---|---|
+| Single job ads, full text | Greenhouse, Lever, Ashby, Workday |
+| Job lists | Greenhouse, Lever, Ashby, Workable, Workday, Wellfound, Work at a Startup (YC), Remote OK, We Work Remotely, Reed, Totaljobs |
+| Company intro only, no jobs | SmartRecruiters, Welcome to the Jungle |
+| Blocked | Guardian Jobs ("Access Denied") |
+
+**Startup ideas**
+
+| Result | Sites |
+|---|---|
+| Full content | Paul Graham essays, Indie Hackers, Product Hunt, BetaList, Starter Story, Trends.vc, Exploding Topics, Failory, AlternativeTo, Kickstarter, Statista (topic page), a16z, TechCrunch, Google Trends (trending list), YC company pages |
+| Partial | Crunchbase (description; funding figures hidden), YC company directory (filters only, no companies) |
+| Failed | Similarweb ("all scraping engines failed") |
+
+**Connector update:** Firecrawl results that are short and look like a bot check, block or login wall (as PubMed and JSTOR returned) now count as not read, so Exa and Parallel try them instead.
+
