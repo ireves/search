@@ -1,58 +1,62 @@
 # Your search skills: a guide
 
-This explains what the two search skills do and how to use them. The skill files themselves are written in a compressed style for Claude to read quickly, so you don't need to open them.
+This explains what the two search skills do and how to use them. This is version 2. Version 1 (web-search and deep-search) is kept as a backup in the [`v1`](../v1) folder.
 
 Both skills use your Search connector, which combines two search engines:
 
 - **Exa** finds pages by meaning. It's best for articles, research papers, people, companies, job listings and official pages.
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
-- **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It can also read Quora. It refuses some sites, such as Reddit, Instagram, Facebook, TikTok and LinkedIn, so those go to Exa or Parallel.
+- **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
-## web-search: everyday searching
+## What's new in version 2
 
-**When it's used:** only when you type `/web-search` followed by your question. Claude won't use it by itself.
+**Workers do the searching.** A worker is a smaller, cheaper Claude model (Haiku) that Claude hands simple jobs to.
 
-**What it does:**
+1. The main Claude plans what to look for.
+2. It sends workers a short list of searches and page reads.
+   - Several workers run at the same time when a question has more than one angle.
+3. Each worker runs its searches and sends back a short list of facts, each with its link and date.
+   - The long search results stay with the worker, so the main Claude's memory isn't filled with them.
+4. The main Claude decides what's true, fills gaps and writes the answer.
 
-1. Runs one search, described the way you'd describe the ideal page.
-2. Answers straight from the results if they're clear.
-3. Otherwise reads the one or two best pages, looking only for the part that answers your question.
-4. Stops there. Most questions take one or two steps, never more than about four.
+**Where workers run:** in the Claude app wherever Cowork features are available, and in Claude Code. If workers aren't available (for example in a plain chat where Cowork features haven't reached your account yet), Claude does the searches itself, the same way version 1 did. The answer is the same; it just uses more of the main Claude's memory.
 
-**How it keeps answers accurate:**
+**New names:** `/uni-search` (replaces deep-search) and `/better-search` (replaces web-search). In the Claude app they may show as `/search:uni-search` and `/search:better-search`.
 
-- For anything "latest" or "current" (a version, price or who holds a job), it checks the official website rather than news articles.
-- If an important number or date comes from only one source, it checks it against other websites first.
-- Before answering, it makes sure every part of your question is covered. If one look at the official page would fill a gap, it does that.
-- It says "as of" a date for things that change, and tells you when something couldn't be confirmed.
+## uni-search: sourced research
 
-**Kinds of search it can do:** news, Reddit and forum discussions, posts on X, reviews, research papers, people's professional backgrounds, company facts, technical documentation, job listings and financial reports.
+**When it's used:** only when you type `/uni-search` followed by your question.
 
-## deep-search: when you need to be sure
+**Rules for both options:**
 
-**When it's used:** only when you type `/deep-search` followed by your question. Claude won't use it by itself.
+- Every fact has a source link.
+- Claude never states something it can't back up. If it draws its own conclusion, it says so and builds it on cited facts.
+- If your question assumes something that turns out to be false, Claude says so first.
 
-**First, it asks how thorough to be** (unless you've already said):
+**First, it asks how thorough to be** (unless you've already said, for example `/uni-search research: ...`):
 
 - **Auto:** Claude picks the right amount of work for the question.
-  - A single fact: one search, checked against the official source.
-  - A few facts on one topic: a handful of searches from different angles, then the key facts are cross-checked.
-  - A comparison or long list: a research agent does the heavy lifting, Claude reads each product's official pages (such as pricing and documentation), then fills gaps and checks the facts.
-  - The answer appears in the chat, usually under 250 words. Comparisons can be longer, so nothing you asked for is left out.
-- **Deep research:** a short, cited report.
-  1. A Claude Doc opens straight away and fills in as the research goes on.
-  2. Two independent research agents (one from Exa, one from Parallel) investigate the question in the background.
-  3. At the same time, Claude runs its own searches from different angles: official sources, recent news, studies, people's experiences and critics.
-  4. Claude compares all three, settles any disagreements by reading the original source, and checks every key fact.
-  5. The report is 2 pages or less, with these sections:
+  - A single fact: one worker searches, reads the official page and checks the fact.
+  - A few facts on one topic: two workers search from different angles, then the key facts are checked.
+  - A comparison or long list: a research agent, plus workers reading each item's official pages, then gaps are filled and facts checked.
+  - The answer appears in the chat with source links and confidence labels.
+- **Research:** in-depth research, up to 3 pages.
+  1. Claude asks one more question: **Claude Doc** or **Chat**.
+     - It asks straight away, before searching, so you're not kept waiting at the end.
+     - Skip the question by saying it upfront, for example `/uni-search research, in chat: ...`.
+  2. Two independent research agents (one from Exa, one from Parallel) investigate the question.
+  3. At the same time, workers search from different angles: official sources, recent news, studies, people's experiences and critics.
+  4. Claude compares everything, settles disagreements by reading the original source, and checks every key fact.
+  5. **Source check (new):** before writing, a worker opens every page Claude plans to cite and confirms it says what Claude claims. Anything that doesn't match is fixed or removed.
+  6. The report has these sections:
      - **Bottom line:** the direct answer.
      - **Key findings:** one fact per point, each with its source.
+     - **Analysis** (only when you ask why or how): Claude's reasoning, clearly marked, built on the findings.
      - **Where sources disagree** (only if they do).
      - **Not confirmed** (only if something couldn't be checked).
      - **Sources:** a numbered list.
-  6. If you'd rather have the report in the chat or somewhere else, just say so.
 
 **Confidence labels you'll see:**
 
@@ -60,41 +64,41 @@ The connector decides which engine to use, removes duplicates and trims results,
 - **Likely:** one reliable source says so.
 - **Unconfirmed:** only hinted at, or sources conflict. Claude says what conflicts.
 
-**Before answering, Claude checks for gaps.** It lists every fact your question needs (for a comparison, every cell of the table). For anything missing, only "likely", or taken from a research agent without checking, it goes to the official page to find it. It does this up to two times. Only then does it say something couldn't be found, and it names the page it checked.
+## better-search: everyday searching
 
-Claude never fills a gap with a guess, and never says "I didn't check" when a check was possible.
+**When it's used:** only when you type `/better-search` followed by your question.
 
-## Installing and updating the skills
+**What's different from uni-search:** the answer should still be accurate and useful, but Claude doesn't need to cite every point. It can combine sources, read between the lines, give its own view and make recommendations. Links are added where they help, such as the official page or a useful thread. Specific facts like prices, dates and versions still come from the search, never from memory.
 
-The skills install as one package (a "plugin") straight from this GitHub repository. Once set up, changes merged here reach Claude on their own, with no downloading or uploading.
+**First, it asks how hard to search** (unless you've already said, for example `/better-search deep: ...`, or you've only given a link to read):
 
-**One-off setup**
-
-1. Remove the old uploaded copies of web-search and deep-search, so you don't have two of each.
-   - In the Claude app, open **Customize**, then **Skills**, and delete both.
-2. Add this repository as a plugin source.
-   - Open **Customize**, then **Plugins**.
-   - Select **Add marketplace** and enter `ireves/search`.
-   - Turn on **Sync automatically**.
-3. Install the plugin.
-   - Find **search** in the list and select **Install**.
-   - It works in chat, Cowork and Claude Code.
-
-**After that:** when a change is merged here, Claude picks it up the next time it syncs. To get it straight away, select **Check for updates** on the marketplace.
-
-**Note:** plugin skills may show with the plugin's name in front, such as `/search:deep-search`.
+- **Auto:** sized to the question. A simple lookup takes one or two searches.
+- **Deep:** always searches thoroughly, from several angles at once (official pages, people's experiences, reviews, news). The answer is still only as long as the question needs.
 
 ## Costs
 
-Every answer that used the Search connector ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It covers all searches made for that answer. Exa reports its own cost. Parallel's is worked out from its published prices, so it's an estimate. When Firecrawl reads a page, the line also says how many Firecrawl credits were used, such as "Firecrawl 2 credits". On Firecrawl's free plan these cost nothing until the 1,000 a month run out.
+Every answer ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It adds up every search made for that answer, including the workers' searches. It doesn't include Claude's own usage, which comes out of your Claude plan as usual. Workers use Haiku, Anthropic's smallest and cheapest model.
 
-Each search costs a little under one US cent. A Deep research report costs up to about $1.10, mostly for the two research agents. Auto usually costs a few cents.
+Each search costs a little under one US cent. A uni-search Research report costs up to about $1.40, mostly for the two research agents. Auto usually costs a few cents.
 
 ## If something goes wrong
 
 - **"has no API key" or "rejected the API key":** open your connector's settings page at [search-connector.vercel.app/settings](https://search-connector.vercel.app/settings) and add or replace the key.
 - **One engine is unavailable:** Claude carries on with the other and tells you.
-- **A page needs a login** (such as LinkedIn): Claude can't read it and will say so. Quora works when the Firecrawl key is added. For someone's professional background, it searches professional profiles instead.
+- **A page needs a login** (such as LinkedIn): Claude can't read it and will say so.
+- **Version 2 misbehaves:** switch back to version 1. Steps are in [`v1/README.md`](../v1/README.md).
+
+## Installing and updating the skills
+
+The skills install as one plugin straight from this GitHub repository. If you already installed the **search** plugin with **Sync automatically** turned on, version 2 arrives on its own. To get it straight away, open **Customize**, then **Plugins**, and select **Check for updates** on the **ireves-search** marketplace.
+
+First-time setup is in [connector-setup.md](connector-setup.md).
+
+## For whoever edits the skills
+
+- The worker's instructions are in [`agents/search-worker.md`](../agents/search-worker.md).
+- A copy sits in each skill's `references/worker.md`, for when Claude has to brief a general worker instead.
+- After changing the worker's instructions, run `sh scripts/check-worker-copies.sh --write` to update the copies.
 
 ## Where things are
 

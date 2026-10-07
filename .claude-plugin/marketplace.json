@@ -8,7 +8,12 @@
     {
       "name": "search",
       "source": "./",
-      "description": "web-search for everyday questions and deep-search for verified research"
+      "description": "Version 2: uni-search for sourced research and better-search for everyday questions, with Haiku workers doing the searching"
+    },
+    {
+      "name": "search-v1",
+      "source": "./v1",
+      "description": "Backup of version 1: web-search and deep-search, without workers"
     }
   ]
 }

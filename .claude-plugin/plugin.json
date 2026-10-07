@@ -1,6 +1,6 @@
 {
   "name": "search",
-  "description": "web-search for everyday questions and deep-search for verified research, using the Search connector (Exa + Parallel)",
+  "description": "uni-search for sourced research and better-search for everyday questions, using the Search connector (Exa + Parallel), with Haiku workers doing the searching",
   "author": {
     "name": "Iuri Reves"
   }
