@@ -1,10 +1,14 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { cleanText, keywords, parseDate, truncate, urlKey } from "../lib/text.js";
+import { cleanText, keywords, parseDate, relevantPassages, truncate, urlKey } from "../lib/text.js";
 
 test("cleanText strips links, images, labels and Reddit filler", () => {
   const raw = "Section Title: A > B\nContent:\nSee [the docs](https://x.com/a(b)) ![img](i.png)\nAccept all cookies\nReal text.\nRelated Answers\nAI summary here";
   assert.equal(cleanText(raw), "See the docs\nReal text.");
+});
+
+test("cleanText strips links that carry a hover title", () => {
+  assert.equal(cleanText('MBS have " [negative convexity](https://example.com/a "")".'), 'MBS have " negative convexity".');
 });
 
 test("urlKey folds tracking parameters and arXiv variants", () => {
@@ -25,4 +29,10 @@ test("parseDate understands relative windows", () => {
 test("keywords and truncate", () => {
   assert.equal(keywords("What is the latest version of Blender and when was it released?"), "latest version Blender released");
   assert.ok(truncate("One. Two. Three. Four.", 12).endsWith("…"));
+});
+
+test("relevantPassages keeps short pages whole and falls back to the top", () => {
+  assert.equal(relevantPassages("Short page.", "anything", 100), "Short page.");
+  const long = "First paragraph here and more words to pad it out. ".repeat(10);
+  assert.equal(relevantPassages(long, "zebra", 100), truncate(long, 100));
 });

@@ -6,6 +6,7 @@ Both skills use your Search connector, which combines two search engines:
 
 - **Exa** finds pages by meaning. It's best for articles, research papers, people, companies, job listings and official pages.
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
+- **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It can also read Quora.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
@@ -85,7 +86,7 @@ The skills install as one package (a "plugin") straight from this GitHub reposit
 
 ## Costs
 
-Every answer that used the Search connector ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It covers all searches made for that answer. Exa reports its own cost. Parallel's is worked out from its published prices, so it's an estimate.
+Every answer that used the Search connector ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It covers all searches made for that answer. Exa reports its own cost. Parallel's is worked out from its published prices, so it's an estimate. When Firecrawl reads a page, the line also says how many Firecrawl credits were used, such as "Firecrawl 2 credits". On Firecrawl's free plan these cost nothing until the 1,000 a month run out.
 
 Each search costs a little under one US cent. A Deep research report costs up to about $1.10, mostly for the two research agents. Auto usually costs a few cents.
 
@@ -93,7 +94,7 @@ Each search costs a little under one US cent. A Deep research report costs up to
 
 - **"has no API key" or "rejected the API key":** open your connector's settings page at [search-connector.vercel.app/settings](https://search-connector.vercel.app/settings) and add or replace the key.
 - **One engine is unavailable:** Claude carries on with the other and tells you.
-- **A page needs a login** (such as LinkedIn or Quora): Claude can't read it and will say so. For someone's professional background, it searches professional profiles instead.
+- **A page needs a login** (such as LinkedIn): Claude can't read it and will say so. Quora works when the Firecrawl key is added. For someone's professional background, it searches professional profiles instead.
 
 ## Where things are
 

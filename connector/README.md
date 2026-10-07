@@ -1,13 +1,13 @@
 # Search connector
 
-A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai). It runs as three Vercel Functions with no framework and two runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
+A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai), with [Firecrawl](https://docs.firecrawl.dev) as an optional first page reader. It runs as three Vercel Functions with no framework and two runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
 
 ## Tools
 
 | Tool | What Claude gets | Behind it |
 |---|---|---|
 | `search` | Up to 15 ranked results: title, date, link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged |
-| `fetch` | Up to 5 pages as clean text, or only the passages answering a question | Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
+| `fetch` | Up to 5 pages as clean text, or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
 
@@ -41,6 +41,13 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 **Reading.** With a question, Exa returns only the relevant passages from anywhere in the document (better than cutting from the top). If Exa refuses a page or returns something thin or full of gaps, Parallel reads it instead. Pages cut at the limit say so.
 
+**Firecrawl (optional).** When `FIRECRAWL_API_KEY` is set, Firecrawl reads pages first, to save Exa and Parallel usage (its free plan gives 1,000 pages a month). Pages it refuses, returns with an error status or returns thin go on to the usual Exa / Parallel route.
+
+- Skipped for Reddit, NYT and LinkedIn (it refuses them), X (about 30 credits a page), PDFs (a credit per PDF page) and YouTube (Exa returns the transcript).
+- Reads the whole page. With a question, the connector picks the paragraphs that share the most uncommon words with the question, in page order, instead of paying Firecrawl's extra 4 credits a page for its own question format. This matches words, not meaning, so it is a little less precise than Exa.
+- Two pages at a time (the free plan's limit). A rejected key or empty credit is reported once and the remaining pages skip Firecrawl.
+- Results show credits used: "Firecrawl 2 credits" in the cost line.
+
 **Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
 
 ## Security
@@ -61,7 +68,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 |---|---|---|
 | `ADMIN_PASSWORD` | Yes | At least 12 characters |
 | `BLOB_STORE_ID` | Added by Vercel | Set when a Blob store is connected |
-| `EXA_API_KEY`, `PARALLEL_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority |
+| `EXA_API_KEY`, `PARALLEL_API_KEY`, `FIRECRAWL_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority. Firecrawl is optional |
 | `PUBLIC_URL` | Recommended | The final address, e.g. `https://search-connector.vercel.app`. Passkeys are tied to its hostname, so set it before adding one |
 | `ALLOW_PASSWORD_SIGN_IN` | No | `true` lets the admin password sign in even when passkeys exist. For recovering from a lost passkey; remove afterwards |
 | `ALLOWED_REDIRECT_URIS` | No | Extra OAuth callback addresses, comma-separated |
@@ -72,7 +79,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 api/mcp.ts        /mcp: the MCP endpoint (needs a token)
 api/oauth.ts      /.well-known/*, /register, /authorize, /token
 api/settings.ts   / and /settings
-lib/engines/      Exa and Parallel API calls
+lib/engines/      Exa, Parallel and Firecrawl API calls
 lib/tools/        search, fetch, verify, research, and result merging
 lib/mcp.ts        JSON-RPC handling, tool definitions, server instructions
 lib/oauth.ts      authorisation server

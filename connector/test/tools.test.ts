@@ -6,6 +6,7 @@ import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
 import { runVerify } from "../lib/tools/verify.js";
 import { runResearch } from "../lib/tools/research.js";
 import { callTool } from "../lib/mcp.js";
+import { setSecret } from "../lib/store.js";
 
 beforeEach(async () => {
   await freshStore();
@@ -110,6 +111,72 @@ test("fetch reads with Exa and falls back to Parallel for thin pages", async () 
   assert.equal(isError, false);
   assert.match(text, /A long relevant passage/);
   assert.match(text, /Parallel read the whole answer here/);
+});
+
+const firecrawlReply = (pages: Record<string, { status?: number; markdown?: string; title?: string; credits?: number }>) => (c: { url: string; body: any }) => {
+  if (c.url !== "https://api.firecrawl.dev/v2/scrape") return undefined;
+  const page = pages[c.body.url];
+  if (!page) return { status: 403, body: { success: false, error: "We do not support this site." } };
+  return {
+    body: {
+      success: true,
+      data: { markdown: page.markdown ?? "", metadata: { title: page.title, statusCode: page.status ?? 200, creditsUsed: page.credits ?? 1 } },
+    },
+  };
+};
+
+test("with a Firecrawl key, Firecrawl reads first and the others take what it can't", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    firecrawlReply({
+      "https://good.com/a": { title: "Good", markdown: "Firecrawl read this page in full. ".repeat(20) },
+      "https://gone.com/b": { status: 404, markdown: "Not found" },
+    }),
+    (c) =>
+      c.url === "https://api.exa.ai/contents"
+        ? { body: { results: c.body.urls.map((u: string) => ({ url: u, title: "Exa", text: `Exa read ${u}. `.repeat(20) })), costDollars: { total: 0.002 } } }
+        : undefined,
+  );
+  const result = await callTool("fetch", {
+    urls: ["https://good.com/a", "https://gone.com/b", "https://unsupported.com/c", "https://www.youtube.com/watch?v=1", "https://example.com/paper.pdf"],
+  });
+  assert.equal(result.isError, false);
+  assert.match(result.text, /Firecrawl read this page in full/);
+  assert.match(result.text, /Exa read https:\/\/gone\.com\/b/);
+  assert.match(result.text, /Exa read https:\/\/unsupported\.com\/c/);
+  const scraped = calls.filter((c) => c.url.includes("firecrawl")).map((c) => c.body.url);
+  assert.deepEqual(scraped.sort(), ["https://gone.com/b", "https://good.com/a", "https://unsupported.com/c"]);
+  const exaUrls = calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.urls;
+  assert.deepEqual(exaUrls.sort(), ["https://example.com/paper.pdf", "https://gone.com/b", "https://unsupported.com/c", "https://www.youtube.com/watch?v=1"]);
+  assert.match(result.text, /Firecrawl 2 credits\)$/);
+});
+
+test("Firecrawl answers a question with the matching paragraphs of a long page", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  const filler = Array.from({ length: 40 }, (_, i) => `Paragraph ${i} talks about gardening, weather and nothing in particular at all.`);
+  filler.splice(30, 0, "The cancellation fee is £25 and refunds take 14 days to arrive in your account.");
+  mockNetwork(firecrawlReply({ "https://shop.com/terms": { title: "Terms", markdown: filler.join("\n\n") } }));
+  const { text } = await runFetch({ urls: ["https://shop.com/terms"], question: "What is the cancellation fee?", max_chars: 500 });
+  assert.match(text, /cancellation fee is £25/);
+  assert.ok(text.length < 900);
+  assert.equal(calls.filter((c) => !c.url.includes("firecrawl")).length, 0);
+});
+
+test("a rejected Firecrawl key is reported and the others read instead", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-bad-key");
+  mockNetwork(
+    (c) => (c.url === "https://api.firecrawl.dev/v2/scrape" ? { status: 401, body: { success: false, error: "Unauthorized" } } : undefined),
+    (c) =>
+      c.url === "https://api.exa.ai/contents"
+        ? { body: { results: c.body.urls.map((u: string) => ({ url: u, title: "Exa", text: "Exa read the page. ".repeat(20) })) } }
+        : undefined,
+  );
+  const { text, isError } = await runFetch({ urls: ["https://a.com/1", "https://b.com/2", "https://c.com/3", "https://d.com/4"] });
+  assert.equal(isError, false);
+  assert.match(text, /Firecrawl rejected the API key/);
+  // Two pages are read at a time; once the key is rejected the rest skip Firecrawl.
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 2);
+  assert.equal(calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.urls.length, 4);
 });
 
 test("Reddit threads are rebuilt from the .json address with comments", async () => {

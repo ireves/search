@@ -56,7 +56,7 @@ export function cleanText(input: string | null | undefined): string {
   s = s.replace(/\.{3}\s*\(content truncated\)/gi, "…");
   // Images and link targets cost tokens and add nothing.
   s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, "");
-  s = s.replace(/\[([^\]]{1,300})\]\((?:[^()\s]|\([^)]*\))+\)/g, "$1");
+  s = s.replace(/\[([^\]]{1,300})\]\((?:[^()\s]|\([^)]*\))+(?:\s+"[^"]*")?\)/g, "$1");
   s = s.replace(/<[^>]{1,200}>/g, "");
   s = s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   const lines = s
@@ -150,4 +150,75 @@ export function keywords(text: string, maxWords = 6): string {
     .split(/\s+/)
     .filter((w) => w && !STOPWORDS.has(w.toLowerCase()));
   return words.slice(0, maxWords).join(" ").slice(0, 200) || text.slice(0, 200);
+}
+
+function stem(word: string): string {
+  return word.replace(/(ing|ed|es|s)$/, "").slice(0, 8);
+}
+
+// For a page read in full: keeps the paragraphs that share the most words
+// with the question, in page order, so a long page fits the limit without
+// cutting from the top. Pages that already fit are returned whole.
+export function relevantPassages(text: string, question: string, max: number): string {
+  if (text.length <= max) return text;
+  const terms = [
+    ...new Set(
+      question
+        .toLowerCase()
+        .split(/[^\p{L}\p{N}]+/u)
+        .filter((w) => w.length > 2 && !STOPWORDS.has(w))
+        .map(stem),
+    ),
+  ];
+  // Lines repeated on the page (share buttons, menus) are dropped.
+  const seen = new Set<string>();
+  const deduped = text
+    .split("\n")
+    .filter((line) => {
+      const key = line.trim().toLowerCase();
+      if (key.length < 20) return true;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join("\n");
+  // Short lines (headings, list items) travel with the paragraph after them.
+  const blocks: string[] = [];
+  let carry = "";
+  for (const part of deduped.split(/\n{2,}/)) {
+    const joined = carry ? `${carry}\n${part}` : part;
+    if (joined.length < 120) carry = joined;
+    else {
+      blocks.push(joined);
+      carry = "";
+    }
+  }
+  if (carry) blocks.push(carry);
+  const counted = blocks.map((block) => {
+    const counts = new Map<string, number>();
+    for (const w of block.toLowerCase().split(/[^\p{L}\p{N}]+/u)) {
+      const t = stem(w);
+      if (terms.includes(t)) counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+    return counts;
+  });
+  // Words found all over the page (often the title's) count for less than rare ones.
+  const weight = new Map(terms.map((t) => [t, Math.log((blocks.length + 1) / (counted.filter((c) => c.has(t)).length + 0.5))]));
+  const scored = blocks.map((block, i) => {
+    let score = 0;
+    for (const [t, n] of counted[i]) score += (weight.get(t) ?? 0) * (1 + Math.log2(n) / 2);
+    return { i, block, score };
+  });
+  if (!terms.length || !scored.some((s) => s.score > 0)) return truncate(text, max);
+  const chosen: typeof scored = [];
+  let used = 0;
+  for (const s of [...scored].sort((a, b) => b.score - a.score || a.i - b.i)) {
+    if (s.score <= 0) break;
+    const piece = truncate(s.block, Math.floor(max / 2));
+    if (used + piece.length + 3 > max) continue;
+    chosen.push({ ...s, block: piece });
+    used += piece.length + 3;
+  }
+  chosen.sort((a, b) => a.i - b.i);
+  return chosen.map((s, k) => (k > 0 && s.i !== chosen[k - 1].i + 1 ? `…\n${s.block}` : s.block)).join("\n\n");
 }

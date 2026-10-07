@@ -17,7 +17,7 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tool
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.
-Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply.`;
+Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Firecrawl N credits" inside the brackets when any result used Firecrawl.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 

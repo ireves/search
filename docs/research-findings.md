@@ -228,3 +228,20 @@ Each site tested with Exa (`includeDomains` set to that site) and, where Exa loo
 `site:reddit.com` in Parallel kept 10 of 10 results on Reddit, so limiting Parallel with `site:` reliably avoids duplicating Exa. Some Reddit pages carried Reddit's auto-generated "Related Answers" text, which isn't user content.
 
 **Skill update:** Parallel is now added alongside Exa for software help, buying advice, real-world experience, reactions to releases, creator posts, employer reviews and company review scores, but always limited to Reddit, X, Glassdoor or Trustpilot. Unrestricted Parallel web searches are no longer used.
+
+## 15. Firecrawl on the pages both engines failed (October 2026)
+
+Firecrawl's `/v2/scrape` (markdown, main content only) tried on the kinds of page that failed for Exa and Parallel, using the free plan.
+
+| Page | Exa / Parallel | Firecrawl |
+|---|---|---|
+| Quora question | Error page from both | Full answers (the page starts with Quora's "Something went wrong" banner, but the answers follow) |
+| FT article (free-registration article) | Nothing | Whole article text. Not tested on a subscriber-only article |
+| LinkedIn profile | Failed | Refused: people profiles are a separate paid feature |
+| Glassdoor reviews | Parallel worked | Full reviews |
+| X profile | Parallel worked | Worked, but marked as 30 credits |
+| Reddit thread, NYT | Parallel / Exa worked | Refused: "we do not support this site" (HTTP 403) |
+
+Pages cost 1 credit each; pages that return 403 or 404 still cost 1; PDFs cost 1 per PDF page. The test used 11 of the 1,000 free monthly credits.
+
+**Connector update:** Firecrawl reads pages first when its key is set, except Reddit, NYT, LinkedIn, X, PDFs and YouTube. Anything it can't read goes on to Exa and Parallel as before.
