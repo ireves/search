@@ -266,3 +266,43 @@ Other findings:
 
 **Connector update:** the refused sites are added to the list that skips Firecrawl, so they go straight to Exa or Parallel without wasting a credit. Pages turned away for the per-minute limit, and Bluesky's near-empty page, already fall through to Exa and Parallel.
 
+## 17. Firecrawl on research, UX design, job and startup-idea sites (October 2026)
+
+Same method as section 16: one page each, free plan, checked by hand. About 75 credits.
+
+**Research**
+
+| Result | Sites |
+|---|---|
+| Full text | arXiv (HTML version), PubMed Central, Nature (open article), Springer (open article), PLOS ONE |
+| Abstract and details only | arXiv abstract page, Semantic Scholar (abstract and citations), ResearchGate (abstract and citing passages), SSRN, ScienceDirect, IEEE Xplore, ACM Digital Library (abstract and references), OpenReview, bioRxiv, NBER |
+| Search results | Google Scholar (titles and snippets) |
+| Blocked | PubMed (bot check page), JSTOR (login wall) |
+
+**UX design**
+
+| Result | Sites |
+|---|---|
+| Full content | Nielsen Norman Group, Smashing Magazine, UX Collective articles, UX Planet, Laws of UX, Baymard, Apple Human Interface Guidelines, A List Apart, Growth.Design, Page Flows |
+| Lists only (the work itself is images) | Behance (project titles), Awwwards (site names), Mobbin (screen categories), Material Design (thin) |
+| Nothing useful | Dribbble (filters and colours only), Figma Community (menu only) |
+
+**Jobs**
+
+| Result | Sites |
+|---|---|
+| Single job ads, full text | Greenhouse, Lever, Ashby, Workday |
+| Job lists | Greenhouse, Lever, Ashby, Workable, Workday, Wellfound, Work at a Startup (YC), Remote OK, We Work Remotely, Reed, Totaljobs |
+| Company intro only, no jobs | SmartRecruiters, Welcome to the Jungle |
+| Blocked | Guardian Jobs ("Access Denied") |
+
+**Startup ideas**
+
+| Result | Sites |
+|---|---|
+| Full content | Paul Graham essays, Indie Hackers, Product Hunt, BetaList, Starter Story, Trends.vc, Exploding Topics, Failory, AlternativeTo, Kickstarter, Statista (topic page), a16z, TechCrunch, Google Trends (trending list), YC company pages |
+| Partial | Crunchbase (description; funding figures hidden), YC company directory (filters only, no companies) |
+| Failed | Similarweb ("all scraping engines failed") |
+
+**Connector update:** Firecrawl results that are short and look like a bot check, block or login wall (as PubMed and JSTOR returned) now count as not read, so Exa and Parallel try them instead.
+

@@ -30,6 +30,13 @@ const PARALLEL_FIRST = /(^|\.)(x\.com|twitter\.com|glassdoor\.[a-z.]+|trustpilot
 const FIRECRAWL_SKIP =
   /(^|\.)(reddit\.com|redd\.it|nytimes\.com|linkedin\.com|yelp\.[a-z.]+|instagram\.com|facebook\.com|tiktok\.com|threads\.(net|com)|pinterest\.[a-z.]+|craigslist\.org|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
 
+// Short pages that are only a bot check, a block or a login wall.
+const BLOCK_PAGE = /captcha|checking your browser|verify you are human|are you a robot|access denied|log ?in to (a free account|continue)|sign ?in to continue/i;
+
+function looksBlocked(content: string): boolean {
+  return content.length < 2000 && BLOCK_PAGE.test(content);
+}
+
 function looksLikePdf(url: string): boolean {
   const path = new URL(url).pathname.toLowerCase();
   return path.endsWith(".pdf") || (hostOf(url) === "arxiv.org" && path.startsWith("/pdf/"));
@@ -77,7 +84,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh);
     if (problem) failures.push(`${problem.friendly} Exa and Parallel read the pages instead.`);
     for (const r of read) {
-      if (!r.ok || looksThin(r.content, false)) continue;
+      if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) continue;
       const content = question ? relevantPassages(r.content, question, maxChars) : truncate(r.content, maxChars);
       const cut = !question && r.content.length > maxChars;
       pages.set(r.url, {

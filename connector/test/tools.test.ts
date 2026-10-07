@@ -131,6 +131,7 @@ test("with a Firecrawl key, Firecrawl reads first and the others take what it ca
     firecrawlReply({
       "https://good.com/a": { title: "Good", markdown: "Firecrawl read this page in full. ".repeat(20) },
       "https://gone.com/b": { status: 404, markdown: "Not found" },
+      "https://checked.com/d": { markdown: `Checking your browser before accessing checked.com ... reCAPTCHA ${"Please wait. ".repeat(30)}` },
     }),
     (c) =>
       c.url === "https://api.exa.ai/contents"
@@ -149,6 +150,9 @@ test("with a Firecrawl key, Firecrawl reads first and the others take what it ca
   const exaUrls = calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.urls;
   assert.deepEqual(exaUrls.sort(), ["https://example.com/paper.pdf", "https://gone.com/b", "https://unsupported.com/c", "https://www.youtube.com/watch?v=1"]);
   assert.match(result.text, /Firecrawl 2 credits\)$/);
+  // A bot-check page counts as not read.
+  const blocked = await runFetch({ urls: ["https://checked.com/d"] });
+  assert.match(blocked.text, /Exa read https:\/\/checked\.com\/d/);
 });
 
 test("Firecrawl answers a question with the matching paragraphs of a long page", async () => {
