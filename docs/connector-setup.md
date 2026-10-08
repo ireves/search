@@ -4,8 +4,10 @@ The Search connector is one Claude connector that combines Exa and Parallel. It 
 
 It comes with two skills:
 
-- **web-search**: everyday searching. Type `/web-search` followed by your question. Short and light on usage.
-- **deep-search**: for when you need to be sure the answer is right. Type `/deep-search` and pick **Auto** or **Deep research** (a cited report of 2 pages or less, saved as a Claude Doc).
+- **better-search**: everyday searching. Type `/better-search` followed by your question and pick **Auto** or **Deep**. Useful links, no formal citations.
+- **uni-search**: for when every fact needs a source. Type `/uni-search` and pick **Auto** or **Research** (a cited report of up to 3 pages, as a Claude Doc or in the chat). Sources can be given as links or as Harvard references.
+
+Both hand the searching to Haiku workers where the Claude app supports them. Version 1 (web-search and deep-search) is kept as a backup: see [`v1/README.md`](../v1/README.md).
 
 You'll need: a Vercel account (the free plan works), an Exa account and a Parallel account.
 
@@ -109,7 +111,7 @@ Then, in `/plugin`, open **Marketplaces**, select **ireves-search** and choose *
 
 ## 6. Keep searches manual
 
-Both skills only run when you type `/web-search` or `/deep-search`. Claude won't start them by itself (set by `disable-model-invocation: true` in each `SKILL.md`).
+Both skills only run when you type `/better-search` or `/uni-search`. Claude won't start them by itself (set by `disable-model-invocation: true` in each `SKILL.md`).
 
 To stop Claude calling the connector's tools without a skill:
 
@@ -122,12 +124,13 @@ The Claude app's own web search is separate. Turn off **Web search** in the chat
 ## 7. Check it works
 
 1. In a new chat, ask: "What's the latest version of Blender?"
-   - Claude should **not** load web-search or call the connector.
-2. Type `/web-search What's the latest version of Blender?`
-   - Claude should call `search` and confirm the version on blender.org.
-3. Type `/deep-search` followed by a question.
-   - Claude should ask **Auto** or **Deep research** before searching.
-   - With Deep research, a Claude Doc should appear first and fill in as the research progresses.
+   - Claude should **not** load better-search or call the connector.
+2. Type `/better-search auto: What's the latest version of Blender?`
+   - Claude should start a worker that searches and confirms the version on blender.org.
+3. Type `/uni-search` followed by a question.
+   - Claude should ask **Auto** or **Research** before searching.
+   - With Research, it should then ask **Claude Doc** or **Chat**.
+   - With Claude Doc, the doc should appear first and fill in as the research progresses.
 
 ## Costs (approximate, October 2026)
 

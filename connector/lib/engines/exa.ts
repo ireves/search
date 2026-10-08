@@ -103,6 +103,10 @@ function toHit(r: ExaResult, maxChars: number): Hit {
   };
 }
 
+// Every author is listed (references name them all), up to a cap for large
+// collaborations, where the paper's own page has the full list.
+const MAX_AUTHORS = 50;
+
 const s = (v: unknown) => (v === null || v === undefined || v === "" ? "" : String(v));
 
 export function entityFacts(entity: { type: string; properties: Record<string, any> }): string | undefined {
@@ -128,7 +132,9 @@ export function entityFacts(entity: { type: string; properties: Record<string, a
     if (facts.length) parts.push(facts.join(" · "));
   } else if (entity.type === "publication") {
     const facts = [
-      p.authors?.length ? `Authors: ${p.authors.slice(0, 5).map((a: any) => s(a.name)).join(", ")}${p.authors.length > 5 ? " et al." : ""}` : "",
+      p.authors?.length
+        ? `Authors: ${p.authors.slice(0, MAX_AUTHORS).map((a: any) => s(a.name)).join(", ")}${p.authors.length > MAX_AUTHORS ? ` and ${p.authors.length - MAX_AUTHORS} more (full list on the paper's page)` : ""}`
+        : "",
       p.year ? `Year: ${s(p.year)}` : "",
       p.citationCount ? `Cited by ${s(p.citationCount)}` : "",
       p.doi ? `DOI: ${s(p.doi)}` : "",
@@ -143,6 +149,7 @@ export interface ExaPage {
   ok: boolean;
   title?: string;
   date?: string;
+  author?: string;
   content: string;
   error?: string;
 }
@@ -171,7 +178,7 @@ export async function exaContents(urls: string[], question: string | undefined, 
       return { url, ok: false, content: "", error: status?.error?.tag ?? "not available" };
     }
     const content = question ? joinExcerpts(r.highlights ?? [], maxChars) : cleanText(r.text ?? "");
-    return { url, ok: content.length > 0, title: cleanText(r.title ?? "") || undefined, date: isoDay(r.publishedDate), content };
+    return { url, ok: content.length > 0, title: cleanText(r.title ?? "") || undefined, date: isoDay(r.publishedDate), author: r.author ?? undefined, content };
   });
 }
 

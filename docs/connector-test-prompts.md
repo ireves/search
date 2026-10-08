@@ -1,27 +1,37 @@
-# Test prompts for the connector skills
+# Test prompts for the search skills (version 2)
 
-New prompts, unrelated to the examples used while building the skills, so the tests measure judgement rather than copying.
+New prompts, unrelated to the examples used while building the skills, so the tests measure judgement rather than copying. Version 1's list is in [`v1/docs/connector-test-prompts.md`](../v1/docs/connector-test-prompts.md); running the same prompts on both versions compares accuracy, cost and speed.
 
-## web-search (normal chat)
+In the tables, "worker" means Claude hands the calls to `search:search-worker` (Haiku) and only sees its short digest.
 
-| # | Prompt | Expected behaviour |
-|---|---|---|
-| 1 | What's the current version of Python? | One `search`, confirmed on python.org (`sites` or `fetch`); no `research` |
-| 2 | Is the Framework Laptop 16 worth it for 3D work? | `search` with `type: "discussions"` plus one general `search`; owners' experiences and specs, linked |
-| 3 | Summarise https://www.youtube.com/watch?v=dQw4w9WgXcQ | One `fetch`; transcript-based summary |
-| 4 | What did Ofcom announce this week? | `search` with `type: "news"` and `after: "7d"` |
-| 5 | How do I fix "ENOSPC: System limit for number of file watchers reached"? | `search` with `type: "code"`; answer cites docs or Stack Overflow |
-| 6 | How do employees rate Monzo? | `search` with `type: "reviews"`; Glassdoor or Trustpilot figures with dates |
-
-Check: no built-in web search, two to four calls at most, sources linked, uncertainty mentioned.
-
-## deep-search
+## better-search
 
 | # | Prompt | Expected behaviour |
 |---|---|---|
-| 7 | /deep-search How much does a UK heat pump installation cost after the grant? | Menu first (Auto or Deep research). Auto: moderate path, official grant page read, `verify` on the figures |
-| 8 | /deep-search deep research: evidence on four-day working week trials in the UK | No menu (effort given). Claude Doc skeleton first, `research` with `effort: "deep"`, own searches across papers, news and discussions, `verify`, report of 2 pages or less |
-| 9 | /deep-search Who is the current CEO of Arm, and since when? | Auto, simple path: official page plus `verify`; date stated |
-| 10 | /deep-search Compare the five most popular open-source password managers | Auto, heavy path: `research` standard plus own searches; table only if useful |
+| 1 | /better-search auto: What's the current version of Python? | One worker: `search` with `sites` python.org, or a read of it; version confirmed on python.org |
+| 2 | /better-search deep: Is the Framework Laptop 16 worth it for 3D work? | 2 to 3 workers at once, every `search` at `depth: "thorough"`, including `type: "discussions"`; a clear recommendation with reasons; answer not padded |
+| 3 | /better-search Summarise https://www.youtube.com/watch?v=dQw4w9WgXcQ | No menu (link only); one read job; transcript-based summary |
+| 4 | /better-search What did Ofcom announce this week? | Menu first (Auto or Deep). Auto: `type: "news"` with `after: "7d"` |
+| 5 | /better-search auto: How do I fix "ENOSPC: System limit for number of file watchers reached"? | `type: "code"`; numbered fix steps; link to the docs or answer used |
+| 6 | /better-search auto: How do employees rate Monzo? | `type: "reviews"`; Glassdoor or Trustpilot figures with dates |
 
-Check: every key figure has a primary source or two independent ones; disagreements and gaps reported; report sections match `skills/deep-search/references/report.md`.
+Check: no built-in web search; Auto uses 1 to 4 calls; helpful links but no citation list or confidence labels; the cost line adds up the workers' COST lines.
+
+## uni-search
+
+| # | Prompt | Expected behaviour |
+|---|---|---|
+| 7 | /uni-search How much does a UK heat pump installation cost after the grant? | Menu first (Auto or Research). Auto: moderate path, two workers, official grant page read, `verify` on the figures |
+| 8 | /uni-search research: evidence on four-day working week trials in the UK | No mode menu; destination menu (Claude Doc or Chat) before any search. Doc: skeleton first. One research worker (`effort: "deep"`) and 2 to 3 sweep workers in the same message; `verify`; source check worker; report of up to 3 pages with the sections in `skills/uni-search/references/report.md` |
+| 9 | /uni-search auto: Who is the current CEO of Arm, and since when? | Simple path: one worker chains search, read of the official page, and `verify` if only one site states it; date stated |
+| 10 | /uni-search auto: Compare the five most popular open-source password managers | Heavy path: research worker (`standard`) plus read workers for each product's official pages; source check; table with a source per row |
+| 11 | /uni-search research, in chat: Did the UK ban new petrol cars in 2030? | Premise check: the question is a simplification, so the answer opens with what the rule actually covers (which cars, which year, any changes since it was announced), from the official GOV.UK page |
+| 12 | /uni-search auto, Harvard: What does the research say about the effect of phone bans in UK schools? | No reference menu (Harvard named); source check with REFS; in-text (Author, Year) citations; reference list in Cite Them Right format; DOI for journal articles with no accessed date; no invented details |
+
+Check: every key figure has a primary source or two independent ones; disagreements and gaps reported; nothing stated without a source; the main Claude never calls the connector itself when workers are available.
+
+## Fallback
+
+| # | Setup | Expected behaviour |
+|---|---|---|
+| 13 | Any prompt above in a chat without Cowork features (no workers) | Claude makes the same calls itself; answer quality unchanged |
