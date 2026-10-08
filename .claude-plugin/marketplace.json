@@ -13,7 +13,10 @@
     {
       "name": "search-v1",
       "source": "./v1",
-      "description": "Backup of version 1: web-search and deep-search, without workers"
+      "description": "Backup of version 1: web-search and deep-search, without workers",
+      "author": {
+        "name": "Iuri Reves"
+      }
     }
   ]
 }

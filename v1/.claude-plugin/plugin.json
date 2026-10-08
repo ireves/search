@@ -1,7 +1,0 @@
-{
-  "name": "search-v1",
-  "description": "Backup of version 1: web-search and deep-search, without workers, using the Search connector (Exa + Parallel)",
-  "author": {
-    "name": "Iuri Reves"
-  }
-}
