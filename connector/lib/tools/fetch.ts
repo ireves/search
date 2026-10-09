@@ -70,7 +70,9 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const urls = [...new Set(list.filter((u): u is string => Boolean(u)))].slice(0, 5);
   if (!urls.length) return { text: "Give 1 to 5 web addresses in urls.", isError: true };
   const question = input.question?.trim() || undefined;
-  const maxChars = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), 20_000);
+  // Below about 2,500 characters, passages picked for a question often miss
+  // the answer (docs/test-results-tinyfish.md, section 5), so that is the floor.
+  const maxChars = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), question ? 2500 : 500), 20_000);
   const fresh = Boolean(input.fresh);
 
   const pages = new Map<string, Page>();

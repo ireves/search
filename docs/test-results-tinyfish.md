@@ -98,7 +98,32 @@ Each question was asked once through both tools with the same wording. TinyFish 
 - A separate quick check with the Search connector's `fetch` (fresh download, question-focused, 700 characters) missed the answer on Python, Arm's start date, the wage and the Figma price: the passages it chose were the wrong parts of the page. A full read of the same pages found every answer. Short question-focused reads of official pages are not reliable enough to confirm a figure.
 - Figma's monthly-billing price ($20) is not on the official pricing page's default view, so it could not be confirmed.
 
-## 5. Verdict
+## 5. Fix to the fetch tool's question mode
+
+The misses above came from pages read by Firecrawl, where the connector picks the passages itself (`relevantPassages` in `connector/lib/text.ts`). Two faults:
+
+1. **Long blocks were cut from the top.** Pages were split only at blank lines, so a PDF or long table could be one block of 3,000 to 57,000 characters, and only its first part was kept.
+2. **Echoes beat answers.** Blocks were ranked by how often they repeated the question's words. GOV.UK's "Previous rates" text (last year's £12.21) outranked the "Current rates" table (£12.71).
+
+Changes:
+
+- Long blocks are split into passages of about 600 characters; rows cut from a table keep the header row.
+- The heading above a passage counts towards its score; words in the page title count for less; questions asking "how much", "when" and similar favour passages with figures; earlier passages win close calls; reference lists count for less; a few words match their close equivalents (tall and height, cost and price).
+- A long passage is trimmed around its matching lines instead of from the top.
+- With a question, `max_chars` is at least 2,500. Below that, the right passage was often left out.
+- Workers now send one fetch per question when the pages are on different topics, since one question covers every page in a call.
+
+Tested offline on full copies of 13 pages: the 7 from the accuracy test, plus 6 held-out pages chosen before the code was changed (GOV.UK VAT and income tax, HMRC interest rates, NHS vitamin D, Wikipedia's Mount Everest, and the arXiv paper). Each page had its own question; a check passed if the answer was in the passages returned.
+
+| Size | Before | After |
+|---|---|---|
+| 700 characters | 5 of 14 | 8 of 14 |
+| 2,500 characters | 11 of 14 | 13 of 14 |
+| 4,000 characters (default) | 11 of 14 | 13 of 14 |
+
+The remaining miss is Mount Everest at every size: the page is 159,000 characters and the height sits in a table row with none of the question's words. The test copies came from TinyFish, not Firecrawl, and the fix has not been tested on the deployed connector yet. Exa and Parallel pick their own passages, so only the 2,500 floor applies to them.
+
+## 6. Verdict
 
 TinyFish should not replace the Search connector. It is weaker at finding by meaning, gives no dates, ignores date filters, and its reader has no length cap and fails on several sites the connector already reads.
 

@@ -36,3 +36,40 @@ test("relevantPassages keeps short pages whole and falls back to the top", () =>
   const long = "First paragraph here and more words to pad it out. ".repeat(10);
   assert.equal(relevantPassages(long, "zebra", 100), truncate(long, 100));
 });
+
+test("relevantPassages finds an answer deep inside one long block", () => {
+  const filler = Array.from({ length: 80 }, (_, i) => `Line ${i} talks about the history of the survey and its many teams.`);
+  filler.splice(60, 0, "European media required 4.9 clicks to cancel against 6.2 clicks for US media.");
+  const out = relevantPassages(filler.join("\n"), "How many clicks to cancel?", 2500);
+  assert.match(out, /4\.9 clicks to cancel/);
+  assert.ok(out.length <= 2500);
+});
+
+test("relevantPassages keeps a table's header with the rows it picks", () => {
+  const rows = Array.from({ length: 60 }, (_, i) => `| v${i} | Codename${i} | 20${10 + (i % 15)}-01-01 | EOL |`);
+  rows[50] = "| v50 | Krypton | 2025-05-06 | LTS |";
+  const table = ["| Version | Codename | First released | Status |", "| --- | --- | --- | --- |", ...rows].join("\n");
+  const page = `# Releases\n\n${"Some introduction about how releases work and are supported. ".repeat(30)}\n\n${table}`;
+  const out = relevantPassages(page, "Which release has the Krypton codename?", 2500);
+  assert.match(out, /\| Version \| Codename/);
+  assert.match(out, /Krypton \| 2025-05-06 \| LTS/);
+});
+
+test("relevantPassages prefers the passage with the figure over one that echoes the question", () => {
+  const page = [
+    "# Minimum wage rates",
+    "## Current rates",
+    "| | 21 and over | 18 to 20 |\n| --- | --- | --- |\n| April 2026 | £12.71 | £10.85 |",
+    "## Previous rates",
+    "The National Living Wage and the National Minimum Wage were for workers aged 21 and over from April 2024. The National Living Wage rates for April 2024 to March 2026 are below.",
+    "| April 2025 to March 2026 | £12.21 | £10 |",
+    "Other text about apprentices and accommodation offsets. ".repeat(60),
+  ].join("\n\n");
+  const out = relevantPassages(page, "What is the National Living Wage from April 2026?", 2500);
+  assert.match(out, /April 2026 \| £12\.71/);
+});
+
+test("relevantPassages stays within the limit", () => {
+  const page = Array.from({ length: 400 }, (_, i) => `Paragraph ${i} about rates, prices and dates in 2026.`).join("\n\n");
+  for (const max of [2500, 4000, 6000]) assert.ok(relevantPassages(page, "What are the prices and rates in 2026?", max).length <= max);
+});
