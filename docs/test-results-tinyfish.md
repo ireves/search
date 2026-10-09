@@ -63,7 +63,42 @@ Task: the Wacom Trustpilot page, which TinyFish's reader refused and which Paral
 
 This is the one thing neither Exa, Parallel nor Firecrawl can do: click through a page and return exact figures in a set shape. It suits pages where the figure is behind a tab, button or filter.
 
-## 4. Verdict
+## 4. Accuracy test: 10 factual questions
+
+Each question was asked once through both tools with the same wording. TinyFish returned 10 results, the Search connector 5. Each tool was scored only on what its results said, without opening pages. Answers were then checked against the live official page.
+
+| # | Question | Correct answer (source) | TinyFish | Search connector |
+|---|---|---|---|---|
+| 1 | Latest Python version | 3.15.0, 9 October 2026 (python.org) | Right in result 2. Results 6 and 9 said 3.14 and "3.14.0a5" | Right in result 1, with the date |
+| 2 | Arm CEO and since when | Rene Haas, February 2022 (arm.com) | Right in result 1 | Right in result 1 |
+| 3 | National Living Wage, 21 and over, from April 2026 | £12.71 (GOV.UK) | Result 1 snippet showed the old £12.21 rate; result 2 had £12.71. Result 4 said "right now it's £12.21" | Right in result 1 |
+| 4 | WCAG 2.5.8 minimum target size | 24 by 24 CSS pixels (W3C) | Right in result 1 | Right in result 1 |
+| 5 | Bank of England Bank Rate | 3.75%, held 17 September 2026 (Bank of England) | Right in result 1. One result (NatWest) was dated June with a "next review" already past | Right in result 1, with the next date (5 November) |
+| 6 | Figma Professional, Full seat | $16 a month on annual billing (figma.com) | Right in result 1. Others gave $20 on monthly billing (not on the official page's default view) and one garbled "$3/editor" | Right in result 1, plus GBP prices (£14 annual, £18 monthly) from Figma's help centre |
+| 7 | Height of Ben Nevis | 1,345 m (Ordnance Survey, via BBC and Guardian reports) | Right in result 1. Britannica's snippet only said "more than about 1340 metres" | Right in result 1, with the 2016 re-survey |
+| 8 | Blender 5.3 release date | Expected 10 November 2026 (blender.org) | Result 1 gave only the beta end date; result 3 had 10 November. A Facebook result gave 2025 dates | Right in result 1 |
+| 9 | Boiler Upgrade Scheme, air source heat pump | £7,500, or £9,000 for off-gas-grid homes until March 2027 (GOV.UK) | Right in result 1; £9,000 case in results 3 and 6 | Right in results 1 to 3, both amounts |
+| 10 | Node.js current LTS | v24.21.0; v26 moves to LTS later in October (nodejs.org) | Right in result 2 | Right in result 1, and noted v26 becomes LTS soon. One result had stray paper details (an unrelated DOI) attached |
+
+**Scores**
+
+| Measure | TinyFish | Search connector |
+|---|---|---|
+| Right answer somewhere in the results | 10 of 10 | 10 of 10 |
+| Right answer in the first result | 6 of 10 | 10 of 10 |
+| Questions where at least one result gave a wrong or out-of-date figure | 6 of 10 (1, 3, 5, 6, 8, and a vague figure in 7) | 2 of 10 (an old Python 3.13 announcement in 1; stray details in 10) |
+| Dates shown | None | Most results |
+| Cost | Free | $0.008 a search |
+
+**Findings**
+
+- Neither tool got a fact wrong when its best source was read. The difference is in how much wrong or out-of-date text sits next to the right answer.
+- TinyFish's errors came from short snippets: an official page's snippet can show an old row (GOV.UK showed last year's wage), and third-party pages repeat old figures. With no dates, there is no way to tell which is current without opening the page.
+- The Search connector puts the official page first more often and shows dates, so the right answer is easier to pick out.
+- A separate quick check with the Search connector's `fetch` (fresh download, question-focused, 700 characters) missed the answer on Python, Arm's start date, the wage and the Figma price: the passages it chose were the wrong parts of the page. A full read of the same pages found every answer. Short question-focused reads of official pages are not reliable enough to confirm a figure.
+- Figma's monthly-billing price ($20) is not on the official pricing page's default view, so it could not be confirmed.
+
+## 5. Verdict
 
 TinyFish should not replace the Search connector. It is weaker at finding by meaning, gives no dates, ignores date filters, and its reader has no length cap and fails on several sites the connector already reads.
 
