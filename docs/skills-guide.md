@@ -1,6 +1,6 @@
 # Your search skills: a guide
 
-This explains what the two search skills do and how to use them. This is version 2. Version 1 (web-search and deep-search) is kept as a backup in the [`v1`](../v1) folder.
+This explains what the search skills do and how to use them. This is version 2. Version 1 (web-search and deep-search) is kept as a backup in the [`v1`](../v1) folder.
 
 Both skills use your Search connector, which combines two search engines:
 
@@ -82,6 +82,30 @@ The connector decides which engine to use, removes duplicates and trims results,
 
 - **Auto:** sized to the question. A simple lookup takes one or two searches.
 - **Deep:** always searches thoroughly, from several angles at once (official pages, people's experiences, reviews, news). The answer is still only as long as the question needs.
+
+## search-report: finding problems
+
+**When it's used:** only when you type `/search-report`, in the same conversation as the search you want to look into. In the Claude app it may show as `/search:search-report`.
+
+**What it does:** it writes a report of everything that happened during the search, without searching again.
+
+1. Claude gathers the record.
+   - In Claude Code (and in the Claude app when it can run code), it reads the conversation's saved log. This includes each worker's own searches.
+   - Otherwise it works from what it can see in the conversation. It can see what it asked each worker and what each worker sent back, but not each worker's individual searches. The report says so.
+2. It checks the run against the search skill's own rules, for example whether the right model was used for workers and whether the cost line adds up.
+3. The report has these sections:
+   - **Summary:** the question, the option used, how many searches, time taken and cost.
+   - **Timeline:** every step in order, with who did it, what tool was used and what came back.
+   - **Workers:** what each worker was asked, word for word, what it searched and what it sent back, word for word.
+   - **Rule check:** each rule, whether it was followed, and the evidence.
+   - **Problems:** what went wrong, the evidence, the likely cause and a suggested fix. Each is marked "seen" or "guess".
+   - **Final answer** you were given, and anything Claude **couldn't see**.
+4. It's saved as a file when Claude can save files, with a short summary in the chat. Otherwise the whole report goes in the chat.
+
+**Tips:**
+
+- Add `last` to report only the most recent search, for example `/search-report last`.
+- API keys and passwords are removed from the report.
 
 ## Costs
 

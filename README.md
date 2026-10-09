@@ -3,6 +3,7 @@
 Web research for Claude using Exa and Parallel, through one custom connector you host on Vercel ([`connector/`](connector/)).
 
 - **Skills (version 2):** [`skills/better-search`](skills/better-search) (everyday, `/better-search`) and [`skills/uni-search`](skills/uni-search) (sourced research, `/uni-search`). Both run only when you type the command.
+- **Diagnostics:** [`skills/search-report`](skills/search-report) (`/search-report`) writes a step-by-step record of a search run in the conversation, including every tool call and worker output, and lists likely problems.
 - **Worker:** [`agents/search-worker.md`](agents/search-worker.md), a Haiku worker that runs the searches and returns short fact lists, so the main Claude's memory stays clear.
 - **Version 1 backup:** [`v1/`](v1) (web-search and deep-search, no workers), installable as the `search-v1` plugin.
 - **API keys:** added on the connector's own settings page; write-only.
