@@ -73,6 +73,26 @@ const PLANS: Record<SearchType, Plan> = {
   financial: { exa: { category: "financial report" }, exaWeight: 1, parallelWeight: 0 },
 };
 
+// What each type of search is for, sent to both engines as the goal (with
+// Claude's own goal first when it gives one), so every search has one.
+const TYPE_GOALS: Record<SearchType, string> = {
+  web: "Pages that answer this directly. Prefer primary and official sources and current pages.",
+  news: "News reports from reputable outlets, newest first, with dates and the key facts.",
+  discussions: "Threads where people share first-hand experience, advice or fixes that answer this.",
+  x: "Posts by individual people about this, newest first.",
+  reviews: "Reviews by real customers or employees, with ratings, dates, pros and cons.",
+  papers: "Research papers and studies on this, with their findings, authors and year.",
+  people: "Professional profiles of the person or people described.",
+  companies: "Pages about the company or companies described: what they do, size and funding.",
+  code: "Official documentation, GitHub issues or Stack Overflow answers that solve this for the current version.",
+  jobs: "Open job postings with title, employer, location, salary and posting date.",
+  financial: "Filings, earnings reports and official financial figures, with dates.",
+};
+
+// Reddit searches go to Parallel only (Exa can't reach Reddit).
+const REDDIT_GOAL =
+  "Rank Reddit threads by relevance to the question first, then by number of comments (more is better), then by recency (newer is better).";
+
 const EXA_TYPE: Record<Depth, ExaType> = { fast: "fast", standard: "auto", thorough: "deep" };
 const CHARS: Record<Depth, number> = { fast: 600, standard: 900, thorough: 1400 };
 
@@ -103,7 +123,8 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   const sites = (input.sites ?? []).map(cleanDomain).filter(Boolean);
   const excluded = (input.exclude_sites ?? []).map(cleanDomain).filter(Boolean);
   const fresh = Boolean(input.fresh || plan.exa?.fresh);
-  const goal = input.goal?.trim();
+  const own = input.goal?.trim();
+  const goal = [own, TYPE_GOALS[type]].filter(Boolean).join(" ");
 
   // A site list from Claude overrides the plan's own domains. Exa can't reach
   // Reddit or X at all, so those go to Parallel whatever the type.
@@ -120,8 +141,8 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     jobs.push(
       exaSearch({
         query: `${plan.exa!.prefix ?? ""}${query}`,
-        objective: goal,
-        highlightQuery: goal ? `${query}. ${goal}` : query,
+        objective: `${query}. ${goal}`,
+        highlightQuery: own ? `${query}. ${own}` : query,
         numResults: limit,
         type: EXA_TYPE[depth],
         category: plan.exa!.category,
@@ -143,9 +164,10 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   if (parallelActive) {
     const mode: ParallelMode = depth === "thorough" ? "advanced" : plan.parallel?.primary ? "basic" : depth === "fast" ? "turbo" : "fast";
     const prefix = plan.parallel?.prefix ?? "";
+    const reddit = (parallelDomains ?? []).some((d) => /(^|\.)reddit\.com(\/|$)/.test(d));
     jobs.push(
       parallelSearch({
-        objective: `${prefix}${query}${goal ? `. ${goal}` : ""}`,
+        objective: `${prefix}${query}. ${goal}${reddit ? ` ${REDDIT_GOAL}` : ""}`,
         queries: [keywords(query, 7)],
         mode,
         maxResults: plan.parallel?.primary || !exaActive ? limit : Math.max(4, Math.ceil(limit * 0.6)),

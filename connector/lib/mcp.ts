@@ -42,7 +42,8 @@ export const TOOLS = [
         },
         goal: {
           type: "string",
-          description: "Goal for this search: which sources should rank first or be left out, and which facts or figures to pull from them.",
+          description:
+            "Goal for this search: which sources should rank first or be left out, and which facts or figures to pull from them. Always give one. A goal for the search type is added after yours.",
         },
         after: { type: "string", description: "Only pages published on or after this date: YYYY-MM-DD, or relative such as 7d, 3m, 1y." },
         before: { type: "string", description: "Only pages published on or before this date (YYYY-MM-DD)." },
@@ -66,13 +67,13 @@ export const TOOLS = [
     name: "fetch",
     title: "Read web pages",
     description:
-      "Read up to 5 links: web pages, PDFs, YouTube videos (transcript), Reddit threads (with comments), X posts. With a question, returns only the relevant passages from anywhere in the document; without one, returns the page from the top.",
+      "Read up to 5 links: web pages, PDFs, YouTube videos (transcript), Reddit threads (with comments), X posts. With a question, returns only the relevant passages from anywhere in the document; without one, returns the page from the top. Give a question unless you need the whole page (a transcript, a full article).",
     inputSchema: {
       type: "object",
       properties: {
         urls: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 5, description: "Full web addresses." },
-        question: { type: "string", description: "What you need from the page(s). Strongly recommended for long pages and PDFs." },
-        max_chars: { type: "integer", minimum: 500, maximum: 20000, description: "Per page. Default 4000 with a question, 6000 without." },
+        question: { type: "string", description: "What you need from the page(s). Always give one unless you need the whole page; sent to both readers as their goal." },
+        max_chars: { type: "integer", minimum: 500, maximum: 20000, description: "Per page. Default 4000 with a question (at least 2500), 6000 without." },
         fresh: { type: "boolean", description: "Re-download instead of using a stored copy." },
       },
       required: ["urls"],

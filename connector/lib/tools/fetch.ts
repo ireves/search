@@ -65,12 +65,23 @@ function looksThin(content: string, withQuestion: boolean): boolean {
   return gaps >= 5 && content.length < 1200;
 }
 
+// Goal sent with every Parallel read. Exa's reader takes the question as its
+// goal (passages matching it); without a question it returns the page from
+// the top, as asked.
+function readGoal(question: string | undefined): string {
+  return question
+    ? `Passages that answer this, with exact figures, names and dates: ${question}`
+    : "The main content of the page: its key facts, figures, dates and conclusions. Leave out menus, adverts and footers.";
+}
+
 export async function runFetch(input: FetchInput): Promise<{ text: string; isError: boolean }> {
   const list = (Array.isArray(input.urls) ? input.urls : [input.urls]).map((u) => normaliseUrl(String(u ?? "")));
   const urls = [...new Set(list.filter((u): u is string => Boolean(u)))].slice(0, 5);
   if (!urls.length) return { text: "Give 1 to 5 web addresses in urls.", isError: true };
   const question = input.question?.trim() || undefined;
-  const maxChars = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), 20_000);
+  // Below about 2,500 characters, passages picked for a question often miss
+  // the answer (docs/test-results-tinyfish.md, section 5), so that is the floor.
+  const maxChars = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), question ? 2500 : 500), 20_000);
   const fresh = Boolean(input.fresh);
 
   const pages = new Map<string, Page>();
@@ -102,7 +113,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const viaParallel = async (targets: string[]) => {
     if (!targets.length) return;
     try {
-      const results = await parallelExtract(targets, question ?? "The main content of the page", maxChars, { fresh });
+      const results = await parallelExtract(targets, readGoal(question), maxChars, { fresh });
       for (const r of results) {
         if (r.ok) pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: r.excerpts });
         else pages.set(r.url, { url: r.url, content: "", error: r.error });

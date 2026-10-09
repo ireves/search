@@ -42,6 +42,32 @@ test("web search merges both engines, removes duplicates and mirrors", async () 
   assert.equal(parCall.body.mode, "fast");
 });
 
+test("every search sends both engines a goal, with Claude's goal first", async () => {
+  mockNetwork(exaSearchReply([]), parallelSearchReply([]));
+  await runSearch({ query: "UK heat pump grant" });
+  const exa = () => calls.find((c) => c.url.includes("exa.ai"))!;
+  const par = () => calls.find((c) => c.url.includes("parallel.ai"))!;
+  assert.match(exa().body.objective, /^UK heat pump grant\. Pages that answer this directly/);
+  assert.match(par().body.objective, /UK heat pump grant\. Pages that answer this directly/);
+
+  mockNetwork(exaSearchReply([]), parallelSearchReply([]));
+  await runSearch({ query: "UK heat pump grant", type: "news", goal: "Pull the grant amount." });
+  assert.match(exa().body.objective, /Pull the grant amount\. News reports from reputable outlets/);
+  assert.match(par().body.objective, /Pull the grant amount\. News reports from reputable outlets/);
+  assert.doesNotMatch(par().body.objective, /number of comments/);
+});
+
+test("Reddit searches ask Parallel to rank by relevance, comments and recency", async () => {
+  mockNetwork(exaSearchReply([]), parallelSearchReply([]));
+  await runSearch({ query: "Boolean shading artefacts", type: "discussions" });
+  const par = calls.find((c) => c.url.includes("parallel.ai"))!;
+  assert.match(par.body.objective, /relevance to the question first, then by number of comments .*then by recency/);
+
+  mockNetwork(parallelSearchReply([]));
+  await runSearch({ query: "Boolean shading artefacts", sites: ["reddit.com/r/blenderhelp"] });
+  assert.match(calls.find((c) => c.url.includes("parallel.ai"))!.body.objective, /number of comments/);
+});
+
 test("X searches go only to Parallel, limited to X", async () => {
   mockNetwork(parallelSearchReply([parallelResult("https://x.com/someone/status/1", "Post", "Loving the new release")]));
   const { text } = await runSearch({ query: "reactions to Blender 5.2", type: "x" });
@@ -112,6 +138,8 @@ test("fetch reads with Exa and falls back to Parallel for thin pages", async () 
   assert.equal(isError, false);
   assert.match(text, /A long relevant passage/);
   assert.match(text, /Parallel read the whole answer here/);
+  assert.equal(calls.find((c) => c.url.includes("exa.ai/contents"))!.body.highlights.query, "what is the answer");
+  assert.match(calls.find((c) => c.url.includes("parallel.ai/v1/extract"))!.body.objective, /Passages that answer this.*: what is the answer$/);
 });
 
 const firecrawlReply = (pages: Record<string, { status?: number; markdown?: string; title?: string; credits?: number }>) => (c: { url: string; body: any }) => {
