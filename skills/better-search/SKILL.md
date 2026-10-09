@@ -16,7 +16,7 @@ Option "Deep": "Always searches thoroughly from several angles. The answer is st
 
 STEP 2 PLAN (yours, brief)
 List what a good answer needs (FACTS). Note "latest" facts (version, price, status, role holder): need an official or very recent source. Pick types: news (+after "7d") | discussions = Reddit/forums: experiences, advice, troubleshooting, worth-it | x = X posts/reactions | reviews = Trustpilot/Glassdoor/user ratings | papers | people | companies | code = docs/APIs/errors | jobs | financial. Omit type for general.
-Query = description of the ideal page with names/versions/places/years ("official release notes for Blender 5.2", not "blender new"). goal = figures to pull. Other params only when needed: sites, after/before, country (two-letter code: GB for the UK), fresh:true (live prices/stock), depth:"fast" (trivial lookups, Auto only).
+Query = description of the ideal page with names/versions/places/years ("official release notes for Blender 5.2", not "blender new"). goal (every search) = figures to pull and sources to prefer. Other params only when needed: sites, after/before, country (two-letter code: GB for the UK), fresh:true (live prices/stock), depth:"fast" (trivial lookups, Auto only).
 
 STEP 3A AUTO
 1 worker: search; after: read best 1-2 with a question if excerpts don't answer it (latest facts: the official page). A link to read -> read job only. Opinion/experience question -> add a discussions search to the same worker. Typical 1-3 calls, max ~4.

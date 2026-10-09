@@ -30,6 +30,9 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 **Parallel** combines an `objective` with short keyword queries (3 to 6 words), crawls live, and is the only one of the two that reaches Reddit, X, Glassdoor and Trustpilot well.
 
 - Queries are built from the query's keywords; the full question goes in `objective`.
+- Every search sends both engines a goal: Claude's `goal` (if given) followed by a goal for the search type. Exa gets it as `objective`, Parallel as part of its `objective`.
+- Searches limited to Reddit also ask Parallel to rank threads by relevance first, then number of comments, then recency.
+- Every Parallel read sends an `objective`: the question, or "the main content of the page" without one. Exa's reader has no goal field, so the question goes in as its highlights query; without a question Exa returns the page from the top.
 - Excerpts are capped per result and in total (`max_chars_total`), which the hosted Parallel connector couldn't do.
 - `discussions`, `x` and `reviews` limit Parallel to the right sites with `source_policy.include_domains`, so it never repeats what Exa found.
 - Modes: `turbo` for fast lookups, `fast` when merged with Exa, `basic` (longer snippets) when Parallel is the main source, `advanced` for `thorough`.

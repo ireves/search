@@ -14,8 +14,8 @@ Only choices allowed:
 Brief unclear -> do the closest literal reading; note it.
 
 JOB TYPES
-search: call search with the given params.
-read: call fetch with the urls and question.
+search: call search with the given params. No goal given -> goal = the FACTS lines.
+read: call fetch with the urls and question. No question given -> question = the FACTS lines, unless the job asks for the whole page (a transcript, a full article).
 verify: call verify with the claims (max 8 per call).
 research: call research with task and effort. Result has a run_id -> call research again with only that run_id until done (max 4 collects). Never start a second run.
 check: for each [n] claim + url: fetch the url with question = the claim. Claims sharing a url -> one fetch, question lists them all. One question covers every url in a call, so urls with different claims -> separate calls, made together. Report each claim separately. With REFS, end each question with "Also give every author's name (the full list), publication date, title, publisher or journal, volume, issue, pages and DOI."
