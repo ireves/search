@@ -108,7 +108,7 @@ The misses above came from pages read by Firecrawl, where the connector picks th
 Changes:
 
 - Long blocks are split into passages of about 600 characters; rows cut from a table keep the header row.
-- The heading above a passage counts towards its score; words in the page title count for less; questions asking "how much", "when" and similar favour passages with figures; earlier passages win close calls; reference lists count for less; a few words match their close equivalents (tall and height, cost and price).
+- The heading above a passage counts towards its score; words in the page title count for less; questions asking "how much", "when" and similar favour passages with figures; earlier passages win close calls, and the first five (where a summary table or lead paragraph usually sits) get extra weight; reference lists count for less; a few words match their close equivalents (tall and height, cost and price); "highest" matches "high" and "tallest" matches "tall".
 - A long passage is trimmed around its matching lines instead of from the top.
 - With a question, `max_chars` is at least 2,500. Below that, the right passage was often left out.
 - Workers now send one fetch per question when the pages are on different topics, since one question covers every page in a call.
@@ -117,11 +117,12 @@ Tested offline on full copies of 13 pages: the 7 from the accuracy test, plus 6 
 
 | Size | Before | After |
 |---|---|---|
-| 700 characters | 5 of 14 | 8 of 14 |
-| 2,500 characters | 11 of 14 | 13 of 14 |
-| 4,000 characters (default) | 11 of 14 | 13 of 14 |
+| 2,500 characters (new minimum) | 11 of 14 | 14 of 14 |
+| 4,000 characters (default) | 11 of 14 | 14 of 14 |
 
-The remaining miss is Mount Everest at every size: the page is 159,000 characters and the height sits in a table row with none of the question's words. The test copies came from TinyFish, not Firecrawl, and the fix has not been tested on the deployed connector yet. Exa and Parallel pick their own passages, so only the 2,500 floor applies to them.
+Mount Everest was the last miss in a first version of the fix. The height was in the summary table ("Elevation") and the lead paragraph ("the highest mountain"), but both ranked 11th and 12th of 338 passages, below body text that repeats "elevation" and "altitude". Matching "highest" to "high" and weighting the opening passages fixed it. Because Everest was then used for tuning, 5 more pages were checked afterwards, with questions written before looking at them (Wikipedia's Eiffel Tower, River Thames and Burj Khalifa; GOV.UK Child Benefit; NHS paracetamol): 10 of 10 answers found at 2,500 and 4,000 characters, against 6 of 10 before.
+
+Below the new minimum, results are still poor (6 of 14 at 700 characters), which is why the minimum exists. The test copies came from TinyFish, not Firecrawl, and the fix has not been tested on the deployed connector yet. Exa and Parallel pick their own passages, so only the 2,500 floor applies to them.
 
 ## 6. Verdict
 

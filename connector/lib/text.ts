@@ -153,7 +153,8 @@ export function keywords(text: string, maxWords = 6): string {
 }
 
 function stem(word: string): string {
-  return word.replace(/(ing|ed|es|s)$/, "").slice(0, 8);
+  // "highest" matches "high" and "tallest" matches "tall".
+  return word.replace(/(ing|ed|es|s)$/, "").replace(/(?<=\p{L}{3})est$/u, "").slice(0, 8);
 }
 
 // Questions that want a figure: a price, rate, size, date, version or count.
@@ -356,6 +357,9 @@ export function rankPassages(text: string, question: string): { terms: string[];
       if (wantsFigure && /\d/.test(p.text)) score *= 1.3;
       // Pages tend to lead with what is current; earlier passages win ties.
       score *= 1 + 0.2 * (1 - i / parts.length);
+      // The opening passages (a summary table, a lead paragraph) usually hold
+      // the page's key facts.
+      if (i < 5) score *= 1 + 0.1 * (5 - i);
       if ((p.text.match(CITATIONS) ?? []).length > 1) score *= 0.3;
     }
     return { i, block: p.text, score };

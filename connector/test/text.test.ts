@@ -73,3 +73,12 @@ test("relevantPassages stays within the limit", () => {
   const page = Array.from({ length: 400 }, (_, i) => `Paragraph ${i} about rates, prices and dates in 2026.`).join("\n\n");
   for (const max of [2500, 4000, 6000]) assert.ok(relevantPassages(page, "What are the prices and rates in 2026?", max).length <= max);
 });
+
+test("relevantPassages finds a height asked for with a different word", () => {
+  const body = Array.from(
+    { length: 120 },
+    (_, i) => `Climbers on Mount Example in season ${i} reached high camps at various altitudes, and the mountain's elevation changed their plans.`,
+  );
+  const page = ["# Mount Example", "| Mount Example | |\n| --- | --- |\n| Elevation | 4,321 m |", "Mount Example is the highest peak in the range.", ...body].join("\n\n");
+  assert.match(relevantPassages(page, "How tall is Mount Example?", 2500), /4,321 m/);
+});
