@@ -50,10 +50,12 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 **Firecrawl in search (optional, same key).** Firecrawl ranks results like Google, so it finds forum threads, mainstream recommendations and pages that only partly answer a question, which Exa's meaning-based search tends to pass over (see [`docs/search-toolkit-comparison.md`](../docs/search-toolkit-comparison.md)).
 
-- **Second opinion:** for `web`, `discussions` (adds "reddit" to the query), `reviews` and `code` searches at standard or thorough depth, Firecrawl runs alongside Exa and Parallel and its results are merged in.
+- **Second opinion:** for `web`, `discussions` (adds "reddit" to the query), `reviews`, `shopping` (where Firecrawl's ranking counts most, as it finds shops in the right country) and `code` searches at standard or thorough depth, Firecrawl runs alongside Exa and Parallel and its results are merged in.
 - **Fallback:** for `fast` searches and for `news`, `jobs` and `x`, Firecrawl runs only when Exa and Parallel return fewer than 3 results. The reply then says so. Never used for `papers`, `people`, `companies` or `financial`, where Exa's structured index is better.
 - Search results only (title, link, Google's short snippet, and the date when the snippet starts with one); no pages are read, so a search costs 2 credits per 10 results. Site filters are passed on, dates become Google's custom date range, and `country` is passed on.
 - A rejected key or empty credit adds a note; the other engines' results still come back.
+
+**Merging.** Results from all engines are combined by rank (reciprocal rank fusion), with duplicates and mirrored copies folded together. Each engine's top result always keeps a place, so one engine's best find isn't crowded out by pages the other two agree on. When two engines return different passages from the same page, the newer copy's passage leads and the other is shown underneath ("Another copy of this page says"), because one engine's stored copy can be out of date.
 
 **Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
 

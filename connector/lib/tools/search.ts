@@ -11,6 +11,7 @@ export const SEARCH_TYPES = [
   "discussions",
   "x",
   "reviews",
+  "shopping",
   "papers",
   "people",
   "companies",
@@ -74,6 +75,16 @@ const PLANS: Record<SearchType, Plan> = {
     exaWeight: 1,
     parallelWeight: 1,
     firecrawlWeight: 0.9,
+  },
+  // Firecrawl's Google-style results find shop listings in the right country
+  // far more often than the others, so its ranking counts for more here.
+  shopping: {
+    exa: { prefix: "Product page on an online shop, with price and specifications: " },
+    parallel: { prefix: "Product listings from online shops with price, stock and specifications: " },
+    firecrawl: { second: true },
+    exaWeight: 0.8,
+    parallelWeight: 0.8,
+    firecrawlWeight: 1.3,
   },
   papers: { exa: { category: "publication" }, exaWeight: 1, parallelWeight: 0 },
   people: { exa: { category: "people" }, exaWeight: 1, parallelWeight: 0 },

@@ -274,6 +274,40 @@ test("discussion searches ask Firecrawl for Reddit, and site filters are passed 
   assert.equal(body.excludeDomains, undefined);
 });
 
+test("each engine's top result keeps a place in the merged list", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  const shared = [1, 2, 3].map((i) => `https://agree${i}.com/`);
+  mockNetwork(
+    exaSearchReply(shared.map((u, i) => exaResult(u, `Agreed page ${i}`, "Fact."))),
+    parallelSearchReply(shared.map((u, i) => parallelResult(u, `Agreed page ${i}`, "Fact."))),
+    firecrawlSearchReply([{ url: "https://www.reddit.com/r/x/comments/9/best", title: "Best one : r/x", description: "People recommend this." }]),
+  );
+  const { text } = await runSearch({ query: "best simple notes app", max_results: 3 });
+  assert.equal((text.match(/^\[\d+\]/gm) ?? []).length, 3);
+  assert.match(text, /Best one : r\/x/);
+});
+
+test("differing copies of one page: the newer passage leads and the other is shown", async () => {
+  mockNetwork(
+    exaSearchReply([exaResult("https://shop.example.com/pricing", "Pricing", "Old table: $5 per 1k requests for search, valid for 1 to 25 results in every plan we offer.", "2025-01-10")]),
+    parallelSearchReply([parallelResult("https://shop.example.com/pricing", "Pricing", "Current table: $7 per 1k requests for search, covering up to 10 results per request.", "2026-09-25")]),
+  );
+  const { text } = await runSearch({ query: "search API price" });
+  assert.match(text, /\(2026-09-25\)\nhttps:\/\/shop\.example\.com\/pricing\nCurrent table: \$7/);
+  assert.match(text, /Another copy of this page says: Old table: \$5/);
+});
+
+test("shopping searches weight Firecrawl highest", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://us-shop.com/cable", "US cable", "In stock.")]),
+    parallelSearchReply([parallelResult("https://ae-shop.com/cable", "UAE cable", "In stock.")]),
+    firecrawlSearchReply([{ url: "https://www.amazon.co.uk/cable", title: "UK cable", description: "£9.99" }]),
+  );
+  const { text } = await runSearch({ query: "0.2m right angle usb-c cable", type: "shopping", country: "GB" });
+  assert.match(text, /^\[1\] UK cable/m);
+});
+
 test("leading dates in search snippets become the page date", () => {
   assert.deepEqual(leadingDate("18 Jan 2026 · Text"), { date: "2026-01-18", text: "Text" });
   assert.deepEqual(leadingDate("Sept 3, 2025 — Text"), { date: "2025-09-03", text: "Text" });
