@@ -10,6 +10,12 @@ Both skills use your Search connector, which combines two search engines:
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
+A few habits help with answers that aren't clear-cut:
+
+- Every search is set to the UK, so shops, prices and rules come from UK sites where possible.
+- Questions asking for recommendations ("app like X", "worth it") also search Reddit and forums. Product questions use a shopping search, where Firecrawl's results count most.
+- When no page states the answer outright, Claude reads the two or three closest pages and gives the best-supported answer, saying how sure it is and what's missing, instead of stopping at "couldn't find".
+
 ## What's new in version 2
 
 **Workers do the searching.** A worker is a smaller, cheaper Claude model (Haiku) that Claude hands simple jobs to.
