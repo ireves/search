@@ -26,7 +26,7 @@ export const TOOLS = [
     name: "search",
     title: "Search the web",
     description:
-      "Search the web with Exa and Parallel together. Returns ranked results with title, date, link and the passages that match. Describe the page you want in plain words rather than keywords.",
+      "Search the web with Exa and Parallel together (plus Firecrawl, when set up, for a second opinion or when they find little). Returns ranked results with title, date, link and the passages that match. Describe the page you want in plain words rather than keywords.",
     inputSchema: {
       type: "object",
       properties: {

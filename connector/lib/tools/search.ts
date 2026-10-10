@@ -1,4 +1,5 @@
 import { exaSearch, type ExaType, type Hit } from "../engines/exa.js";
+import { firecrawlKey, firecrawlSearch } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
 import { parallelSearch, type ParallelMode } from "../engines/parallel.js";
 import { cleanDomain, keywords, parseDate, today } from "../text.js";
@@ -25,24 +26,40 @@ export type Depth = (typeof DEPTHS)[number];
 interface Plan {
   exa?: { category?: string; prefix?: string; fresh?: boolean; defaultAfter?: string };
   parallel?: { include?: string[]; prefix: string; primary?: boolean };
+  // Firecrawl (only when its key is set): "second" runs it alongside the
+  // others at standard and thorough depth; otherwise it is only a fallback
+  // when Exa and Parallel come back with too little.
+  firecrawl?: { second?: boolean; suffix?: string; include?: string[]; news?: boolean };
   exaWeight: number;
   parallelWeight: number;
+  firecrawlWeight?: number;
 }
 
 // Which engine does what. Exa finds pages by meaning and has the better index
 // for articles, papers, people, companies and jobs, but can't reach Reddit or
 // X. Parallel covers those and adds fresher pages to general searches.
+// Firecrawl ranks like Google, so it brings forum threads, mainstream picks
+// and pages that only partly answer a question, which Exa tends to pass over.
 const PLANS: Record<SearchType, Plan> = {
-  web: { exa: {}, parallel: { prefix: "" }, exaWeight: 1, parallelWeight: 0.8 },
-  news: { exa: { category: "news" }, parallel: { prefix: "Recent news reporting: " }, exaWeight: 1, parallelWeight: 0.9 },
+  web: { exa: {}, parallel: { prefix: "" }, firecrawl: { second: true }, exaWeight: 1, parallelWeight: 0.8, firecrawlWeight: 0.9 },
+  news: {
+    exa: { category: "news" },
+    parallel: { prefix: "Recent news reporting: " },
+    firecrawl: { news: true },
+    exaWeight: 1,
+    parallelWeight: 0.9,
+  },
   discussions: {
     exa: { prefix: "Forum threads and community discussions where people share first-hand experience: " },
     parallel: { include: ["reddit.com"], prefix: "Reddit threads with first-hand experiences, advice and fixes: ", primary: true },
+    firecrawl: { second: true, suffix: " reddit" },
     exaWeight: 1,
     parallelWeight: 1,
+    firecrawlWeight: 1,
   },
   x: {
     parallel: { include: ["x.com", "twitter.com"], prefix: "Posts on X (Twitter) by individual people: ", primary: true },
+    firecrawl: { include: ["x.com"] },
     exaWeight: 0,
     parallelWeight: 1,
   },
@@ -53,8 +70,10 @@ const PLANS: Record<SearchType, Plan> = {
       prefix: "Customer or employee reviews with ratings, pros and cons: ",
       primary: true,
     },
+    firecrawl: { second: true, suffix: " reviews" },
     exaWeight: 1,
     parallelWeight: 1,
+    firecrawlWeight: 0.9,
   },
   papers: { exa: { category: "publication" }, exaWeight: 1, parallelWeight: 0 },
   people: { exa: { category: "people" }, exaWeight: 1, parallelWeight: 0 },
@@ -62,16 +81,23 @@ const PLANS: Record<SearchType, Plan> = {
   code: {
     exa: { prefix: "Technical documentation, code or answers about: " },
     parallel: { prefix: "Official documentation, GitHub issues or Stack Overflow answers: " },
+    firecrawl: { second: true },
     exaWeight: 1,
     parallelWeight: 0.8,
+    firecrawlWeight: 0.8,
   },
   jobs: {
     exa: { prefix: "Job posting on a company careers page or applicant tracking site: ", fresh: true, defaultAfter: "30d" },
+    firecrawl: { suffix: " jobs" },
     exaWeight: 1,
     parallelWeight: 0,
   },
   financial: { exa: { category: "financial report" }, exaWeight: 1, parallelWeight: 0 },
 };
+
+// Fewer merged results than this counts as "too little", and Firecrawl is
+// asked as well before the answer goes back.
+const THIN = 3;
 
 const EXA_TYPE: Record<Depth, ExaType> = { fast: "fast", standard: "auto", thorough: "deep" };
 const CHARS: Record<Depth, number> = { fast: 600, standard: 900, thorough: 1400 };
@@ -164,17 +190,51 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     );
   }
 
-  const settled = (await Promise.all(jobs)).filter((x): x is { hits: Hit[]; weight: number } => x !== null);
-  if (!settled.length) return { text: notes.join("\n") || "No search engine is available.", isError: true };
+  // Firecrawl as a second opinion, run alongside the others.
+  const fc = plan.firecrawl && (await firecrawlKey()) ? plan.firecrawl : undefined;
+  const firecrawlJob = () =>
+    firecrawlSearch({
+      query: `${query}${fc!.suffix && !query.toLowerCase().includes(fc!.suffix.trim()) ? fc!.suffix : ""}`,
+      limit,
+      news: fc!.news,
+      sites: sites.length ? sites : fc!.include,
+      excludeSites: excluded,
+      after,
+      before,
+      country: input.country,
+    })
+      .then((hits) => ({ hits, weight: plan.firecrawlWeight ?? 1 }))
+      .catch((e) => {
+        notes.push(`Firecrawl unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
+        return null;
+      });
+  const asSecond = Boolean(fc?.second) && depth !== "fast";
+  if (asSecond) jobs.push(firecrawlJob());
 
-  const filtered = settled.map((l) => ({ ...l, hits: l.hits.filter((h) => withinDates(h, after, before)) }));
-  const results = fuse(filtered, limit);
+  type List = { hits: Hit[]; weight: number };
+  const keep = (lists: (List | null)[]) =>
+    lists.filter((x): x is List => x !== null).map((l) => ({ ...l, hits: l.hits.filter((h) => withinDates(h, after, before)) }));
+  let filtered = keep(await Promise.all(jobs));
+  let results = fuse(filtered, limit);
+
+  // Fallback: too little from Exa and Parallel, so ask Firecrawl too.
+  let fellBack = false;
+  if (fc && !asSecond && results.length < Math.min(THIN, limit)) {
+    const extra = keep([await firecrawlJob()]);
+    if (extra.length && extra[0].hits.length) {
+      filtered = [...filtered, ...extra];
+      results = fuse(filtered, limit);
+      fellBack = true;
+    }
+  }
+  if (!filtered.length) return { text: notes.join("\n") || "No search engine is available.", isError: true };
 
   const header = [
     `Search: "${query}" · ${type}${depth !== "standard" ? ` · ${depth}` : ""} · ${results.length} result${results.length === 1 ? "" : "s"} · today is ${today()}`,
   ];
   if (after || before) header.push(`Published ${after ? `from ${after}` : ""}${after && before ? " " : ""}${before ? `to ${before}` : ""} (undated pages kept).`);
   if (fresh) header.push("Pages re-downloaded for freshness.");
+  if (fellBack) header.push("Exa and Parallel found little, so Firecrawl searched as well (short snippets: read a page for detail).");
   if (!results.length) {
     notes.push("No results. Describe the page you want in more words, loosen filters, or try another type.");
   }

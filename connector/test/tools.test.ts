@@ -2,6 +2,7 @@ import { strict as assert } from "node:assert";
 import { after, beforeEach, test } from "node:test";
 import { calls, exaResult, freshStore, mockNetwork, parallelResult, restoreNetwork } from "./helpers.js";
 import { entityFacts } from "../lib/engines/exa.js";
+import { leadingDate } from "../lib/engines/firecrawl.js";
 import { runSearch } from "../lib/tools/search.js";
 import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
 import { runVerify } from "../lib/tools/verify.js";
@@ -182,6 +183,101 @@ test("a rejected Firecrawl key is reported and the others read instead", async (
   // Two pages are read at a time; once the key is rejected the rest skip Firecrawl.
   assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 2);
   assert.equal(calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.urls.length, 4);
+});
+
+const firecrawlSearchReply = (items: { url: string; title: string; description?: string; date?: string }[], news = false, credits = 2) => (c: {
+  url: string;
+}) => (c.url === "https://api.firecrawl.dev/v2/search" ? { body: { success: true, data: { [news ? "news" : "web"]: items }, creditsUsed: credits } } : undefined);
+
+test("with a Firecrawl key, web searches add Firecrawl as a second opinion", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://docs.example.com/answer", "Official answer", "The documented rule.")]),
+    parallelSearchReply([parallelResult("https://docs.example.com/answer", "Official answer", "The documented rule, again.")]),
+    firecrawlSearchReply([
+      { url: "https://www.reddit.com/r/thing/comments/1/how", title: "How I fixed it : r/thing", description: "18 Jan 2026 · It worked once I changed the setting." },
+      { url: "https://docs.example.com/answer", title: "Official answer", description: "The documented rule." },
+    ]),
+  );
+  const { text, isError } = await callTool("search", { query: "how do I fix the thing", country: "gb" });
+  assert.equal(isError, false);
+  const fc = calls.find((c) => c.url === "https://api.firecrawl.dev/v2/search")!;
+  assert.equal(fc.headers.authorization, "Bearer fc-test-key");
+  assert.deepEqual(fc.body.sources, ["web"]);
+  assert.equal(fc.body.country, "GB");
+  assert.equal((text.match(/^\[\d+\]/gm) ?? []).length, 2, text);
+  assert.match(text, /How I fixed it : r\/thing \(2026-01-18\)/);
+  assert.match(text, /\nIt worked once I changed the setting\./);
+  assert.match(text, /Firecrawl 2 credits\)$/);
+  assert.doesNotMatch(text, /Firecrawl searched as well/);
+});
+
+test("fast searches with enough results, and searches without a Firecrawl key, leave Firecrawl out", async () => {
+  mockNetwork(exaSearchReply([exaResult("https://a.com/x", "Title A", "Fact A")]), parallelSearchReply([]), firecrawlSearchReply([]));
+  await runSearch({ query: "anything at all" });
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 0);
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(exaSearchReply([1, 2, 3].map((i) => exaResult(`https://a${i}.com/`, `Title ${i}`, "Fact."))), parallelSearchReply([]), firecrawlSearchReply([]));
+  await runSearch({ query: "anything at all", depth: "fast" });
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 0);
+});
+
+test("when Exa and Parallel find little, Firecrawl searches as a fallback", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://news.example.com/1", "Only story", "One fact.", "2026-10-01")]),
+    parallelSearchReply([]),
+    firecrawlSearchReply([{ url: "https://paper.example.co.uk/2", title: "Second story", snippet: "Another view.", date: "2026-10-02" } as never], true),
+  );
+  const { text } = await runSearch({ query: "council decision on the bridge", type: "news", after: "2026-09-01" });
+  const fc = calls.find((c) => c.url === "https://api.firecrawl.dev/v2/search")!;
+  assert.deepEqual(fc.body.sources, ["news"]);
+  assert.equal(fc.body.tbs, "cdr:1,cd_min:9/1/2026");
+  assert.match(text, /Firecrawl searched as well/);
+  assert.match(text, /Second story \(2026-10-02\)/);
+});
+
+test("enough results from Exa and Parallel means no fallback", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([1, 2, 3].map((i) => exaResult(`https://n${i}.com/`, `Story ${i}`, "Fact.", "2026-10-01"))),
+    parallelSearchReply([]),
+    firecrawlSearchReply([], true),
+  );
+  await runSearch({ query: "council decision on the bridge", type: "news" });
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 0);
+});
+
+test("a Firecrawl failure leaves the other results and adds a note", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://a.com/x", "Title A", "Fact A")]),
+    parallelSearchReply([]),
+    (c) => (c.url === "https://api.firecrawl.dev/v2/search" ? { status: 402, body: { error: "Insufficient credits" } } : undefined),
+  );
+  const { text, isError } = await runSearch({ query: "anything at all" });
+  assert.equal(isError, false);
+  assert.match(text, /Title A/);
+  assert.match(text, /Firecrawl unavailable: Firecrawl is out of credit\./);
+});
+
+test("discussion searches ask Firecrawl for Reddit, and site filters are passed on", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(exaSearchReply([]), parallelSearchReply([]), firecrawlSearchReply([]));
+  await runSearch({ query: "simpler alternative to Notion", type: "discussions" });
+  assert.equal(calls.find((c) => c.url.includes("firecrawl"))!.body.query, "simpler alternative to Notion reddit");
+  mockNetwork(exaSearchReply([]), parallelSearchReply([]), firecrawlSearchReply([]));
+  await runSearch({ query: "voice memo shortcut", sites: ["apple.com", "reddit.com"], exclude_sites: ["pinterest.com"] });
+  const body = calls.find((c) => c.url.includes("firecrawl"))!.body;
+  assert.equal(body.query, "voice memo shortcut");
+  assert.deepEqual(body.includeDomains, ["apple.com", "reddit.com"]);
+  assert.equal(body.excludeDomains, undefined);
+});
+
+test("leading dates in search snippets become the page date", () => {
+  assert.deepEqual(leadingDate("18 Jan 2026 · Text"), { date: "2026-01-18", text: "Text" });
+  assert.deepEqual(leadingDate("Sept 3, 2025 — Text"), { date: "2025-09-03", text: "Text" });
+  assert.deepEqual(leadingDate("No date here"), { text: "No date here" });
 });
 
 test("Reddit threads are rebuilt from the .json address with comments", async () => {
