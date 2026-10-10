@@ -87,7 +87,7 @@ A few habits help with answers that aren't clear-cut:
 
 **First, it asks how hard to search** (unless you've already said, for example `/better-search deep: ...`, or you've only given a link to read):
 
-- **Auto:** sized to the question. A simple lookup takes one or two searches.
+- **Auto:** sized to the question. A simple lookup takes one or two searches; a question with several parts gets a search for each part.
 - **Deep:** always searches thoroughly, from several angles at once (official pages, people's experiences, reviews, news). The answer is still only as long as the question needs.
 
 ## search-report: finding problems

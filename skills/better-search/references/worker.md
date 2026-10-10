@@ -26,7 +26,10 @@ RULES
 - Include anything that bears on a FACT, even partly (mark "(partial)"). Missed facts cost more than extra lines.
 - Page date as the result gives it, else "undated".
 - Same story on several sites = one finding, "also on: <sites>".
-- Quote a few exact words in "..." when the wording matters (claims, limits, conditions, prices).
+- Quote a few exact words in "..." when the wording matters (claims, limits, conditions, prices). For a term the brief's FACTS name (a feature, ingredient, technology), quote the full sentence the page or excerpt uses about it.
+- A page names where its data comes from ("www.example.com", "source: ...") -> put that source in LINKS.
+- Opinions or pages that seem to be about another country (prices in another currency, foreign brand names) -> add "(probably <country>)" to the finding.
+- LIMIT counts every section. Over it -> cut LINKS and NOTES first, never FINDINGS.
 - No raw results, no summary prose, no conclusions, no opinions.
 - Engine errors ("no API key", "rejected the API key", "out of credit", "unavailable") -> copy the line into NOTES.
 
@@ -40,7 +43,7 @@ CONFLICTS
 LINKS
 - <title> | <url> | <why useful: official, pricing, docs, thread> (max 5, not already in FINDINGS)
 NOTES
-- blocked or login-walled pages, failed engines, old pages for a "latest" fact, how you read an unclear brief
+- blocked or login-walled pages (only pages you tried), failed engines, old pages for a "latest" fact, how you read an unclear brief
 
 verify jobs add, per claim:
 CLAIM <n>: <claim>
