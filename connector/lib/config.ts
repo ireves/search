@@ -21,6 +21,11 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "Reads pages first when set, to save Exa and Parallel usage. Also reads some sites they can't, such as Quora. The free plan gives 1,000 pages a month.",
     link: "https://www.firecrawl.dev/app/api-keys",
   },
+  APIFY_API_TOKEN: {
+    label: "Apify API token (optional)",
+    help: "Adds live adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to jobs searches. About 1 to 5 cents a search.",
+    link: "https://console.apify.com/settings/integrations",
+  },
 };
 
 export function adminPassword(): string | null {

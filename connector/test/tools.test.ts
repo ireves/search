@@ -3,7 +3,8 @@ import { after, beforeEach, test } from "node:test";
 import { calls, exaResult, freshStore, mockNetwork, parallelResult, restoreNetwork } from "./helpers.js";
 import { entityFacts } from "../lib/engines/exa.js";
 import { leadingDate } from "../lib/engines/firecrawl.js";
-import { runSearch } from "../lib/tools/search.js";
+import { jobQuery, runSearch } from "../lib/tools/search.js";
+import { salary } from "../lib/engines/apify.js";
 import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
 import { runVerify } from "../lib/tools/verify.js";
 import { runResearch } from "../lib/tools/research.js";
@@ -450,4 +451,136 @@ test("paper results list every author, and very large author lists say where the
     "Authors: Author 1, Author 2, Author 3, Author 4, Author 5, Author 6, Author 7 · Year: 2025 · DOI: 10.1/x",
   );
   assert.match(entityFacts({ type: "publication", properties: { authors: names(53) } })!, /Author 50 and 3 more \(full list on the paper's page\)$/);
+});
+
+const apifyReply = (byActor: Record<string, unknown[]>) => (c: { url: string }) => {
+  const m = /api\.apify\.com\/v2\/acts\/([^/]+)\/run-sync-get-dataset-items/.exec(c.url);
+  return m ? { body: byActor[decodeURIComponent(m[1])] ?? [] } : undefined;
+};
+
+test("jobs searches add the job boards when an Apify token is set", async () => {
+  await setSecret("APIFY_API_TOKEN", "apify-test-token");
+  mockNetwork(
+    exaSearchReply([exaResult("https://careers.acme.com/designer", "Product Designer at Acme", "Join our team.")]),
+    apifyReply({
+      "curious_coder~linkedin-jobs-scraper": [
+        {
+          id: "123",
+          link: "https://www.linkedin.com/jobs/view/designer-123?trk=x",
+          title: "Junior Product Designer",
+          companyName: "Beta Ltd",
+          location: "London, England, United Kingdom",
+          salaryInfo: ["£30,000", "£35,000"],
+          postedAt: "2026-10-05",
+          applicantsCount: "45",
+          descriptionText: "Design things for people.",
+        },
+      ],
+      "valig~indeed-jobs-scraper": [
+        {
+          url: "https://uk.indeed.com/viewjob?jk=abc",
+          title: "Product Designer",
+          employer: { name: "Gamma" },
+          location: { city: "London", countryName: "United Kingdom" },
+          baseSalary: { min: 40000, max: 45000, currencyCode: "GBP", unitOfWork: "YEAR" },
+          datePublished: "2026-10-01T05:00:00.000Z",
+          description: { text: "Indeed advert text." },
+        },
+      ],
+      "valig~glassdoor-jobs-scraper": [
+        {
+          seoUrl: "https://www.glassdoor.co.uk/job-listing/x?jl=9",
+          title: "UX Designer",
+          employer: { name: "Delta" },
+          location: { name: "London" },
+          ageInDays: 2,
+          rating: 4.1,
+          description: "<p>Glassdoor <b>advert</b></p><p>Second paragraph.</p>",
+        },
+      ],
+      "blackfalcondata~totaljobs-scraper": [
+        {
+          url: "https://www.totaljobs.com/job/designer/epsilon-job1",
+          title: "Graduate Designer",
+          company: "Epsilon",
+          location: "London",
+          datePosted: "2026-10-08",
+          unifiedSalary: { min: 28000, max: 28000, currency: "GBP", period: "YEAR", salaryAvailable: true },
+          description: "Totaljobs advert text.",
+        },
+      ],
+    }),
+  );
+  const { text, isError } = await runSearch({ query: "junior product designer jobs in London", type: "jobs", max_results: 10 });
+  assert.equal(isError, false, text);
+  const apifyCalls = calls.filter((c) => c.url.includes("api.apify.com"));
+  assert.equal(apifyCalls.length, 4);
+  for (const c of apifyCalls) assert.equal(c.headers.authorization, "Bearer apify-test-token");
+  const li = apifyCalls.find((c) => c.url.includes("linkedin"))!;
+  assert.equal(li.body.keywords, "junior product designer");
+  assert.equal(li.body.location, "London, United Kingdom");
+  assert.equal(li.body.datePosted, "pastMonth");
+  assert.match(li.url, /maxItems=10/);
+  const indeed = apifyCalls.find((c) => c.url.includes("indeed"))!;
+  assert.equal(indeed.body.country, "uk");
+  assert.equal(indeed.body.location, "London");
+  assert.equal(indeed.body.datePosted, "");
+  assert.equal(apifyCalls.find((c) => c.url.includes("totaljobs"))!.body.query, "junior-product-designer");
+  assert.match(text, /https:\/\/www\.linkedin\.com\/jobs\/view\/123\n/);
+  assert.match(text, /LinkedIn · London, England, United Kingdom · £30,000–£35,000 · 45 applicants/);
+  assert.match(text, /Indeed · London, United Kingdom · £40,000–£45,000 a year/);
+  assert.match(text, /Glassdoor advert\nSecond paragraph\./);
+  assert.match(text, /Totaljobs · London · £28,000 a year/);
+  assert.match(text, /careers\.acme\.com/);
+});
+
+test("job boards are skipped without a token, at fast depth, and outside their country", async () => {
+  mockNetwork(exaSearchReply([exaResult("https://careers.acme.com/designer", "Designer", "Join us.")]));
+  await runSearch({ query: "designer", type: "jobs" });
+  assert.ok(calls.every((c) => !c.url.includes("apify")));
+
+  await setSecret("APIFY_API_TOKEN", "apify-test-token");
+  mockNetwork(exaSearchReply([]), apifyReply({}));
+  await runSearch({ query: "designer", type: "jobs", depth: "fast" });
+  assert.ok(calls.every((c) => !c.url.includes("apify")));
+
+  mockNetwork(exaSearchReply([]), apifyReply({}));
+  await runSearch({ query: "designer", type: "jobs", country: "US" });
+  const actors = calls.filter((c) => c.url.includes("apify")).map((c) => c.url);
+  assert.equal(actors.length, 3);
+  assert.ok(actors.every((u) => !u.includes("totaljobs")));
+
+  mockNetwork(exaSearchReply([]), apifyReply({}));
+  await runSearch({ query: "designer", type: "jobs", sites: ["linkedin.com"] });
+  assert.deepEqual(
+    calls.filter((c) => c.url.includes("apify")).map((c) => /acts\/([^/]+)/.exec(c.url)![1]),
+    ["curious_coder~linkedin-jobs-scraper"],
+  );
+});
+
+test("a failing job board adds a note and the others still answer", async () => {
+  await setSecret("APIFY_API_TOKEN", "apify-test-token");
+  mockNetwork(
+    exaSearchReply([exaResult("https://careers.acme.com/designer", "Designer at Acme", "Join us.")]),
+    (c) => (c.url.includes("glassdoor") ? { status: 402, body: { error: { message: "not enough credit" } } } : undefined),
+    apifyReply({}),
+  );
+  const { text, isError } = await runSearch({ query: "designer", type: "jobs" });
+  assert.equal(isError, false);
+  assert.match(text, /Glassdoor jobs unavailable: Glassdoor via Apify is out of credit\./);
+  assert.match(text, /Designer at Acme/);
+});
+
+test("job queries are split into role and place", () => {
+  assert.deepEqual(jobQuery("junior product designer jobs in London"), { role: "junior product designer", location: "London" });
+  assert.deepEqual(jobQuery("data analyst roles near Milton Keynes"), { role: "data analyst", location: "Milton Keynes" });
+  assert.deepEqual(jobQuery("remote UX researcher"), { role: "remote UX researcher", location: undefined });
+  assert.deepEqual(jobQuery("nurse vacancies in Leeds", "Bradford"), { role: "nurse Leeds", location: "Bradford" });
+  assert.deepEqual(jobQuery("nurse vacancies in Leeds", "Leeds"), { role: "nurse", location: "Leeds" });
+});
+
+test("salaries read naturally", () => {
+  assert.equal(salary(30000, 35000, "GBP", "YEAR"), "£30,000–£35,000 a year");
+  assert.equal(salary(15.5, null, "GBP", "HOUR"), "£15.5 an hour");
+  assert.equal(salary(null, null, "GBP", "YEAR"), undefined);
 });
