@@ -161,6 +161,7 @@ ScrapeCreators was scored on Reddit search. About 25 credits were used across th
 Your own connector pairs Exa (meaning-based search) with Parallel. Your earlier tests found Parallel strong on Reddit and X with your own key; here, locked to Composio's fast mode, it ignored "reddit" in the question. This test supports the pairing for official facts, with two adjustments to consider:
 
 1. For Reddit and "what do people recommend" questions, a Google-style tool did clearly better here than both Exa and Parallel's fast mode. Firecrawl (already an optional reader in your connector) or Serper would fill that gap cheaply.
+   - For Reddit specifically, ScrapeCreators' Reddit search found real, recent threads at about $1.88 per 1,000.
 2. Don't rely on a single engine for UK shopping or jobs. Firecrawl, Exa and Serper Shopping were the only tools that reliably returned UK shops and London adverts.
 
 ## 9. Limits of this test
