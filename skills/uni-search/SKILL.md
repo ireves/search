@@ -26,6 +26,7 @@ STEP 2 PLAN (yours)
 - Today's date from context or the first result header ("today is"); convert relative times to exact dates.
 - List every fact a complete answer needs. Comparison = one fact per item x attribute (each table cell). This list drives STEPS 3-7 and goes in every worker brief as FACTS.
 - Mark "latest" facts (current version/price/status/role holder/rule): need the official page, read today.
+- Mark "behaviour" facts (how a setting, feature or process works: when a change takes effect, what it requires, limits, steps): need the official docs or help page, read in full. Forum posts, issues and snippets are leads only.
 - Question rests on a premise (X happened, Y is true)? Add "is the premise true" as a fact.
 - Brief params (workers pass them as written): search query = description of the ideal page with names/versions/places/years; goal = facts to pull; type: news | discussions (Reddit/forums; also recommendations) | x | reviews | shopping (product listings with prices) | papers | people | companies | code | jobs (role alone in query, town or city in location) | financial (omit for general); sites; exclude_sites; after/before (YYYY-MM-DD or 7d/3m/1y); country "GB" on every search (the user is in the UK) unless the question is about another country; fresh:true (live prices/status); depth fast | standard | thorough. fetch: urls (<=5) + question. verify: claims (<=8). research: task + effort quick | standard | deep, or run_id.
 
@@ -55,6 +56,7 @@ STEP 5 CONFIDENCE (yours)
 - Primary (organisation, paper, filing, official docs, transcript) or secondary?
 - Key figures/dates: 2 independent sources or 1 primary. Mirrors/copies = 1.
 - Latest facts: official page, read today. Check every source date; prefer newest authoritative; note differences.
+- Behaviour facts: state only from an official docs/help page a worker read. Seen only in a snippet, forum or issue -> read the official page; still unconfirmed -> label it unconfirmed or leave it out.
 - Digest says CONFLICTS or "different" in verify -> resolve from the primary source or report both.
 - Never guess or fill from memory.
 
