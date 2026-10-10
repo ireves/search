@@ -17,7 +17,7 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tool
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.
-Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Firecrawl N credits" inside the brackets when any result used Firecrawl.`;
+Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W" and ", Firecrawl N credits" inside the brackets when any result used them.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
@@ -38,7 +38,7 @@ export const TOOLS = [
           type: "string",
           enum: [...SEARCH_TYPES],
           description:
-            "web (default) | news | discussions (Reddit and forums: experiences, advice, fixes) | x (posts on X) | reviews (Trustpilot, Glassdoor, user reviews) | shopping (product listings with prices; add country) | papers | people (professional profiles) | companies | code (docs, GitHub, Stack Overflow) | jobs (live postings) | financial (filings, earnings).",
+            "web (default) | news | discussions (Reddit and forums: experiences, advice, fixes) | x (posts on X) | reviews (Trustpilot, Glassdoor, user reviews) | shopping (product listings with prices; add country) | papers | people (professional profiles) | companies | code (docs, GitHub, Stack Overflow) | jobs (live postings; also LinkedIn, Indeed, Glassdoor and Totaljobs when set up, which adds up to a minute) | financial (filings, earnings).",
         },
         goal: {
           type: "string",
@@ -49,6 +49,7 @@ export const TOOLS = [
         sites: { type: "array", items: { type: "string" }, description: "Only these sites or site sections, e.g. [\"forum.figma.com\", \"reddit.com/r/blender\"]." },
         exclude_sites: { type: "array", items: { type: "string" }, description: "Leave out these sites." },
         country: { type: "string", description: "Two-letter country code to localise results, e.g. GB." },
+        location: { type: "string", description: "jobs only: town, city or region, e.g. Manchester. Keep the role alone in query." },
         max_results: { type: "integer", minimum: 1, maximum: 15, description: "Default 8." },
         depth: {
           type: "string",
