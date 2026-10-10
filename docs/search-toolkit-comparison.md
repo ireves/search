@@ -16,7 +16,7 @@ Tested 9 and 10 October 2026. 15 toolkits (24 tools in all) on the same 20 every
 
 The top nine general search tools score between 2.25 and 2.55. With 20 questions, one question scored one point differently moves a tool by 0.05, so treat gaps under about 0.2 as a tie. The clearer differences are in speed, price, region handling and the kind of question each one gets wrong.
 
-Eight of the toolkits are not web search engines (OpenAlex, Akta, Crustdata, Context.dev, ScrapeCreators, and Composio's Amazon, Shopping, Scholar, Image and Finance tools). They scored near zero on general questions, as expected, but several are very good at their own job. See section 6.
+The remaining toolkits are not web search engines (OpenAlex, Akta, Crustdata, Context.dev, ScrapeCreators, and Composio's Amazon, Shopping, Scholar, Image and Finance tools). They scored near zero on general questions, as expected, but several are very good at their own job. See section 6.
 
 ## 2. How the test was run
 
@@ -141,11 +141,11 @@ Sources: each vendor's pricing page, read on 10 October 2026 (full list with lin
 | Akta | 0.55 | about 7 s | Company news with summaries and sentiment; company profiles (found that Tavily has been acquired, and Parallel's pricing) | General questions ("Woolite" matched "Wolverine") |
 | Crustdata | 0.05 | 0.5 to 11 s | Basic company facts (head count, HQ, founding year) from a web address | Any question; some records out of date or wrong (Anthropic, Figma, Notion) |
 | Context.dev | 0.30 | about 1 s | Finding a company's web address and logo; turning a known page into clean text (4 to 6 s) | Searching: it matches single words ("line", "how", "2026") |
-| ScrapeCreators | see note | | Reddit, YouTube and LinkedIn search | See note |
+| ScrapeCreators | 1.45 | about 6 s | "What do people say" questions: real, recent Reddit threads (an exact Skills vs MCP thread for question 15) and Notion-alternative threads; YouTube and LinkedIn search also worked (live London design roles) | Facts, prices and products; question 10 returned only Starling referral spam |
 
 \* Scored on whether the images and their source pages were relevant.
 
-**ScrapeCreators note:** Re-run in progress after the Composio balance was topped up; results to follow.
+ScrapeCreators was scored on Reddit search. About 25 credits were used across the run (roughly 5p at list price).
 
 ## 7. Things to know when using these through Composio
 
