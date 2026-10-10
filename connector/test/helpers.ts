@@ -3,6 +3,7 @@
 
 process.env.ADMIN_PASSWORD = "correct horse battery staple";
 process.env.RESEARCH_WAIT_MS = "3000";
+process.env.FIRECRAWL_RETRY_MS = "10";
 delete process.env.BLOB_STORE_ID;
 delete process.env.BLOB_READ_WRITE_TOKEN;
 
