@@ -48,7 +48,7 @@ function text(value: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v : undefined;
 }
 
-async function scrapeOne(key: string, url: string, fresh: boolean): Promise<FirecrawlPage> {
+async function scrapeOne(key: string, url: string, fresh: boolean, timeoutMs: number): Promise<FirecrawlPage> {
   const data = await callJson<ScrapeReply>("Firecrawl", `${BASE}/v2/scrape`, {
     headers: { authorization: `Bearer ${key}` },
     body: {
@@ -57,9 +57,11 @@ async function scrapeOne(key: string, url: string, fresh: boolean): Promise<Fire
       onlyMainContent: true,
       ...(fresh ? { maxAge: 0 } : {}),
       parsers: [{ type: "pdf", maxPages: PDF_MAX_PAGES }],
-      timeout: 25_000,
+      // Firecrawl gives up a little before the request does, so a slow site
+      // comes back as its own error instead of a dropped connection.
+      timeout: Math.max(1000, timeoutMs - 3000),
     },
-    timeoutMs: 35_000,
+    timeoutMs,
   });
   const meta = data.data?.metadata ?? {};
   addCredits("firecrawl", typeof meta.creditsUsed === "number" ? meta.creditsUsed : 1);
@@ -78,7 +80,14 @@ async function scrapeOne(key: string, url: string, fresh: boolean): Promise<Fire
 
 // Reads each page in full. A page Firecrawl refuses comes back with ok: false;
 // a problem with the key or credit is returned so the caller can say so.
-export async function firecrawlScrape(urls: string[], fresh: boolean): Promise<{ pages: FirecrawlPage[]; problem?: EngineError }> {
+// A page that timed out comes back with error "took too long"; one not started
+// before the deadline (a time in ms) comes back as "skipped".
+export async function firecrawlScrape(
+  urls: string[],
+  fresh: boolean,
+  deadline = Date.now() + 35_000,
+  minMs = 2000,
+): Promise<{ pages: FirecrawlPage[]; problem?: EngineError }> {
   const key = await firecrawlKey();
   if (!key) throw new EngineError("Firecrawl", 0, "Firecrawl has no API key.");
   const pages: FirecrawlPage[] = new Array(urls.length);
@@ -91,13 +100,20 @@ export async function firecrawlScrape(urls: string[], fresh: boolean): Promise<{
         pages[i] = { url: urls[i], ok: false, content: "", error: "skipped" };
         continue;
       }
+      const left = Math.min(35_000, deadline - Date.now());
+      if (left < minMs) {
+        // Not tried: no time left in Firecrawl's share. The site may be fine.
+        pages[i] = { url: urls[i], ok: false, content: "", error: "skipped" };
+        continue;
+      }
       try {
-        pages[i] = await scrapeOne(key, urls[i], fresh);
+        pages[i] = await scrapeOne(key, urls[i], fresh, left);
       } catch (e) {
         const err = e instanceof EngineError ? e : new EngineError("Firecrawl", 0, (e as Error).message);
         // 403 also means "we do not support this site", so only 401 and 402 are about the account.
         if (err.status === 401 || err.status === 402) accountProblem = err;
-        pages[i] = { url: urls[i], ok: false, content: "", error: err.status === 403 ? "site not supported" : "not available" };
+        const slow = err.status === -1 || err.status === 408 || err.status === 504;
+        pages[i] = { url: urls[i], ok: false, content: "", error: err.status === 403 ? "site not supported" : slow ? "took too long" : "not available" };
       }
     }
   };

@@ -8,6 +8,7 @@ export interface FetchInput {
   urls: string[] | string;
   question?: string;
   max_chars?: number;
+  start?: number;
   fresh?: boolean;
 }
 
@@ -30,6 +31,38 @@ const PARALLEL_FIRST = /(^|\.)(x\.com|twitter\.com|glassdoor\.[a-z.]+|trustpilot
 // PDFs: a credit per page) or where Exa does better (YouTube transcripts).
 const FIRECRAWL_SKIP =
   /(^|\.)(reddit\.com|redd\.it|nytimes\.com|linkedin\.com|yelp\.[a-z.]+|instagram\.com|facebook\.com|tiktok\.com|threads\.(net|com)|pinterest\.[a-z.]+|craigslist\.org|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
+
+// A whole fetch call gets this long (fresh reads a little longer). Firecrawl
+// gets the first half; a page it times out on gets one last try with Parallel
+// in the time left, instead of waiting on every reader in turn.
+const BUDGET_MS = 30_000;
+const FRESH_BUDGET_MS = 45_000;
+// A reader isn't started with less time than this left.
+const MIN_TRY_MS = 2000;
+const TOO_SLOW = "took too long";
+
+// Per page at most this many characters: enough for most whole papers. Longer
+// documents are read in parts with start.
+export const FETCH_PAGE_CHARS = 60_000;
+// All pages in one call together return at most this many characters (about
+// 22,000 tokens), so one reply stays a known share of a helper's memory.
+export const FETCH_TOTAL_CHARS = 80_000;
+// Furthest point start can reach into a document.
+const MAX_START = 500_000;
+
+// The part of a document from start, cut at a sentence end within max
+// characters. next says where the following part begins, when there is more.
+export function windowOf(text: string, start: number, max: number): { content: string; next?: number } {
+  const part = text.slice(start);
+  if (part.length <= max) return { content: part };
+  const room = max - 2; // leaves space for the " …" marker
+  const cut = part.slice(0, room);
+  const stop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf(".\n"), cut.lastIndexOf("\n"));
+  const end = stop > room * 0.6 ? stop + 1 : Math.max(cut.lastIndexOf(" "), Math.floor(room * 0.8));
+  return { content: `${part.slice(0, end).trimEnd()} …`, next: start + end };
+}
+
+const moreNote = (next: number) => `More follows. Read on with start: ${next}, or ask a question to get the relevant passages from anywhere in it.`;
 
 // Short pages that are only a bot check, a block or a login wall.
 const BLOCK_PAGE = /captcha|checking your browser|verify you are human|are you a robot|access denied|log ?in to (a free account|continue)|sign ?in to continue/i;
@@ -70,64 +103,92 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const urls = [...new Set(list.filter((u): u is string => Boolean(u)))].slice(0, 5);
   if (!urls.length) return { text: "Give 1 to 5 web addresses in urls.", isError: true };
   const question = input.question?.trim() || undefined;
-  const maxChars = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), 20_000);
+  const asked = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), FETCH_PAGE_CHARS);
+  const maxChars = Math.min(asked, Math.floor(FETCH_TOTAL_CHARS / urls.length));
+  // start only applies to reading from the top; a question searches the whole document.
+  const start = question ? 0 : Math.min(Math.max(Math.round(input.start ?? 0), 0), MAX_START);
+  // Ask the readers for a little more than needed, to tell whether more follows.
+  const want = start + maxChars + 1000;
   const fresh = Boolean(input.fresh);
+  const budget = Number(process.env.FETCH_BUDGET_MS) || (fresh ? FRESH_BUDGET_MS : BUDGET_MS);
+  const began = Date.now();
+  const deadline = began + budget;
+  const left = () => deadline - Date.now();
+  const minTry = Math.min(MIN_TRY_MS, budget / 10);
 
   const pages = new Map<string, Page>();
   const reddit = urls.filter(isRedditThread);
   const failures: string[] = [];
+  const slow = new Set<string>();
 
   // Firecrawl first where it suits; whatever it can't read goes on to the others.
   let others = urls.filter((u) => !reddit.includes(u));
   const firecrawlFirst = (await firecrawlKey()) ? others.filter((u) => !FIRECRAWL_SKIP.test(hostOf(u)) && !looksLikePdf(u)) : [];
   const viaFirecrawl = async () => {
     if (!firecrawlFirst.length) return;
-    const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh);
+    const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh, began + budget / 2, minTry);
     if (problem) failures.push(`${problem.friendly} Exa and Parallel read the pages instead.`);
     for (const r of read) {
+      if (r.error === TOO_SLOW) slow.add(r.url);
       if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) continue;
-      const content = question ? relevantPassages(r.content, question, maxChars) : truncate(r.content, maxChars);
-      const cut = !question && r.content.length > maxChars;
+      const view = question ? { content: relevantPassages(r.content, question, maxChars) } : windowOf(r.content, start, maxChars);
+      if (!view.content) continue;
       pages.set(r.url, {
         url: r.url,
         title: r.title,
         date: r.date,
         author: r.author,
-        content,
-        note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
+        content: view.content,
+        note: view.next ? moreNote(view.next) : undefined,
       });
     }
   };
 
+  const tooLate = (targets: string[]) => {
+    if (left() >= minTry) return false;
+    for (const t of targets) if (!pages.get(t)?.content) pages.set(t, { url: t, content: "", error: TOO_SLOW });
+    return true;
+  };
+
   const viaParallel = async (targets: string[]) => {
-    if (!targets.length) return;
+    if (!targets.length || tooLate(targets)) return;
     try {
-      const results = await parallelExtract(targets, question ?? "The main content of the page", maxChars, { fresh });
+      // Reading on from start needs the full text; otherwise the main passages do.
+      const whole = start > 0;
+      const results = await parallelExtract(targets, question ?? "The main content of the page", maxChars, {
+        fresh,
+        timeoutMs: left(),
+        ...(whole ? { full: true, fullChars: want } : {}),
+      });
       for (const r of results) {
-        if (r.ok) pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: r.excerpts });
-        else pages.set(r.url, { url: r.url, content: "", error: r.error });
+        const view = whole && r.full ? windowOf(cleanText(r.full), start, maxChars) : { content: r.ok ? r.excerpts : "" };
+        if (r.ok && view.content) {
+          pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: view.content, note: "next" in view && view.next ? moreNote(view.next) : undefined });
+        } else pages.set(r.url, { url: r.url, content: "", error: r.ok ? "nothing past that point" : r.error });
       }
     } catch (e) {
-      failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
-      for (const t of targets) if (!pages.get(t)?.content) pages.set(t, { url: t, content: "", error: "not available" });
+      const timedOut = e instanceof EngineError && e.status === -1;
+      if (!timedOut) failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
+      for (const t of targets) if (!pages.get(t)?.content) pages.set(t, { url: t, content: "", error: timedOut ? TOO_SLOW : "not available" });
     }
   };
 
   const viaExa = async (targets: string[]) => {
-    if (!targets.length) return;
+    if (!targets.length || tooLate(targets)) return;
     let retry: string[] = [];
     try {
-      const results = await exaContents(targets, question, maxChars, fresh);
+      // Leave Parallel a share of the time as the backup reader.
+      const results = await exaContents(targets, question, question ? maxChars : want, fresh, Math.max(minTry, Math.floor(left() * 0.6)));
       for (const r of results) {
-        if (r.ok && !looksThin(r.content, Boolean(question))) {
-          const cut = !question && r.content.length >= maxChars * 0.97;
+        const view = question ? { content: r.content } : windowOf(r.content, start, maxChars);
+        if (r.ok && view.content && (start > 0 || !looksThin(view.content, Boolean(question)))) {
           pages.set(r.url, {
             url: r.url,
             title: r.title,
             date: r.date,
             author: r.author,
-            content: r.content,
-            note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
+            content: view.content,
+            note: "next" in view && view.next ? moreNote(view.next) : undefined,
           });
         } else {
           retry.push(r.url);
@@ -144,11 +205,13 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const viaOthers = async () => {
     await viaFirecrawl();
     others = others.filter((u) => !pages.get(u)?.content);
-    const parallelFirst = others.filter((u) => PARALLEL_FIRST.test(hostOf(u)));
+    // Pages Firecrawl timed out on are probably slow sites: one last try with
+    // Parallel, skipping Exa.
+    const parallelFirst = others.filter((u) => PARALLEL_FIRST.test(hostOf(u)) || slow.has(u));
     await Promise.all([viaExa(others.filter((u) => !parallelFirst.includes(u))), viaParallel(parallelFirst)]);
   };
 
-  await Promise.all([viaOthers(), ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures))]);
+  await Promise.all([viaOthers(), ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures, left, minTry))]);
 
   const blocks = urls.map((url) => {
     const p = pages.get(url);
@@ -157,7 +220,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     }
     const by = cleanAuthor(p.author);
     const meta = [p.url, p.date ? `published ${p.date}` : "", by ? `by ${by}` : ""].filter(Boolean).join(" · ");
-    return [`## ${p.title ?? hostOf(url)}`, meta, p.content, p.note ? `[${p.note}]` : ""].filter(Boolean).join("\n");
+    return [`## ${p.title ?? hostOf(url)}`, meta, truncate(p.content, maxChars + 2), p.note ? `[${p.note}]` : ""].filter(Boolean).join("\n");
   });
   const anyOk = urls.some((u) => pages.get(u)?.content);
   const notes = [...new Set(failures)];
@@ -173,19 +236,25 @@ async function readReddit(
   fresh: boolean,
   pages: Map<string, Page>,
   failures: string[],
+  left: () => number,
+  minTry: number,
 ): Promise<void> {
   const u = new URL(url);
   u.hostname = "www.reddit.com";
   u.search = "";
   const jsonUrl = `${u.toString().replace(/\/+$/, "")}/.json`;
   try {
-    const [result] = await parallelExtract([jsonUrl], question ?? "All comments in this thread", maxChars, { full: true, fresh });
+    const [result] = await parallelExtract([jsonUrl], question ?? "All comments in this thread", maxChars, { full: true, fresh, timeoutMs: left() });
     const thread = result?.full ? formatRedditJson(result.full, maxChars) : null;
     if (thread) {
       pages.set(url, { url, title: thread.title, date: thread.date, content: thread.text });
       return;
     }
-    const [plain] = await parallelExtract([url], question ?? "The post and all the replies", maxChars, { fresh });
+    if (left() < minTry) {
+      pages.set(url, { url, content: "", error: TOO_SLOW });
+      return;
+    }
+    const [plain] = await parallelExtract([url], question ?? "The post and all the replies", maxChars, { fresh, timeoutMs: left() });
     if (plain?.ok) pages.set(url, { url, title: plain.title, date: plain.date, content: plain.excerpts });
     else if (result?.excerpts) pages.set(url, { url, title: result.title, content: result.excerpts });
     else pages.set(url, { url, content: "", error: plain?.error });

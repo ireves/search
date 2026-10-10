@@ -155,19 +155,25 @@ export interface ExaPage {
 }
 
 // Reads known pages. With a question, returns only the passages that answer it.
-export async function exaContents(urls: string[], question: string | undefined, maxChars: number, fresh: boolean): Promise<ExaPage[]> {
+export async function exaContents(
+  urls: string[],
+  question: string | undefined,
+  maxChars: number,
+  fresh: boolean,
+  timeoutMs = fresh ? 45_000 : 30_000,
+): Promise<ExaPage[]> {
   const body: Record<string, unknown> = { urls };
   if (question) body.highlights = { query: question, maxCharacters: maxChars };
   else body.text = { maxCharacters: maxChars, verbosity: "compact" };
   if (fresh) {
     body.maxAgeHours = 0;
-    body.livecrawlTimeout = 20000;
+    body.livecrawlTimeout = Math.max(1000, Math.min(20_000, timeoutMs - 3000));
   }
   const data = await callJson<{
     results?: ExaResult[];
     statuses?: { id: string; status: string; error?: { tag?: string; httpStatusCode?: number | null } | null }[];
     costDollars?: ExaCost;
-  }>("Exa", `${BASE}/contents`, { headers: await headers(), body, timeoutMs: fresh ? 45_000 : 30_000 });
+  }>("Exa", `${BASE}/contents`, { headers: await headers(), body, timeoutMs });
   addCost("exa", data.costDollars?.total);
 
   const byUrl = new Map((data.results ?? []).map((r) => [r.url, r]));

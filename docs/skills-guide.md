@@ -19,7 +19,7 @@ A few habits help with answers that aren't clear-cut:
 
 ## What's new in version 2
 
-**Workers do the searching.** A worker is a smaller, cheaper Claude model (Haiku) that Claude hands simple jobs to.
+**Workers do the searching.** A worker is a smaller, cheaper Claude model (Haiku 5.5) that Claude hands simple jobs to. Claude always uses workers when they're available, including for follow-up questions.
 
 1. The main Claude plans what to look for.
 2. It sends workers a short list of searches and page reads.
@@ -27,6 +27,14 @@ A few habits help with answers that aren't clear-cut:
 3. Each worker runs its searches and sends back a short list of facts, each with its link and date.
    - The long search results stay with the worker, so the main Claude's memory isn't filled with them.
 4. The main Claude decides what's true, fills gaps and writes the answer.
+
+**Workers never run out of room.** Each worker's memory must stay well under 100,000 tokens (roughly 75,000 words). Before handing out jobs, Claude estimates how much text each search and page read will bring back. If one worker's share would be too large, Claude splits the jobs across more workers that run at the same time, so nothing is dropped. If a worker still sees it is running short, it hands back the jobs it hasn't done and Claude gives them to a fresh worker.
+
+**Facts come from proper sources.** Auction and second-hand listings (eBay, Vinted, Gumtree, Facebook Marketplace, Etsy) are left out of searches and never used as evidence, except for second-hand prices when you're buying used.
+
+**Pages that won't load don't hold things up.** A page read gives up after about 30 seconds in total (45 seconds for live prices), instead of trying each reading service in turn for up to two minutes. Claude also only reads links that came from search results, never guessed addresses.
+
+**Research papers and long PDFs.** For specific facts, a worker asks the page a narrow question and gets the matching passages from anywhere in the document. To understand a whole paper (a summary, its methods or limits), a worker reads it in full: up to 60,000 characters at once, which covers most papers. Longer documents are read in parts, each part by its own worker if needed, so no worker runs short of room.
 
 **Where workers run:** in the Claude app wherever Cowork features are available, and in Claude Code. If workers aren't available (for example in a plain chat where Cowork features haven't reached your account yet), Claude does the searches itself, the same way version 1 did. The answer is the same; it just uses more of the main Claude's memory.
 
@@ -87,7 +95,7 @@ A few habits help with answers that aren't clear-cut:
 
 **First, it asks how hard to search** (unless you've already said, for example `/better-search deep: ...`, or you've only given a link to read):
 
-- **Auto:** sized to the question. A simple lookup takes one or two searches.
+- **Auto:** sized to the question. A simple lookup takes one or two searches; a question with several parts gets a search for each part.
 - **Deep:** always searches thoroughly, from several angles at once (official pages, people's experiences, reviews, news). The answer is still only as long as the question needs.
 
 ## search-report: finding problems
