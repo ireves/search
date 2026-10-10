@@ -1,0 +1,738 @@
+{
+ "toolkit": "serpapi",
+ "tool_slugs": [
+  "SERPAPI_SEARCH",
+  "SERPAPI_SHOPPING_SEARCH",
+  "SERPAPI_GOOGLE_FORUMS_SEARCH",
+  "SERPAPI_GOOGLE_JOBS_SEARCH"
+ ],
+ "settings": {
+  "SERPAPI_SEARCH": {
+   "query": "<question>",
+   "note": "schema accepts only 'query'; gl/hl/location not supported so not sent (a warm-up test with them was silently accepted, 24 s)"
+  },
+  "SERPAPI_SHOPPING_SEARCH": {
+   "num": 10,
+   "note": "no region param; results came back gl=us, USD"
+  },
+  "SERPAPI_GOOGLE_FORUMS_SEARCH": {
+   "gl": "uk",
+   "hl": "en"
+  },
+  "SERPAPI_GOOGLE_JOBS_SEARCH": {
+   "location": "London, England, United Kingdom",
+   "gl": "uk",
+   "hl": "en"
+  }
+ },
+ "cost_info": "No cost fields. Each call uses one SerpApi search credit (provider plan); search_metadata.total_time_taken reported on forums engine (8.4 s).",
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 2.45,
+   "n_results": 5,
+   "chars": 1061,
+   "top": [
+    {
+     "title": "The money-saving expert explained how cash ISA limit ...",
+     "url": "https://www.facebook.com/teessidelive/posts/the-money-saving-expert-explained-how-cash-isa-limit-cuts-to-12000-for-under-65s/1158169876397352/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Martin Lewis on X",
+     "url": "https://x.com/MartinSLewis/status/1993663070149705982",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "The new Cash ISA rules and what they mean for your savings",
+     "url": "https://www.mortgage-medics.com/explained-the-new-cash-isa-rules-and-what-they-mean-for-your-savings/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Facebook post, Martin Lewis on X, mortgage broker blog, LinkedIn post; no GOV.UK; titles only, no snippets."
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 1.26,
+   "n_results": 5,
+   "chars": 1040,
+   "top": [
+    {
+     "title": "usb-c right angle cable",
+     "url": "https://www.newegg.com/p/pl?d=usb-c+right+angle+cable&srsltid=AU7gw4W4zVHJ2hOv14PlUCDSctQoD2lgBRtsj6mJz5cNm530c23SVEoi",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Aomoproing USB C Flat Cable USB 2.0 Male to ...",
+     "url": "https://www.newegg.com/p/181-08M5-00CT0?srsltid=AU7gw4Ul8SgYPo_8jh8K-m1NQOL8U7LnIiZAUR9fQ_tII-PZ2TaUA3hm",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "0.2M Up Down Angled USB 2.0 Type-A Male to USB-C ...",
+     "url": "https://www.amazon.ca/Angled-Type-USB-C-Type-C-Cable/dp/B0967WD64W",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Newegg search page, Amazon.ca 0.2M angled, Staples 2m cable; not UK."
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 18.28,
+   "n_results": 5,
+   "chars": 1122,
+   "top": [
+    {
+     "title": "Dettol Protect 24 hour Antibacterial Disinfectant Multi ...",
+     "url": "https://www.amazon.co.uk/Dettol-Protect-Antibacterial-Disinfectant-Surface/dp/B0BSNKYZKC",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Dettol Frequently Asked Questions",
+     "url": "https://www.dettol.co.uk/faq/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Dettol Antibacterial Multipurpose Cleaner Trigger Spray",
+     "url": "https://rb-msds.com.au/uploadedFiles/pdf/FF8307685_D8339157%20(ANZ)%20Dettol%20Antibacterial%20Multipurpose%20Cleaner%20Trigger%20Spray%20-%20Crisp%20Apple%20Burst.pdf",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Amazon.co.uk Dettol Protect 24 hour listing #1, Dettol FAQ, Australian SDS for a different spray."
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 3.58,
+   "n_results": 5,
+   "chars": 742,
+   "top": [
+    {
+     "title": "Exa API Pricing | Pay-as-You-Go Plans for AI Search",
+     "url": "https://exa.ai/pricing",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Pricing",
+     "url": "https://exa.ai/docs/admin/pricing",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Exa | Search API for AI Agents — Real-Time Web Data",
+     "url": "https://exa.ai/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "exa.ai/pricing and docs pricing top 2 (no snippets so price not visible)."
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 1.02,
+   "n_results": 5,
+   "chars": 952,
+   "top": [
+    {
+     "title": "Can't manage to make Vercel environmental variables ...",
+     "url": "https://stackoverflow.com/questions/78404592/cant-manage-to-make-vercel-environmental-variables-work-with-next-js-app",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "How to use Vercel's VERCEL_URL as SANITY_STUDIO_ ...",
+     "url": "https://www.sanity.io/answers/using-system-environment-variables-in-vercel-to-set-preview-url-for-sanity-studio-",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Environments on Vercel",
+     "url": "https://www.youtube.com/watch?v=nZrAgov_-D8",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "StackOverflow, Sanity answers, YouTube, Vercel community; no Vercel docs."
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 1.24,
+   "n_results": 5,
+   "chars": 902,
+   "top": [
+    {
+     "title": "iCloud+ (Plus) - Apple iCloud",
+     "url": "https://www.icloud.com/icloudplus",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Set up a custom email domain for iCloud Mail on all your ...",
+     "url": "https://support.apple.com/en-nz/guide/icloud/mm0e4339d289/icloud",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "I went all in with iCloud+ Custom-Domain Email Addresses",
+     "url": "https://www.reddit.com/r/iCloud/comments/1o49olh/i_went_all_in_with_icloud_customdomain_email/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "icloud.com/icloudplus, Apple Support guide (en-nz), Reddit."
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 9.74,
+   "n_results": 5,
+   "chars": 1006,
+   "top": [
+    {
+     "title": "Woolite Laundry Capsules additive with keratin prevents ...",
+     "url": "https://www.amazon.com/Woolite-Laundry-Capsules-additive-prevents/dp/B07DCCPT9L",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Define \"Dark\"/Woolite for Dark Colors",
+     "url": "https://www.houzz.com/discussions/2922112/define-dark-woolite-for-dark-colors",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Woolite Dark Defense for fade protection",
+     "url": "https://www.facebook.com/groups/thedealfairy/posts/1494603256044093/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Amazon.com Woolite capsules, Houzz, Facebook."
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 2.04,
+   "n_results": 5,
+   "chars": 977,
+   "top": [
+    {
+     "title": "Checking your National Insurance records",
+     "url": "https://www.streets.uk/about-us/news/checking-your-national-insurance-records/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "HMRC",
+     "url": "https://www.facebook.com/HMRC/photos/the-deadline-for-making-voluntary-national-insurance-contributions-has-been-exte/534688938834505/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "How to Check Your National Insurance Contributions Record",
+     "url": "https://holbornassets.com/blog/how-to-check-your-national-insurance-contributions-record/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Streets accountants, HMRC Facebook post, Holborn Assets; no GOV.UK."
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 1.72,
+   "n_results": 5,
+   "chars": 947,
+   "top": [
+    {
+     "title": "transcribe mp3 recorded talk to text",
+     "url": "https://discussions.apple.com/thread/255652110",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "How to Turn Voice Memos into Smart Notes with AI-Powered ...",
+     "url": "https://wiki.beard.fm/whats-new-apple-intelligence-in-shortcuts/how-to-turn-voice-memos-into-smart-notes-with-ai-powered-tra",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Is it possible to create a Shortcut that records audio ...",
+     "url": "https://www.reddit.com/r/shortcuts/comments/1mm9339/is_it_possible_to_create_a_shortcut_that_records/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Apple Discussions, beard.fm guide to Apple Intelligence Shortcuts for voice memos, Reddit."
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 9.16,
+   "n_results": 5,
+   "chars": 896,
+   "top": [
+    {
+     "title": "Anyone Having Issues With Direct Import of Transport for ...",
+     "url": "https://www.reddit.com/r/ynab/comments/1hbqk4p/anyone_having_issues_with_direct_import_of/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Starling Bank vs YNAB: features compared (2026)",
+     "url": "https://www.softwr.com/compare/starling-bank-vs-ynab",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "You Need A Budget 4 (YNAB) General Discussions",
+     "url": "https://steamcommunity.com/app/227320/discussions/0/4633736485039846538/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Reddit TfL import issue, softwr comparison, Steam forum, review; no YNAB help page."
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 1.27,
+   "n_results": 5,
+   "chars": 938,
+   "top": [
+    {
+     "title": "Table data lost after project restore from paused state (Free ...",
+     "url": "https://github.com/orgs/supabase/discussions/39271",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "manually paused project (free version) takes long time to ...",
+     "url": "https://github.com/orgs/supabase/discussions/17545",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Project Supabase Paused? Activate it and solve it once and for ...",
+     "url": "https://www.youtube.com/watch?v=_S74A26BJYc",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "GitHub discussions about data loss/restore, YouTube; no Supabase docs."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 1.79,
+   "n_results": 5,
+   "chars": 924,
+   "top": [
+    {
+     "title": "Error reference - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/errors",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "[BUG] Invalid network egress settings Co Work #21786",
+     "url": "https://github.com/anthropics/claude-code/issues/21786",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Self-hosted environments - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/self-hosted-environments",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "code.claude.com Error reference and Self-hosted environments docs plus GitHub egress issue; not the network-access page itself."
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 4.94,
+   "n_results": 5,
+   "chars": 1020,
+   "top": [
+    {
+     "title": "Liquid Glass: What It Means for Your App",
+     "url": "https://arctouch.com/blog/apple-liquid-glass",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Adapting to Apple's “Liquid Glass” Design Language",
+     "url": "https://medium.com/@survildhaduk/adapting-to-apples-liquid-glass-design-language-the-future-is-fluid-c2205e549e6e",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Apple's Human Interface Guidelines overview",
+     "url": "https://uxplanet.org/apples-human-interface-guidelines-overview-5d42c2088efc",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "ArcTouch, Medium x2, UX Planet; no Apple source."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 0.95,
+   "n_results": 5,
+   "chars": 1029,
+   "top": [
+    {
+     "title": "Exa vs Tavily (2026): Which AI Search API Wins? (47 chara...",
+     "url": "https://coldiq.com/blog/tavily-vs-exa",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "What is the most accurate web search API for LLM?",
+     "url": "https://www.reddit.com/r/LocalLLaMA/comments/1p0c1yw/what_is_the_most_accurate_web_search_api_for_llm/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Testing AI search APIs for up-to-date info",
+     "url": "https://www.linkedin.com/posts/suraj-jha-a13884141_llms-arent-great-for-up-to-date-info-but-activity-7313946477993553921-ejyU",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "ColdIQ Exa vs Tavily, Reddit, LinkedIn, dev.to; Parallel missing."
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 11.51,
+   "n_results": 5,
+   "chars": 899,
+   "top": [
+    {
+     "title": "So skills are a lighter MCP : r/ClaudeAI",
+     "url": "https://www.reddit.com/r/ClaudeAI/comments/1oa9381/so_skills_are_a_lighter_mcp/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Claude Skills Vs Claude + MCP : r/ClaudeCode",
+     "url": "https://www.reddit.com/r/ClaudeCode/comments/1q6j6e0/claude_skills_vs_claude_mcp/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Help me understand how skills replace MCP's",
+     "url": "https://www.reddit.com/r/ClaudeCode/comments/1rmpxww/help_me_understand_how_skills_replace_mcps/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Four real Reddit threads on Skills vs MCP."
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 1.48,
+   "n_results": 5,
+   "chars": 888,
+   "top": [
+    {
+     "title": "Entry Level Design Jobs in London (136 Open Roles)",
+     "url": "https://uk.linkedin.com/jobs/entry-level-design-jobs-london",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Junior Designer Jobs (with Salaries)",
+     "url": "https://uk.indeed.com/q-junior-designer-jobs.html",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Junior Product Designer at Global - Jobs",
+     "url": "https://uk.linkedin.com/jobs/view/junior-product-designer-at-global-4473365818",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "LinkedIn London entry-level design, Indeed, LinkedIn individual ad 'Junior Product Designer at Global', Glassdoor."
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 1.14,
+   "n_results": 5,
+   "chars": 878,
+   "top": [
+    {
+     "title": "Figma Sites: The built-in Figma to website tool",
+     "url": "https://www.builder.io/blog/figma-to-website",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Sharing a free Figma plugin to convert websites into ...",
+     "url": "https://www.reddit.com/r/FigmaDesign/comments/1etqu67/sharing_a_free_figma_plugin_to_convert_websites/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Convert Figma Designs to Code with AI",
+     "url": "https://www.youtube.com/watch?v=uctbmzmmCj4",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Builder.io article 'Figma Sites: the built-in Figma to website tool' at #1."
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 1.4,
+   "n_results": 5,
+   "chars": 923,
+   "top": [
+    {
+     "title": "I tried a popular Notion alternative and I'm ready to jump ship",
+     "url": "https://www.androidauthority.com/notion-alternative-anytype-3493145/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Notion Alternatives: 7 More Focused Note-Taking Apps in ...",
+     "url": "https://meetingnotes.com/blog/notion-alternatives",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Need a good alternative to notion! Free if possible! : r/PKMS",
+     "url": "https://www.reddit.com/r/PKMS/comments/1s12s7v/need_a_good_alternative_to_notion_free_if_possible/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Android Authority (Anytype), meetingnotes, Reddit r/PKMS, Nuclino list."
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 0.95,
+   "n_results": 5,
+   "chars": 688,
+   "top": [
+    {
+     "title": "Blender - The Free and Open Source 3D Creation Software ...",
+     "url": "https://www.blender.org/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Blender - The Freedom to Create",
+     "url": "https://www.reddit.com/r/blender/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Blender (software)",
+     "url": "https://en.wikipedia.org/wiki/Blender_(software)",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Generic Blender homepage, r/blender, Wikipedia, Blender Guru; nothing on tris to quads."
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 1.08,
+   "n_results": 5,
+   "chars": 931,
+   "top": [
+    {
+     "title": "Issue #77915 · anthropics/claude-code",
+     "url": "https://github.com/anthropics/claude-code/issues/77915",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Change in Remote Control access? : r/ClaudeCode",
+     "url": "https://www.reddit.com/r/ClaudeCode/comments/1s1gdz2/change_in_remote_control_access/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Claude Code File Permission Errors Fixed",
+     "url": "https://claudcod.com/blog/claude-code-permission-errors/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Unclear GitHub issue, Reddit Remote Control access, generic permission errors blog, AWS Bedrock error."
+  }
+ ],
+ "extra_rows": [
+  {
+   "q": 2,
+   "extra": "SERPAPI_SHOPPING_SEARCH",
+   "query_used": "0.2m right angle data usb-c cable (num 10)",
+   "ok": true,
+   "latency_s": 9.84,
+   "n_results": 40,
+   "chars": 294967,
+   "top": [
+    {
+     "title": "Usb2.0 Type C Dual 90 Degree Angled Pd 65w Fast Charge Data Extension",
+     "url": "https://www.google.com/search?ibp=oshop&q=0.2m right angle data usb-c cable&prds=productid:3080868949402946533,headlineOfferDocid:3080868949402946533,imageDocid:18354733704097241581,pvt:hg&hl=en&gl=us",
+     "date": null,
+     "snippet": "$9.88 | eBay - applecable"
+    },
+    {
+     "title": "2.0M Up Down Angled USB 2.0 Type-A Male to USB-C Type-C Male Data Flat Slim Fpc Cable for Fpv & Disk & Phone",
+     "url": "https://www.google.com/search?ibp=oshop&q=0.2m right angle data usb-c cable&prds=catalogid:8304727851983281880,productid:566783180419258446,headlineOfferDocid:18221828241284360467,imageDocid:237199887",
+     "date": null,
+     "snippet": "$7.99 | Newegg.com - Xiwai"
+    },
+    {
+     "title": "Ergonomic 90 Degree Angled Usb A To Type C Charging Cable Plastic",
+     "url": "https://www.google.com/search?ibp=oshop&q=0.2m right angle data usb-c cable&prds=productid:13000594191707468402,headlineOfferDocid:13000594191707468402,imageDocid:6802290876570817193,pvt:hg&hl=en&gl=u",
+     "date": null,
+     "snippet": "$9.17 | eBay - kaiya36_7"
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "US results (gl=us, USD, eBay/Newegg) because the tool has no region param; num ignored (40 returned); 295k chars of filters/metadata."
+  },
+  {
+   "q": 15,
+   "extra": "SERPAPI_GOOGLE_FORUMS_SEARCH",
+   "query_used": "reddit Claude skills vs MCP servers when to use which (gl uk, hl en)",
+   "ok": true,
+   "latency_s": 9.2,
+   "n_results": 0,
+   "chars": 1075,
+   "top": [],
+   "answer": null,
+   "score": 0,
+   "attempts": [
+    {
+     "latency_s": 9.2,
+     "ok": true,
+     "error": null,
+     "chars": 1075
+    },
+    {
+     "latency_s": 0.34,
+     "ok": false,
+     "error": null,
+     "chars": 2
+    }
+   ],
+   "note": "Google Forums returned 'Fully empty' (error field: \"Google Forums hasn't returned any results for this query.\"). Retry returned an empty {} in 0.34 s. Query word 'reddit' may hurt."
+  },
+  {
+   "q": 16,
+   "extra": "SERPAPI_GOOGLE_JOBS_SEARCH",
+   "query_used": "junior product designer jobs London UK (location London, gl uk, hl en)",
+   "ok": true,
+   "latency_s": 1.61,
+   "n_results": 2,
+   "chars": 9980,
+   "top": [
+    {
+     "title": "Junior Product / UI Designer - Pulse Group",
+     "url": "https://bebee.com/gb/jobs/junior-product-ui-designer-pulse-group-london-area--techmap_gb_4473643387?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=organic",
+     "date": null,
+     "snippet": "Greater London | via BeBee | Pulse Group are proud to be partnering with one of the UK's most recognised media organisations as they continue to grow"
+    },
+    {
+     "title": "Junior Product Designer — Remote, Mentorship & Growth Path - The Bang",
+     "url": "https://talents.studysmarter.co.uk/companies/the-bang/london/junior-product-designer-remote-mentorship-growth-path-32080526/?utm_campaign=google_jobs_apply&utm_source=google_jobs_apply&utm_medium=orga",
+     "date": null,
+     "snippet": "London | via Talents By StudySmarter | A creative digital agency is seeking a Junior Product Designer who is eager to learn and grow. In this hands-on role, yo"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Real individual London listings with full descriptions, but only 2 jobs returned; no posting dates."
+  }
+ ]
+}

@@ -1,0 +1,801 @@
+{
+ "toolkit": "parallel",
+ "tool_slugs": [
+  "PARALLEL_SEARCH_WEB"
+ ],
+ "settings": {
+  "mode": "fast",
+  "objective": "<question text>",
+  "search_queries": [
+   "<question text>"
+  ],
+  "advanced_settings": {
+   "location": "gb",
+   "max_results": 5
+  },
+  "excerpts": "default sizing",
+  "execution": "sequential via COMPOSIO_REMOTE_WORKBENCH run_composio_tool, timed with time.perf_counter()"
+ },
+ "cost_info": "Tool description: Turbo and Fast cost $1 per 1,000 requests; Basic and Advanced $5 per 1,000 incl. 10 results, extra results $1 per 1,000. Responses include usage [{name: sku_search, count: 1}] per call, no dollar figure. 20 fast calls = ~$0.02. The Composio managed (instant) account rejects every mode except fast: turbo, basic and advanced all return 'Managed Parallel Search Web requires mode=fast' (HTTP 400, presumably not billed).",
+ "mode_note": "Cheapest modes are turbo and fast (both $1/1k). Turbo was tried first on Q1 and rejected (2 attempts, 0.6 s and 0.4 s); all 20 benchmark rows use fast.",
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 0.95,
+   "n_results": 5,
+   "chars": 16636,
+   "top": [
+    {
+     "title": "ISA reform 2027: anti-circumvention rules factsheet - GOV.UK",
+     "url": "https://www.gov.uk/government/publications/fiscal-events-2026-factsheets/isa-reform-2027-anti-circumvention-rules-factsheet",
+     "date": "2026-06-23",
+     "snippet": "What is this about? At Autumn Budget 2025, it was announced that from April 2027, the Cash ISA allowance would be reduced to £12,000 while the limit for Stocks and Shares and Innovative Finances ISA ("
+    },
+    {
+     "title": "New ISA rules in 2027: What's changing?",
+     "url": "https://www.barclays.co.uk/smart-investor/news-and-research/new-isa-rules-explained",
+     "date": null,
+     "snippet": "New ISA rules in 2027: What's changing? INVESTMENTS 6 July 2026 6 minute read There will be changes to the treatment of cash in some ISAs, the rules on ISA transfers will be different and the cash ISA"
+    },
+    {
+     "title": "New rules for holding cash in ISAs: Three things investors need to know | AJ Bell",
+     "url": "https://www.ajbell.co.uk/news/new-rules-holding-cash-isas-three-things-investors-need-know",
+     "date": null,
+     "snippet": "Hannah Williford Investment Writer Content Writer Women hold less than men in ISAs despite more women paying in 3 min read Author Sarah Coles The government will cut the Cash ISA allowance in April 20"
+    }
+   ],
+   "other_urls": [
+    "https://www.natwest.com/savings/isa-overview/autumn-budget.html",
+    "https://uk.finance.yahoo.com/news/22-charge-aims-stop-isa-144153251.html"
+   ],
+   "score": 3,
+   "note": "GOV.UK factsheet (June 2026) states cash ISA cut to £12,000 from April 2027 in snippet; Barclays, AJ Bell, NatWest follow. Excellent.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 1.32,
+   "n_results": 5,
+   "chars": 8654,
+   "top": [
+    {
+     "title": "USB-C to USB-C Cable (2m / 6.6ft, Black) | Belkin | Belkin US",
+     "url": "https://www.belkin.com/p/usb-c-to-usb-c-cable-2m-/-6.6ft-black/CAB003bt2MBK.html",
+     "date": null,
+     "snippet": "Forgot your Password × Provide your account email address to receive an email to reset your password. Email Submit https://www.belkin.com/p/usb-c-to-usb-c-cable-2m-%2F-6.6ft-black/CAB003bt2MBK.html 1."
+    },
+    {
+     "title": "UGREEN USB C to USB C Cable Right Angle 2M 100W 5A PD Fast Charge Type – UGREEN Official Site",
+     "url": "https://www.ugreen.com/en-ae/products/ae-70645",
+     "date": null,
+     "snippet": "Skip to content UGREEN USB C to USB C Cable Right Angle 2M 100W 5A PD Fast Charge Type 90 Degree Power Data Lead Compatible with iPhone 17-15 Series, MacBook Pro/Air,iPad Pro,Samsung S25/24/ultra,Huaw"
+    },
+    {
+     "title": "USB Type C Cable with Data/Charge Switch [1 meter long] : Adafruit Industries, Unique & fun DIY electronics and kits",
+     "url": "https://www.adafruit.com/product/4696",
+     "date": null,
+     "snippet": "Angled shot of coiled USB-C data/charge cable. Close shot of the USB Type C connector end on cable. Close Shot of the USB-A connector end on cable. Close shot of the Data/Charger switch on the cable B"
+    }
+   ],
+   "other_urls": [
+    "https://www.adafruit.com/product/4218",
+    "https://www.adafruit.com/product/6268"
+   ],
+   "score": 1,
+   "note": "Read '0.2m' as 2m: Belkin 2m (US page), UGREEN right-angle 2M (UAE store), Adafruit 1m. No 20cm product, no UK retailer despite location=gb.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 1.15,
+   "n_results": 5,
+   "chars": 13623,
+   "top": [
+    {
+     "title": "Dettol Wet Wipes ingredients (Explained)",
+     "url": "https://incidecoder.com/products/dettol-wet-wipes",
+     "date": null,
+     "snippet": "Follow us on our new Insta page » Dettol Wet Wipes Protection from germs Uploaded by: jyothi98 on 07/14/2024 Ingredients overview Aqua , Propylene Glycol , Polysorbate 80 , Sodium Benzoate , Caprylyl"
+    },
+    {
+     "title": "Dettol protect 24 antibacterial multi surface Cleaner | Dettol",
+     "url": "https://www.dettol.co.uk/household-disinfection/multi-purpose-cleaning/dettol-protect-24-antibacterial-multi-surface-cleaner",
+     "date": null,
+     "snippet": "Skip to main content * Household Disinfection * Multi-purpose Cleaning * Dettol protect 24 antibacterial multi surface Cleaner Dettol Protect 24 Multi Surface Cleaner Spray 460ml none Within minutes o"
+    },
+    {
+     "title": "Dettol Disinfectant Spray | Dettol MY",
+     "url": "https://www.dettol.com.my/household-disinfection/multi-surface/dettol-disinfectant-spray-morning-dew-450ml",
+     "date": "2026-06-08",
+     "snippet": "1. Home 2. ... 3. Household Disinfection 4. Multi-surface Dettol Disinfectant Spray Morning Dew 450ml No wiping required 1 of 1 Select size: * 225ml * 450ml * 680ml   Select scent: * Crisp Breeze * Mo"
+    }
+   ],
+   "other_urls": [
+    "https://www.dettol.co.uk/",
+    "https://rb-msds.com.au/product/product_display.aspx?intProductID=14"
+   ],
+   "score": 2,
+   "note": "Dettol UK Protect 24 multi-surface spray page and an Australian RB MSDS site are useful; top hit is wrong product (wet wipes on INCIDecoder); Malaysian spray page off-target.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 0.92,
+   "n_results": 5,
+   "chars": 14179,
+   "top": [
+    {
+     "title": "Pricing - Exa",
+     "url": "https://exa.ai/docs/reference/pricing",
+     "date": null,
+     "snippet": "Copy page Copy page Pay-as-you-go rates for Exa Search, Contents, Answer, Monitors, and the Agent API Copy page Copy page Exa is pay-as-you-go. There is no subscription and no minimum spend: you load"
+    },
+    {
+     "title": "Pricing",
+     "url": "https://exa.ai/docs/reference/pricing.md",
+     "date": null,
+     "snippet": "Pay-as-you-go rates for Exa Search, Contents, Answer, Monitors, and the Agent API Exa is pay-as-you-go. There is no subscription and no minimum spend: you load credits and are charged per request, at"
+    },
+    {
+     "title": "Exa Pricing | AI Search Engine & Semantic Search Technology",
+     "url": "https://www.exa.ai/pricing",
+     "date": null,
+     "snippet": "Announcing Exa 2.0: Fastest search API, highest quality search We're Hiring! Products Company Developers Engineering Pricing Contact sales Sign up Find a plan that scales with your search Whether you'"
+    }
+   ],
+   "other_urls": [
+    "https://keirolabs.cloud/blogs/comparisons/exa-search-api-pricing-per-1000-requests-2026",
+    "https://exa.sh/pricing?tab=api"
+   ],
+   "score": 3,
+   "note": "Exa official pricing page (docs + .md copy + exa.ai/pricing) top 3; duplicates of same page; exa.sh in tail looks like a lookalike domain.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 1.19,
+   "n_results": 5,
+   "chars": 13599,
+   "top": [
+    {
+     "title": "How to add and manage environment variables on Vercel",
+     "url": "https://vercel.com/kb/guide/how-to-add-vercel-environment-variables?from=related&relationship=related&source_path=%2Fdocs%2Flimits&source_site=vercel-docs",
+     "date": null,
+     "snippet": "title: How to add and manage environment variables on Vercel description: Add environment variables to Vercel through the dashboard, CLI, or REST API, scope them to each environment, and pull them int"
+    },
+    {
+     "title": "Managing environment variables",
+     "url": "https://vercel.com/docs/environment-variables/managing-environment-variables",
+     "date": null,
+     "snippet": "* /docs/environment-variables related: * /docs/deployments/environments * /docs/deployments/managing-deployments summary: Learn how to create and manage environment variables for Vercel. install_verce"
+    },
+    {
+     "title": "Shared environment variables",
+     "url": "https://vercel.com/docs/environment-variables/shared-environment-variables.md",
+     "date": null,
+     "snippet": "* Design Systems 2.0 — Teach v0 to build with your team's components, tokens, and design system conventions. * How to add and manage environment variables on Vercel — Add environment variables to Verc"
+    }
+   ],
+   "other_urls": [
+    "https://vercel.com/kb/guide/how-to-add-environment-variables-to-vercel",
+    "https://vercel.com/docs/environment-variables/managing-environment-variables.md"
+   ],
+   "score": 3,
+   "note": "Vercel KB guide and docs 'Managing environment variables' directly answer; URL carries tracking params; .md duplicates.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 1.07,
+   "n_results": 5,
+   "chars": 14575,
+   "top": [
+    {
+     "title": "Set up an existing domain with iCloud Mail - Apple Support",
+     "url": "https://support.apple.com/en-us/102374",
+     "date": null,
+     "snippet": "Set up an existing domain with iCloud Mail To finish setting up your custom domain and email addresses with iCloud Mail, you need to update your MX, TXT, and CNAME records with your domain registrar."
+    },
+    {
+     "title": "Set up a custom email domain for iCloud Mail on all your devices - Apple Support",
+     "url": "https://support.apple.com/guide/icloud/set-up-a-custom-email-domain-mm0e4339d289/icloud",
+     "date": null,
+     "snippet": "* What you can do with iCloud+ and iCloud Private Relay * Set up iCloud Private Relay * Hide My Email * What you can do with iCloud+ and Hide My Email * Set up Hide My Email * HomeKit Secure Video * W"
+    },
+    {
+     "title": "Add an email domain you already own to iCloud Mail on iCloud.com - Apple Support",
+     "url": "https://support.apple.com/guide/icloud/add-a-domain-you-own-mma473945269/icloud",
+     "date": null,
+     "snippet": "Add an email domain you already own to iCloud Mail on iCloud.com If you upgrade to iCloud+ , you can add a custom email domain name you already own to iCloud and use it with iCloud Mail. You can also"
+    }
+   ],
+   "other_urls": [
+    "https://support.apple.com/en-us/102540",
+    "https://support.apple.com/guide/icloud/set-up-icloud-private-relay-mm7dc25cb68f/icloud"
+   ],
+   "score": 3,
+   "note": "Three Apple Support articles covering DNS records and iCloud.com setup. Ideal.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 1.05,
+   "n_results": 5,
+   "chars": 7791,
+   "top": [
+    {
+     "title": "About | Woolite® | Love your clothes & keep them looking like new",
+     "url": "https://www.woolite.us/about",
+     "date": "2024-02-26",
+     "snippet": "The Woolite® Everyday formula focuses on giving all the clothes you love the right balance of cleaning and caring in the wash cycle and not causing fading, pilling, or stretching. 2002 In 2002, at the"
+    },
+    {
+     "title": "Woolite® Darks Defense | Woolite® | Love your clothes & keep them looking like new",
+     "url": "https://www.woolite.us/woolitereg-darks-defense",
+     "date": "2024-01-22",
+     "snippet": "1. Home 2. ... 3. Woolite® Darks Defense Woolite ® Darks Defense Woolite Darks Defense is a first of its kind formula that keeps your clothes looking like new, even synthetics and blends! It provides"
+    },
+    {
+     "title": "Woolite® Darks Defense 40 FL. OZ. | Woolite® | Love your clothes & keep them looking like new",
+     "url": "https://www.woolite.us/woolitereg-products/woolite-darks-defense-40-fl-oz",
+     "date": "2024-03-12",
+     "snippet": "1. Home 2. ... 3. Woolite® Products 4. Woolite® Darks Defense 40 FL. OZ. Woolite® Darks Defense 40 FL. OZ. (1.25 QT.) (1.18L) Woolite Darks Defense is a first of its kind formula that keeps your dark"
+    }
+   ],
+   "other_urls": [
+    "https://www.woolite.us/woolitereg-products/woolite-darks-defense-150-fl-oz",
+    "https://giantfood.com/groceries/product/woolite-all-darks-liquid-laundry-detergent-50-oz-jug/127400"
+   ],
+   "score": 2,
+   "note": "Official Woolite pages but US site (woolite.us, 'Darks Defense'), snippets are marketing, little mechanism explained; dated 2024.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 1.11,
+   "n_results": 5,
+   "chars": 6540,
+   "top": [
+    {
+     "title": "Check your National Insurance record - GOV.UK",
+     "url": "https://www.gov.uk/check-national-insurance-record",
+     "date": "2014-07-25",
+     "snippet": "Skip to main content Navigation menu Menu Search GOV.UK 1. Home 2. Money and tax 3. National Insurance Check your National Insurance record You can check your National Insurance record online to see:"
+    },
+    {
+     "title": "National Insurance - GOV.UK",
+     "url": "https://www.gov.uk/browse/tax/national-insurance",
+     "date": null,
+     "snippet": "Skip to main content Navigation menu Menu Search GOV.UK 1. Home 2. Money and tax National Insurance Voluntary contributions and credits, numbers, rates and classes Overview * National Insurance: intro"
+    },
+    {
+     "title": "National Insurance: detailed information - GOV.UK",
+     "url": "https://www.gov.uk/government/collections/national-insurance-detailed-information",
+     "date": "2024-02-08",
+     "snippet": "Guidance for National Insurance. Including how to apply for a National Insurance number and check your record. As well as rates, paying, refunds, voluntary contributions and pensions. From: HM Revenue"
+    }
+   ],
+   "other_urls": [
+    "https://www.gov.uk/voluntary-national-insurance-contributions",
+    "https://www.gov.uk/pay-class-2-national-insurance"
+   ],
+   "score": 3,
+   "note": "GOV.UK check NI record + voluntary contributions + pay Class 2 pages in top 5. Ideal, though the 2014 date is the page's first-published date.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 1.1,
+   "n_results": 5,
+   "chars": 10498,
+   "top": [
+    {
+     "title": "View a Voice Memos transcription on iPhone - Apple Support",
+     "url": "https://support.apple.com/guide/iphone/view-a-transcription-iph00953a982/ios",
+     "date": null,
+     "snippet": "* Use Quick Notes * Add drawings and handwriting * Enter formulas and equations * Add photos, video, and more * Record and transcribe audio * Scan text and documents * Work with PDFs * Add links * Sea"
+    },
+    {
+     "title": "View a Voice Memos transcription on iPhone",
+     "url": "https://support.apple.com/en-ke/guide/iphone/iph00953a982/ios",
+     "date": null,
+     "snippet": "View a Voice Memos transcription on iPhone Go to the Voice Memos app (in the Utilities folder) on your iPhone. · Tap the Record button to begin recording. · Swipe up from the top of the waveform, then"
+    },
+    {
+     "title": "Record and transcribe audio in Notes on iPhone - Apple Support (BY)",
+     "url": "https://support.apple.com/en-by/guide/iphone/iphbe11247b5/ios",
+     "date": null,
+     "snippet": "* Detect doors, people, and furniture around you * Detect text around you and have it read out loud * Set up shortcuts for Live Recognition * Mail * Add or remove email accounts * Add and remove email"
+    }
+   ],
+   "other_urls": [
+    "https://transcribe.com/blog/how-to-transcribe-a-voice-memo",
+    "https://spokenly.app/docs/ios/clipboard-dictation"
+   ],
+   "score": 2,
+   "note": "Apple Support Voice Memos transcription pages (good) but no Shortcuts/automation result; two near-duplicate Apple pages (en-ke).",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 0.99,
+   "n_results": 5,
+   "chars": 7372,
+   "top": [
+    {
+     "title": "Connect Starling to YNAB | Sync for YNAB",
+     "url": "https://syncforynab.com/banks/starling",
+     "date": null,
+     "snippet": "YNAB now natively supports UK and EU banks, so you might not need this tool. Supported Banks SIGN IN Connect Starling to YNAB United Kingdom Import your Starling transactions into YNAB automatically a"
+    },
+    {
+     "title": "Linked Accounts in YNAB",
+     "url": "https://support.ynab.com/en_us/linked-accounts-in-ynab-B1991f2Cc",
+     "date": null,
+     "snippet": "October 20 2025 1:41pm • Est. Read Time: 16 MIN Use our optional Direct Import feature to import transactions into YNAB by linking a new or existing account to a bank connection. In This Article Overv"
+    },
+    {
+     "title": "Linked Accounts and File-Based Import",
+     "url": "https://support.ynab.com/en_us/categories/linked-accounts-and-file-based-import-SkZH3Cpq",
+     "date": null,
+     "snippet": "Troubleshooting Direct Import November 5 2025 1:15am Link your accounts via Direct Import with select European banks through our import provider! Check out the list of supported countries, and familia"
+    }
+   ],
+   "other_urls": [
+    "https://github.com/syncforynab/fintech-to-ynab",
+    "https://support.ynab.com/en_us/how-direct-import-works-H1IGYLgnxl"
+   ],
+   "score": 2,
+   "note": "YNAB help 'Linked Accounts' (official) and Sync for YNAB Starling page noting YNAB now supports UK banks natively; no explicit confirmation of Starling in snippet.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 0.89,
+   "n_results": 5,
+   "chars": 9261,
+   "top": [
+    {
+     "title": "Project Pausing",
+     "url": "https://supabase.com/docs/guides/platform/free-project-pausing.md",
+     "date": null,
+     "snippet": "Free project pausing behavior. Supabase pauses Free Plan projects that show low activity over a 7-day period to save server resources. This guide explains how pausing works, how to restore a paused pr"
+    },
+    {
+     "title": "Supabase Docs | Troubleshooting | How To Restore Project ...",
+     "url": "https://supabase.com/docs/guides/troubleshooting/restore-project-after-90-days-pause",
+     "date": null,
+     "snippet": "How To Restore a Project Paused for More Than 1 Year Projects paused for more than 1 year can no longer be restored through Supabase Studio. You can still recover your data by downloading the availabl"
+    },
+    {
+     "title": "Pause a project | Management API Reference | Supabase Docs",
+     "url": "https://supabase.com/docs/reference/api/v1-pause-a-project",
+     "date": "2026-08-28",
+     "snippet": "Pauses the given project post /v1/projects/{ref}/pause OAuth scopes * projects:write The fine-grained token must include the following permissions to access this endpoint: * project_admin_write Path p"
+    }
+   ],
+   "other_urls": [
+    "https://supabase.com/docs/guides/troubleshooting/pausing-pro-projects-vNL-2a",
+    "https://github.com/supabase/supabase/blob/master/apps/docs/content/guides/platform/free-project-pausing.mdx"
+   ],
+   "score": 3,
+   "note": "Supabase docs 'Project Pausing' (7-day inactivity) at #1; rest are related Supabase docs, slightly redundant.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 0.95,
+   "n_results": 5,
+   "chars": 13296,
+   "top": [
+    {
+     "title": "Configure cloud environments",
+     "url": "https://code.claude.com/docs/en/cloud-environments.md",
+     "date": null,
+     "snippet": "Configure cloud environments for Claude Code cloud sessions: network access levels, environment variables, setup scripts, and environment caching. You can configure an environment to allow or deny net"
+    },
+    {
+     "title": "Configure permissions - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/permissions",
+     "date": null,
+     "snippet": "Control what Claude Code can access and do with fine-grained permission rules, modes, and managed policies. Claude Code supports fine-grained permissions so that you can specify exactly what the agent"
+    },
+    {
+     "title": "Network requirements - Claude.ai Documentation",
+     "url": "https://claude.com/docs/claude-tag/admins/network-requirements",
+     "date": null,
+     "snippet": "Claude Tag reaches your services from a published egress range, over HTTP and HTTPS only. See the IP block to allowlist and how the allowlist relates to the allowed-websites setting on a connection. e"
+    }
+   ],
+   "other_urls": [
+    "https://code.claude.com/docs/en/cloud-environments",
+    "https://code.claude.com/docs/en/network-config"
+   ],
+   "score": 3,
+   "note": "code.claude.com cloud-environments page (network access levels) #1 plus network-config; one off-target Claude Tag page.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 1.25,
+   "n_results": 5,
+   "chars": 7667,
+   "top": [
+    {
+     "title": "Human Interface Guidelines | Apple Developer Documentation",
+     "url": "https://developer.apple.com/design/human-interface-guidelines?_sm_nck=1",
+     "date": null,
+     "snippet": "Skip Navigation Design Open Menu * Overview * What's New * Get Started * Guidelines * Resources Human Interface Guidelines Getting started Foundations Patterns Components Inputs Technologies 6 items w"
+    },
+    {
+     "title": "Human Interface Guidelines | Apple Developer Documentation",
+     "url": "https://developer.apple.com/design/human-interface-guidelines?version=published",
+     "date": null,
+     "snippet": "Skip Navigation Design Open Menu * Overview * What's New * Get Started * Guidelines * Resources Human Interface Guidelines Getting started Foundations Patterns Components Inputs Technologies 6 items w"
+    },
+    {
+     "title": "Materials | Apple Developer Documentation",
+     "url": "https://docs.developer.apple.com/design/Human-Interface-Guidelines/materials",
+     "date": null,
+     "snippet": ">  Materials | Apple Developer Documentation The appearance of these variants can differ in response to certain system settings, like if people choose a preferred look for Liquid Glass in their devic"
+    }
+   ],
+   "other_urls": [
+    "https://developer.apple.com/design/human-interface-guidelines",
+    "https://developer.apple.com/design/human-interface-guidelines?swcfpc=1"
+   ],
+   "score": 2,
+   "note": "HIG landing page twice (tracking-param duplicates) before the Materials page that covers Liquid Glass; no summary article.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 1.06,
+   "n_results": 5,
+   "chars": 12359,
+   "top": [
+    {
+     "title": "EXA AI",
+     "url": "https://platform.tracxn.com/a/d/company/64c6ac2e5d3e84716a47cea2/exa%20ai?utm_source=parallel&utm_medium=ai#a:about",
+     "date": null,
+     "snippet": "Name: EXA AI | Website Url: https://exaai.chat | Primary Sector: Enterprise Applications | Primary Subsector: Customer Service Software | Stage: Unfunded | Founded Year: 2023 | Location Country: Unite"
+    },
+    {
+     "title": "Exa vs Tavily: Search API Benchmarks and Comparison",
+     "url": "https://exa.ai/versus/tavily",
+     "date": null,
+     "snippet": "Last updated August 4, 2026 A comprehensive evaluation of Exa versus Tavily, focusing on specialized entity retrieval, response times, and optimized token usage for agentic workflows. Exa and Tavily a"
+    },
+    {
+     "title": "Exa vs Parallel: Benchmarking Retrieval APIs for AI Agents in 2026 | Tavily Blog",
+     "url": "https://www.tavily.com/blog/exa-vs-parallel-benchmarking-retrieval-apis-for-ai-agents-in-2026",
+     "date": "2026-04-27",
+     "snippet": "You'd expect two retrieval APIs with overlapping feature sets to perform similarly on the same benchmark. In the case of Exa and Parallel, they don't. Here are the differences. Tavily Team Apr 27, 202"
+    }
+   ],
+   "other_urls": [
+    "https://exa.ai/?v=1.0.24",
+    "https://parallel.ai/articles/openai-web-search-vs-parallel-vs-exa-vs-tavily-how-to-choose"
+   ],
+   "score": 2,
+   "note": "Useful vendor comparisons (Exa vs Tavily, Tavily's Exa vs Parallel, Parallel's four-way article) but #1 is a Tracxn company stub for an unrelated 'EXA AI'; all sources vendor-biased.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 1.02,
+   "n_results": 5,
+   "chars": 13972,
+   "top": [
+    {
+     "title": "Claude Skills",
+     "url": "https://platform.tracxn.com/a/d/company/6999d38730cf400262ef1bfb/claude%20skills?utm_source=parallel&utm_medium=ai#a:about",
+     "date": null,
+     "snippet": "Name: Claude Skills | Website Url: https://claudeskills.cc | Primary Sector: Enterprise Infrastructure | Primary Subsector: Application Development Tools | Stage: Unfunded | Acquisitions As Acquirer C"
+    },
+    {
+     "title": "Extending Claude's capabilities with skills and MCP | Claude by Anthropic",
+     "url": "https://claude.com/blog/extending-claude-capabilities-with-skills-mcp-servers",
+     "date": "2025-12-19",
+     "snippet": "Since launching Skills , two of the biggest questions we've heard from customers are: \"How do skills and MCP work together? When should I use one versus the other?\" Model Context Protocol (MCP) connec"
+    },
+    {
+     "title": "MCP, plugins, skills, and hooks - Claude.ai Documentation",
+     "url": "https://claude.com/docs/third-party/claude-desktop/extensions",
+     "date": null,
+     "snippet": "Claude Desktop on third-party (3P) supports the same extensibility model as standard Claude Desktop (MCP connectors, skills, and plugins), with the key difference that administrators provision them th"
+    }
+   ],
+   "other_urls": [
+    "https://claudeskills.info/blog/claude-skills-bigger-deal-than-mcp",
+    "https://allmcps.com/blog/claude-skills-vs-mcp"
+   ],
+   "score": 1,
+   "note": "No Reddit threads at all. #1 is a Tracxn stub (spam-like); Anthropic blog on skills vs MCP is a strong answer but not what was asked; SEO blogs in tail.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 0.91,
+   "n_results": 5,
+   "chars": 17126,
+   "top": [
+    {
+     "title": "Junior Designer Jobs in London | Reed.co.uk",
+     "url": "https://www.reed.co.uk/jobs/junior-designer-jobs-in-london",
+     "date": null,
+     "snippet": "Session expired Your session has expired. Please click on the button to reload the page. Refresh junior designer jobs in london 103 Junior Designer Jobs in London 11 hrs ago by Qualify Nation Recruitm"
+    },
+    {
+     "title": "Latest product designer Remote Jobs | Remote4Africa",
+     "url": "https://remote4africa.com/jobs/search?q=product%20designer",
+     "date": "2026-10-09",
+     "snippet": "Search Results for product designer R Real Estate Company Product Designer 100% Remote fulltime London; Abidjan; Albania; Algi… and more New Sep 28 F Financial Services / FinTech Company Product Desig"
+    },
+    {
+     "title": "Flexible Junior Product Designer Remote Jobs – Apply Today to Work From Home (9 October 2026) | Indeed",
+     "url": "https://uk.indeed.com/q-junior-product-designer-remote-jobs.html",
+     "date": null,
+     "snippet": "London EC1Y 8TZ * Work from home * Experience taking a product or brand through a launch. * As the company grows, the role will naturally expand across adjacent product and brand work. * |### UX Produ"
+    }
+   ],
+   "other_urls": [
+    "https://uk.indeed.com/q-fully-remote-product-designer-l-london-jobs.html",
+    "https://www.newburyjobs.co.uk/junior-product-designer-jobs"
+   ],
+   "score": 2,
+   "note": "Reed junior designer London listing and Indeed UK junior product designer pages are live and relevant; Remote4Africa and newburyjobs are weak; no LinkedIn.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 0.99,
+   "n_results": 5,
+   "chars": 15207,
+   "top": [
+    {
+     "title": "Figma Sites: Design, Prototype & Publish Your Next Website",
+     "url": "http://figma.com/sites",
+     "date": null,
+     "snippet": "Skip to main content * Log in * Contact sales * Get started Get started for free Figma Sites Everything you need to design, prototype, and publish—all in one place. Get started Perfect websites every"
+    },
+    {
+     "title": "CMS Website Builder: Design, Build, and Publish Websites | Figma",
+     "url": "https://www.figma.com/solutions/cms-website-builder",
+     "date": null,
+     "snippet": "Skip to main content * Log in * Contact sales * Get started Get started for free 1. Home 2. Solutions 3. CMS website builder Build websites with a CMS website builder in Figma Make Figma Make prompt *"
+    },
+    {
+     "title": "Framer: Figma to HTML workflow for live websites",
+     "url": "https://www.framer.com/solutions/figma-to-html",
+     "date": null,
+     "snippet": "title: \"Framer: Figma to HTML workflow for live websites\" description: Turn Figma designs into responsive, editable websites with Framer. Import layouts, refine on the canvas, add CMS and SEO, then pu"
+    }
+   ],
+   "other_urls": [
+    "https://www.figma.com/blog/introducing-figma-sites",
+    "https://www.figma.com/solutions/ai-website-builder/"
+   ],
+   "score": 3,
+   "note": "Figma Sites #1, Figma Make CMS, Framer Figma-to-HTML: understood the vague query well.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 1.05,
+   "n_results": 5,
+   "chars": 14007,
+   "top": [
+    {
+     "title": "Notion: notes, tasks, AI - App Store - Apple",
+     "url": "https://apps.apple.com/id/app/notion-notes-tasks-ai/id1232780281",
+     "date": null,
+     "snippet": "Search Notion: notes, tasks, AI Task & project management app Free · In-App Purchases Share Whether you're looking to track your personal to-do's, write and organise class notes, or run project manage"
+    },
+    {
+     "title": "Notion: Notes, Tasks, AI - App Store - Apple",
+     "url": "https://apps.apple.com/us/app/notion-notes-tasks-ai/id1232780281?platform=mac",
+     "date": null,
+     "snippet": "* Awards Editors' Choice Apps * Age Rating 4+ Years * Category Productivity * Developer Notion Labs, Incorporated * Language EN + 19 More iPad, iPhone Notion is an AI-powered all-in-one workspace that"
+    },
+    {
+     "title": "Notion: notes, tasks, AI - App Store - Apple",
+     "url": "https://apps.apple.com/at/app/notion-notes-tasks-ai/id1232780281?l=en-GB",
+     "date": null,
+     "snippet": "for iPhone iPhone iPad Mac Watch TV Search Notion: notes, tasks, AI Task & project management app Free · In-App Purchases Share Whether you're looking to track your personal to-do's, write and organis"
+    }
+   ],
+   "other_urls": [
+    "https://apps.apple.com/us/app/notion-notes-tasks-ai/id1232780281?l=ru",
+    "https://apps.apple.com/nr/app/notion-notes-tasks-ai/id1232780281?platform=ipad"
+   ],
+   "score": 0,
+   "note": "All five results are Notion's own App Store pages in different locales: misread intent, heavy duplication.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 0.94,
+   "n_results": 5,
+   "chars": 6660,
+   "top": [
+    {
+     "title": "Triangles to Quads — Blender Manual",
+     "url": "https://docs.blender.org/manual/en/2.91/modeling/meshes/editing/face/triangles_quads.html",
+     "date": null,
+     "snippet": "Blender 2.91 Manual * » * Modeling » * Meshes » * Editing » * Face Tools » * Triangles to Quads Triangles to Quads ¶ Reference Mode Edit Mode Menu Face ‣ Triangles to Quads Hotkey Alt`-`J This tool co"
+    },
+    {
+     "title": "Triangles to Quads - Blender 5.2 LTS Manual",
+     "url": "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/triangles_quads.html",
+     "date": null,
+     "snippet": "Skip to content Blender 5.2 LTS Manual Back to top Edit this page Triangles to Quads ¶ * Before converting triangles to quads. ¶ | After converting. ¶ Options ¶ If this is set to 0°, only triangles th"
+    },
+    {
+     "title": "Triangles to Quads(三角面を四角面に) - Blender 5.2 LTS Manual",
+     "url": "https://docs.blender.org/manual/ja/latest/modeling/meshes/editing/face/triangles_quads.html",
+     "date": null,
+     "snippet": "Skip to content Blender 5.2 LTS Manual Back to top Edit this page Triangles to Quads(三角面を四角面に) ¶ 参照 Mode(モード) : Edit Mode(編集モード) Menu(メニュー) : Face(面) ‣ Triangles to Quads(三角面を四角面に) ショートカットキー : Alt - J"
+    }
+   ],
+   "other_urls": [
+    "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/triangulate_faces.html",
+    "https://docs.blender.org/manual/en/latest/modeling/modifiers/generate/triangulate.html"
+   ],
+   "score": 3,
+   "note": "Blender manual 'Triangles to Quads' (Alt+J) in 2.91 and 5.2 versions; Japanese duplicate; no Remesh/QuadriFlow advice.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 1.08,
+   "n_results": 5,
+   "chars": 16330,
+   "top": [
+    {
+     "title": "ConnectionRefused in Claude Code v2.1.126 on Windows ...",
+     "url": "https://github.com/Alishahryar1/free-claude-code/issues/316",
+     "date": null,
+     "snippet": "ConnectionRefused in Claude Code v2.1.126 on Windows ignoring ANTHROPIC_BASE_URL * Page: GitHub issue * URL: https://github.com/Alishahryar1/free-claude-code/issues/316 * State: closed (completed) * A"
+    },
+    {
+     "title": "Claude Code doesn't respect settings.json deny block - Stack Overflow",
+     "url": "https://stackoverflow.com/questions/79747164/claude-code-doesnt-respect-settings-json-deny-block",
+     "date": null,
+     "snippet": "Collectives™ on Stack Overflow Find centralized, trusted content and collaborate around the technologies you use most. Learn more about Collectives Stack Internal Knowledge at work Bring the best of h"
+    },
+    {
+     "title": "claude-code-setup/claude-code-remote-setup-guide.md at master · David-ACG/claude-code-setup · GitHub",
+     "url": "https://github.com/David-ACG/claude-code-setup/blob/master/claude-code-remote-setup-guide.md",
+     "date": null,
+     "snippet": "David-ACG/claude-code-setup — claude-code-remote-setup-guide.md * Page: GitHub code file * URL: https://github.com/David-ACG/claude-code-setup/blob/master/claude-code-remote-setup-guide.md * Repositor"
+    }
+   ],
+   "other_urls": [
+    "https://github.com/anthropics/claude-code/issues/29449?timeline_page=1",
+    "https://github.com/anthropics/claude-code/issues/42850"
+   ],
+   "score": 1,
+   "note": "Typo understood as Claude Code, but results are third-party GitHub issues, a Stack Overflow deny-rule question and a setup guide; no official docs on cloud network access.",
+   "answer": null,
+   "mode": "fast",
+   "attempts": 1
+  }
+ ],
+ "extras": [
+  {
+   "q": 1,
+   "mode": "turbo",
+   "ok": false,
+   "latency_s": 0.6,
+   "error": "Managed Parallel Search Web requires mode=fast",
+   "note": "retried once: same error, 0.4 s"
+  },
+  {
+   "q": 1,
+   "mode": "basic",
+   "ok": false,
+   "latency_s": 0.71,
+   "error": "Managed Parallel Search Web requires mode=fast"
+  },
+  {
+   "q": 1,
+   "mode": "advanced",
+   "ok": false,
+   "latency_s": 1.37,
+   "error": "Managed Parallel Search Web requires mode=fast"
+  },
+  {
+   "q": 12,
+   "mode": "basic/advanced",
+   "ok": false,
+   "skipped": true,
+   "note": "Not run: Q1 showed the instant account rejects non-fast modes; skipped to avoid pointless calls."
+  },
+  {
+   "q": 14,
+   "mode": "basic/advanced",
+   "ok": false,
+   "skipped": true,
+   "note": "Not run, same reason."
+  }
+ ]
+}

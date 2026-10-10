@@ -1,0 +1,1000 @@
+{
+ "toolkit": "exa",
+ "tool_slugs": [
+  "EXA_SEARCH",
+  "EXA_ANSWER (extras only)"
+ ],
+ "settings": {
+  "EXA_SEARCH": {
+   "type": "auto",
+   "numResults": 5,
+   "userLocation": "GB",
+   "contents": {
+    "highlights": true
+   }
+  },
+  "EXA_ANSWER": {
+   "query": "<question>",
+   "model": "default (exa)",
+   "text": false
+  },
+  "execution": "Composio REMOTE_WORKBENCH run_composio_tool, sequential, timed with time.perf_counter() (includes Composio overhead); exa_searchTime_ms is Exa's own reported time",
+  "account": "user's own Exa account via Composio"
+ },
+ "cost_info": "Every EXA_SEARCH response reported costDollars total $0.007 (search.neural 0.007) for auto, 5 results, highlights: i.e. $7 per 1k requests, matching Exa's published price ($7/1k fast/auto incl. up to 10 results; highlights not billed extra here). 20 searches = $0.14. EXA_ANSWER reported $0.005 per call (2 calls = $0.01). Total spend $0.15.",
+ "summary": {
+  "calls": 20,
+  "ok": 20,
+  "retries": 0,
+  "mean_latency_s": 2.77,
+  "median_latency_s": 2.77,
+  "min_latency_s": 1.64,
+  "max_latency_s": 4.71,
+  "mean_exa_searchTime_ms": 2152,
+  "mean_score": 2.55,
+  "mean_chars": 14392,
+  "median_chars": 12003.5,
+  "total_cost_usd_search": 0.14,
+  "total_cost_usd_extras": 0.01
+ },
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 4.71,
+   "exa_searchTime_ms": 3452.9,
+   "n_results": 5,
+   "chars": 16195,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Cash Individual Savings Account (ISA) limit reduction - GOV.UK",
+     "url": "https://www.gov.uk/government/publications/reduction-in-the-cash-individual-savings-account-isa-limit/cash-individual-savings-account-isa-limit-reduction",
+     "date": "2026-09-17",
+     "snippet": "This measure amends the Individual Savings Account Regulations 1998 to reduce the annual cash ISA subscription limit to £12,000 for individuals aged under 65 from 6 April 2027. For investors aged 65 o"
+    },
+    {
+     "title": "The Individual Savings Account (Amendment) (No. 2) Regulations 2026",
+     "url": "https://www.legislation.gov.uk/uksi/2026/1018/pdfs/uksiem_20261018_en_001.pdf",
+     "date": null,
+     "snippet": "What does the legislation do? 4.1 This instrument amends the Individual Savings Account Regulations 1998 (the ISA Regulations) to deliver the Government’s decision to set the annual Cash ISA subscript"
+    },
+    {
+     "title": "New ISA rules in 2027: What's changing? - Barclays",
+     "url": "https://www.barclays.co.uk/smart-investor/news-and-research/new-isa-rules-explained/",
+     "date": "2026-07-06",
+     "snippet": "There will be changes to the treatment of cash in some ISAs, the rules on ISA transfers will be different and the cash ISA allowance will depend on age from 6 April 2027. ... The government is cutting"
+    }
+   ],
+   "all_urls": [
+    "https://www.gov.uk/government/publications/reduction-in-the-cash-individual-savings-account-isa-limit/cash-individual-savings-account-isa-limit-reduction",
+    "https://www.legislation.gov.uk/uksi/2026/1018/pdfs/uksiem_20261018_en_001.pdf",
+    "https://www.barclays.co.uk/smart-investor/news-and-research/new-isa-rules-explained/",
+    "https://www.rbs.co.uk/savings/isa-overview/autumn-budget.html",
+    "https://www.fidelity.co.uk/markets-insights/personal-finance/personal-finance/cash-isa-cut-what-does-it-mean-for-savers/"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "GOV.UK policy paper (17 Sep 2026) + legislation.gov.uk memo + Barclays/RBS/Fidelity; exact facts (£12k under-65 from 6 Apr 2027, £20k for 65+). Excellent."
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 2.03,
+   "exa_searchTime_ms": 1451.7,
+   "n_results": 5,
+   "chars": 21373,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Right Angle USB C to USB C Short Cable 0.2M, USBC 90 Degree Cable 100W, Type C 3.2 Gen2x2 20Gbps Data Transfer Fast Charge Cord, 4K@60Hz Video, for iPhone 15 16, Pixel 9, Dell XPS 17, Galaxy S24 S25 : Amazon.ie: Electronics",
+     "url": "https://www.amazon.ie/Degree-Gen2x2-20Gbps-Transfer-Charge/dp/B0CC59T7QX",
+     "date": null,
+     "snippet": "Right Angle USB C to USB C Short Cable 0.2M, USBC 90 Degree Cable 100W, Type C 3.2 Gen2x2 20Gbps Data Transfer Fast Charge Cord, 4K@60Hz Video, for iPhone 15 16, Pixel 9, Dell XPS 17, Galaxy S24 S25 :"
+    },
+    {
+     "title": "Right Angle 60W USB Type C Charging & Data Lead ...",
+     "url": "https://www.kenable.co.uk/usb-cables-adapters/usb-type-c-cables/usb-c-cables/right-angle-60w-usb-type-c-charging-data-lead-braided-cable-20v-3a-black-1m-012222",
+     "date": null,
+     "snippet": "Right Angle 60W USB Type C Charging & Data Lead Braided Cable 20V 3A Black 1m | Kenable Same Day Dispatch before 3.30pm Monday to Friday Chat to us on 01744 886752 Click to play video # Right Angle 60"
+    },
+    {
+     "title": "UseBean Right Angle USB C Extension Cable 0.2m, 90 Degree Type C 3.2 Gen2 20Gbps Male to Female 4K Video Extender Short Cord, L-Shape Lead for iPhone 16 15, MacBook iPad Pro/Air/Mini, Galaxy S25 S24",
+     "url": "https://www.amazon.co.uk/UseBean-Right-Angle-Extension-Cable/dp/B087R5KHNW",
+     "date": null,
+     "snippet": "# UseBean Right Angle USB C Extension Cable 0.2m, 90 Degree Type C 3.2 Gen2 20Gbps Male to Female 4K Video Extender Short Cord, L-Shape Lead for iPhone 16 15, MacBook iPad Pro/Air/Mini, Galaxy S25 S24"
+    }
+   ],
+   "all_urls": [
+    "https://www.amazon.ie/Degree-Gen2x2-20Gbps-Transfer-Charge/dp/B0CC59T7QX",
+    "https://www.kenable.co.uk/usb-cables-adapters/usb-type-c-cables/usb-c-cables/right-angle-60w-usb-type-c-charging-data-lead-braided-cable-20v-3a-black-1m-012222",
+    "https://www.amazon.co.uk/UseBean-Right-Angle-Extension-Cable/dp/B087R5KHNW",
+    "https://shop.pimoroni.com/en-us/products/flat-usb-c-to-usb-c-right-angle-cable",
+    "https://shop.pimoroni.com/en-eu/products/flat-usb-c-to-usb-c-right-angle-cable"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Top hit is an exact 0.2 m 90-degree 20Gbps data cable, but on Amazon.ie not .co.uk. #2 Kenable is 1 m (wrong length); #3 is a 0.2 m male-to-female extension. Pimoroni en-us/en-eu duplicates. No dates."
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 1.69,
+   "exa_searchTime_ms": 1182.9,
+   "n_results": 5,
+   "chars": 6712,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Dettol protect 24 antibacterial multi surface Cleaner | Dettol UK",
+     "url": "https://www.dettol.co.uk/household-disinfection/multi-purpose-cleaning/dettol-protect-24-antibacterial-multi-surface-cleaner/",
+     "date": "2025-09-10",
+     "snippet": "## INGREDIENTS ... Benzalkonium Chloride, Didecyldimonium Chloride ... Decylamine Oxide, Lauramine Oxide ... Water, Polymer, Disodium EDTA, Citric Acid, Antifoam Emulsion, Denatured Ethanol, Tristyryl"
+    },
+    {
+     "title": "Dettol Protect 24 Hour Antibacterial Cleaning Spray | British Chemist",
+     "url": "https://britishchemist.co.uk/product/dettol-protect-24-hour-antibacterial-cleaning-spray/",
+     "date": "2024-10-17",
+     "snippet": "Per 100g contains 0.25g Benzalkonium Chloride and 0.25g Didecyldimonium Chloride, <5% Non-Iconic Surfactant, <5% Amphoteric Surfactant, Methylisothiazolinone, Benzisothiazolinone, Iodopropynyl Butylca"
+    },
+    {
+     "title": "Dettol Protect 24 Hour Antibacterial Cleaning Spray - Morrisons Online Groceries & Offers",
+     "url": "https://groceries.morrisons.com/products/112886109/details",
+     "date": null,
+     "snippet": "Keeps killing 99.9% touch after touch*Protect 24 hrs*Kills 99.9% of bacteria & viruses*Within minutes of exposure, frequently touched surfaces around your home can become a breeding ground for bacteri"
+    }
+   ],
+   "all_urls": [
+    "https://www.dettol.co.uk/household-disinfection/multi-purpose-cleaning/dettol-protect-24-antibacterial-multi-surface-cleaner/",
+    "https://britishchemist.co.uk/product/dettol-protect-24-hour-antibacterial-cleaning-spray/",
+    "https://groceries.morrisons.com/products/112886109/details",
+    "https://groceries.morrisons.com/products/dettol-protect-24-hour-antibacterial-cleaning-spray/112886109",
+    "https://www.woolworths.com.au/shop/productdetails/309745/dettol-protect-24-hour-multipurpose-cleaning-spray-ocean-fresh"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Official Dettol UK Protect 24 page with full ingredient list (benzalkonium chloride, didecyldimonium chloride...), plus British Chemist and Morrisons. Morrisons listed twice (duplicate URL forms); one Australian Woolworths result."
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 1.67,
+   "exa_searchTime_ms": 992.6,
+   "n_results": 5,
+   "chars": 5076,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Exa API Pricing | Pay-as-You-Go Plans for AI Search",
+     "url": "https://exa.ai/pricing?tab=api",
+     "date": null,
+     "snippet": "$7 / 1k requests ... Each endpoint has a base price per request that includes up to 10 results. Additional results and Exa-generated page summaries are billed on top. | Endpoint | Base price (up to 10"
+    },
+    {
+     "title": "",
+     "url": "https://exa.ai/docs/reference/pricing",
+     "date": null,
+     "snippet": "$7 / 1k requests ... Each endpoint has a base price per request that includes up to 10 results. Additional results and Exa-generated page summaries are billed on top. | Endpoint | Base price (up to 10"
+    },
+    {
+     "title": "Exa API Pricing | Pay-as-You-Go Plans for AI Search",
+     "url": "https://exa.ai/pricing",
+     "date": null,
+     "snippet": "$7 / 1k requests ... Each endpoint has a base price per request that includes up to 10 results. Additional results and Exa-generated page summaries are billed on top. | Endpoint | Base price (up to 10"
+    }
+   ],
+   "all_urls": [
+    "https://exa.ai/pricing?tab=api",
+    "https://exa.ai/docs/reference/pricing",
+    "https://exa.ai/pricing",
+    "https://exa.ai/docs/admin/pricing",
+    "https://exa.ai/docs/changelog"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Official exa.ai pricing: $7 per 1k requests (auto/fast, up to 10 results). Three of five results are near-identical exa.ai pricing pages (duplicates)."
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 3.31,
+   "exa_searchTime_ms": 2638,
+   "n_results": 5,
+   "chars": 9050,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Managing environment variables",
+     "url": "https://vercel.com/docs/environment-variables/managing-environment-variables",
+     "date": null,
+     "snippet": "them to each ... ## Declare an environment variable To declare an Environment Variable for your deployment: 1. From your dashboard, select your project. If necessary, you can also set environment vari"
+    },
+    {
+     "title": "",
+     "url": "https://vercel.com/kb/guide/how-to-add-vercel-environment-variables",
+     "date": null,
+     "snippet": "### Add variables in the dashboard Open your project in the Vercel dashboard and go to Environment Variables, add a key and value, and select the environments the variable applies to. Vercel encrypts "
+    },
+    {
+     "title": "Config and Secret environment variables",
+     "url": "https://vercel.com/docs/environment-variables/sensitive-environment-variables",
+     "date": null,
+     "snippet": "## Creating environment variables ... Environment variables can be created at the project or team level: 1. Go to the Vercel dashboard and select your team from the team switcher. Open Environment Var"
+    }
+   ],
+   "all_urls": [
+    "https://vercel.com/docs/environment-variables/managing-environment-variables",
+    "https://vercel.com/kb/guide/how-to-add-vercel-environment-variables",
+    "https://vercel.com/docs/environment-variables/sensitive-environment-variables",
+    "https://vercel.com/docs/environment-variables",
+    "https://vercel.com/docs/environment-variables/manage-across-environments"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Vercel docs 'Managing environment variables' + Vercel KB guide: dashboard > project > Environment Variables, key/value, pick environments. All official."
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 3.11,
+   "exa_searchTime_ms": 2522.7,
+   "n_results": 5,
+   "chars": 15860,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Set up a custom email domain for iCloud Mail on all your devices",
+     "url": "https://support.apple.com/guide/icloud/set-up-a-custom-email-domain-mm0e4339d289/icloud",
+     "date": null,
+     "snippet": "# Set up a custom email domain for iCloud Mail on all your devices If you or someone in your Family Sharing group has an iCloud+ subscription, you can add a custom email domain you already own to iClo"
+    },
+    {
+     "title": "Add an email domain you already own to iCloud Mail on iCloud ...",
+     "url": "https://support.apple.com/guide/icloud/add-a-domain-you-own-mma473945269/icloud",
+     "date": null,
+     "snippet": "# Add an email domain you already own to iCloud Mail on iCloud.com If you upgrade to iCloud+, you can add a custom email domain name you already own to iCloud and use it with iCloud Mail. You can also"
+    },
+    {
+     "title": "How (and Why) to Set Up Custom Email in iCloud | Devon Dundee",
+     "url": "https://devondundee.com/blog/how-and-why-to-set-up-custom-email-in-icloud",
+     "date": "2023-07-17",
+     "snippet": "One of the lesser-known benefits of iCloud+ is custom email domains, the ability to send and receive email from a personalized address. Rather than [username]@icloud.com, you can use any address you w"
+    }
+   ],
+   "all_urls": [
+    "https://support.apple.com/guide/icloud/set-up-a-custom-email-domain-mm0e4339d289/icloud",
+    "https://support.apple.com/guide/icloud/add-a-domain-you-own-mma473945269/icloud",
+    "https://devondundee.com/blog/how-and-why-to-set-up-custom-email-in-icloud",
+    "https://jorgearuv.dev/how-to-setup-icloud-custom-email-domain-with-namecheap-2024-guide",
+    "https://support.apple.com/en-au/guide/mail/mail35803/mac"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Two Apple Support iCloud guide pages (set up custom domain; add a domain you own) + independent how-tos (one 2023)."
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 3.02,
+   "exa_searchTime_ms": 2504.8,
+   "n_results": 5,
+   "chars": 6580,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "FAQs | Woolite® Frequently Asked Questions | Woolite® | Love your clothes & keep them looking like new",
+     "url": "https://www.woolite.us/faqs/",
+     "date": "2024-04-23",
+     "snippet": "Only Woolite can give your clothes the best possible care against fiber damages, fading and shape loss during the wash cycle. Use Woolite Darks Defense to help protect all your dark clothes from fadin"
+    },
+    {
+     "title": "Darks",
+     "url": "https://www.woolite.ca/en/products/laundry-detergent-darks/",
+     "date": null,
+     "snippet": "## Help protect your darks. Woolite Darks laundry detergent, it cleans gently, it won’t cause any stretching and it protects all your darks so they continue to look like new. **Available Sizes** 1.80L"
+    },
+    {
+     "title": "Woolite® Darks Defense 100 FL. OZ. | Woolite® | Love your clothes & keep them looking like new",
+     "url": "https://www.woolite.us/woolitereg-products/woolite-darks-defense-100-fl-oz/",
+     "date": "2024-04-23",
+     "snippet": "Woolite Darks Defense is a first of its kind formula that keeps your dark clothes looking like new, even synthetics and blends! It provides fade protection to keep your darks dark. • Perfect for your "
+    }
+   ],
+   "all_urls": [
+    "https://www.woolite.us/faqs/",
+    "https://www.woolite.ca/en/products/laundry-detergent-darks/",
+    "https://www.woolite.us/woolitereg-products/woolite-darks-defense-100-fl-oz/",
+    "https://www.woolite.us/woolitereg-products/woolite-darks-defense-150-fl-oz/",
+    "https://vestacyinfo.com/smart-label.php?productLineId=2542"
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Official Woolite pages but US/Canada (no UK page); marketing-level 'fade protection' rather than how it works; one odd smart-label site."
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 1.84,
+   "exa_searchTime_ms": 1251.7,
+   "n_results": 5,
+   "chars": 6616,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Check your National Insurance record - GOV.UK",
+     "url": "https://www.gov.uk/check-national-insurance-record",
+     "date": "2014-07-25",
+     "snippet": "# Check your National Insurance record You can check your National Insurance record online to see: - what you’ve paid, up to the start of the current tax year (6 April 2026) - any National Insurance c"
+    },
+    {
+     "title": "Voluntary National Insurance: Overview - GOV.UK",
+     "url": "https://www.gov.uk/voluntary-national-insurance-contributions",
+     "date": null,
+     "snippet": "If you do not pay National Insurance you may have gaps in your National Insurance record. This could be because you were: ... You may be able to pay voluntary contributions to fill any gaps and top up"
+    },
+    {
+     "title": "Pay voluntary Class 3 National Insurance: Overview - GOV.UK",
+     "url": "https://www.gov.uk/pay-voluntary-class-3-national-insurance",
+     "date": "2012-10-16",
+     "snippet": "You may be able to pay voluntary Class 3 contributions to fill gaps in your National Insurance record to qualify for the State Pension. ... You can only pay for gaps in your National Insurance record "
+    }
+   ],
+   "all_urls": [
+    "https://www.gov.uk/check-national-insurance-record",
+    "https://www.gov.uk/voluntary-national-insurance-contributions",
+    "https://www.gov.uk/pay-voluntary-class-3-national-insurance",
+    "https://www.gov.uk/pay-voluntary-class-3-national-insurance/pay-online-state-pension-forecast",
+    "https://www.gov.uk/personal-tax-account"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "GOV.UK check NI record, voluntary NI overview, pay Class 3, personal tax account. Dates shown are original publication (2012/2014), misleading but content is current (mentions 6 April 2026)."
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 4.37,
+   "exa_searchTime_ms": 3477.9,
+   "n_results": 5,
+   "chars": 10937,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Record and transcribe audio in Notes on iPhone - Apple Support",
+     "url": "https://support.apple.com/en-by/guide/iphone/iphbe11247b5/ios",
+     "date": null,
+     "snippet": "In the Notes app, you can record audio and have the spoken words transcribed to text. You can search the transcript, add the text to the note, or copy the text to other documents. Note: Audio transcri"
+    },
+    {
+     "title": "",
+     "url": "https://spokenly.app/blog/voice-memo-to-text-iphone",
+     "date": "2026-05-05",
+     "snippet": "Three free methods for voice memo transcription on iPhone in 2026: Spokenly, the built-in Voice Memos transcript (iOS 18), and an Apple Shortcut. Compared on accuracy, languages, privacy, and cost. .."
+    },
+    {
+     "title": "Voice Memos shortcuts - Matthew Cassinelli",
+     "url": "https://matthewcassinelli.com/shortcuts/folders/voice-memos/",
+     "date": null,
+     "snippet": "Shortcuts for interacting with the Voice Memos app on iPhone, iPad, Mac, and Apple Watch. ... Try out “Just Press Record” to capture memos and transcribe them as well."
+    }
+   ],
+   "all_urls": [
+    "https://support.apple.com/en-by/guide/iphone/iphbe11247b5/ios",
+    "https://spokenly.app/blog/voice-memo-to-text-iphone",
+    "https://matthewcassinelli.com/shortcuts/folders/voice-memos/",
+    "https://wiki.beard.fm/whats-new-apple-intelligence-in-shortcuts/deep-dive-into-transcribing-and-summarizing-audio-files",
+    "https://wiki.beard.fm/whats-new-apple-intelligence-in-shortcuts/how-to-turn-voice-memos-into-smart-notes-with-ai-powered-tra"
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Apple Support page is about Notes audio transcription, not Voice Memos; Spokenly blog (May 2026, vendor) covers Voice Memos transcript + Shortcut; beard.fm deep dives on Shortcuts transcription. Useful but automation answer needs digging."
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 2.04,
+   "exa_searchTime_ms": 1515.6,
+   "n_results": 5,
+   "chars": 6460,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "How Direct Import Works",
+     "url": "https://support.ynab.com/en%5Fus/how-direct-import-works-H1IGYLgnxl",
+     "date": null,
+     "snippet": "Direct Import is completely optional. However, if you’d like to link your accounts, YNAB works with multiple import providers (MX and Plaid) to offer our Direct Import feature. We also offer a direct "
+    },
+    {
+     "title": "Direct Import Connection Updates in YNAB: A Guide",
+     "url": "https://support.ynab.com/direct-import-connection-switches-a-guide-By_rMfdCq",
+     "date": null,
+     "snippet": "We partner with multiple data import providers (MX↗️,Plaid↗️, andTrueLayer↗️) in order to offer the Direct Import feature in YNAB and, depending on your specific situation, one may provide a better im"
+    },
+    {
+     "title": "Direct Import in the UK and EU",
+     "url": "https://www.ynab.com/whats-new/direct-import-in-the-uk-and-eu",
+     "date": null,
+     "snippet": "# Direct Import in the UK and EU ... Direct Import is now available for select UK and EU banks through our new Direct Import partner, TrueLayer. First time linking an account? Check out our instructio"
+    }
+   ],
+   "all_urls": [
+    "https://support.ynab.com/en%5Fus/how-direct-import-works-H1IGYLgnxl",
+    "https://support.ynab.com/direct-import-connection-switches-a-guide-By_rMfdCq",
+    "https://www.ynab.com/whats-new/direct-import-in-the-uk-and-eu",
+    "https://budgetsyncer.com/sync/starling-to-ynab",
+    "https://news.ycombinator.com/item?id=39773819"
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Official YNAB Direct Import pages (UK via TrueLayer) but none confirms Starling specifically; the only Starling mention is a third-party sync tool (budgetsyncer) claiming YNAB uses Plaid in UK and Starling users CSV-import, which conflicts with YNAB's TrueLayer page. Question left unresolved."
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 2.6,
+   "exa_searchTime_ms": 2001.9,
+   "n_results": 5,
+   "chars": 21543,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Project Pausing",
+     "url": "https://supabase.com/docs/guides/platform/free-project-pausing",
+     "date": null,
+     "snippet": "Supabase pauses Free Plan projects that show low activity over a 7-day period to save server resources. This guide explains how pausing works, how to restore a paused project, and how to avoid pausing"
+    },
+    {
+     "title": "How to Prevent Your Supabase Project Database from ...",
+     "url": "https://dev.to/jps27cse/how-to-prevent-your-supabase-project-database-from-being-paused-using-github-actions-3hel",
+     "date": "2025-03-03",
+     "snippet": "If you're using Supabase for your project, you might have noticed that Supabase pauses your database after a period of inactivity. This is a common feature in free-tier plans to save resources, but it"
+    },
+    {
+     "title": "Amo95/supawake",
+     "url": "https://github.com/amo95/supawake",
+     "date": "2026-04-07",
+     "snippet": "Keep your free-tier Supabase projects from auto-pausing. `supawake` is a tiny CLI that pings the Supabase REST API on a schedule so your databases stay warm. Supabase pauses free-tier projects after ~"
+    }
+   ],
+   "all_urls": [
+    "https://supabase.com/docs/guides/platform/free-project-pausing",
+    "https://dev.to/jps27cse/how-to-prevent-your-supabase-project-database-from-being-paused-using-github-actions-3hel",
+    "https://github.com/amo95/supawake",
+    "https://slyduck.com/blog/supabase-project-paused-how-to-prevent-it",
+    "https://github.com/travisvn/supabase-pause-prevention"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Supabase docs 'Project Pausing' (7-day low activity) + dev.to GitHub Actions guide + supawake/pause-prevention repos (2026)."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 1.81,
+   "exa_searchTime_ms": 1210.4,
+   "n_results": 5,
+   "chars": 27855,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "",
+     "url": "https://code.claude.com/docs/en/cloud-environments",
+     "date": null,
+     "snippet": "- Trusted network access: sessions reach package registries and other allowlisted domains, and nothing else through the session’s network. - No other configuration: Default defines no environment vari"
+    },
+    {
+     "title": "Use Claude Code in the cloud - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/claude-code-on-the-web",
+     "date": null,
+     "snippet": "Every cloud session runs in a cloud environment, the saved configuration that controls network access, environment variables, and setup scripts. - Your first environment: if you don’t have one yet, on"
+    },
+    {
+     "title": "Deploy self-hosted environments to production - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/self-hosted-environments-deploy",
+     "date": null,
+     "snippet": "- Default-deny network egress: restrict runner and session container outbound traffic at your own network boundary on every environment; Default-deny egress covers what to allow and why. ... - Dispatc"
+    }
+   ],
+   "all_urls": [
+    "https://code.claude.com/docs/en/cloud-environments",
+    "https://code.claude.com/docs/en/claude-code-on-the-web",
+    "https://code.claude.com/docs/en/self-hosted-environments-deploy",
+    "https://code.claude.com/docs/en/sandboxing",
+    "https://code.claude.com/docs/en/claude-code-on-the-web.md"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "code.claude.com cloud-environments and claude-code-on-the-web docs (network access, trusted allowlist). Duplicate .md version of the same page at #5."
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 3.45,
+   "exa_searchTime_ms": 2981.2,
+   "n_results": 5,
+   "chars": 13070,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Human Interface Guidelines | Apple Developer Documentation",
+     "url": "https://developer.apple.com/design/human-interface-guidelines",
+     "date": null,
+     "snippet": "# Human Interface Guidelines The HIG contains guidance and best practices that can help you design a great experience for any Apple platform. ... Explore the principles that guide design across Apple "
+    },
+    {
+     "title": "Materials | Apple Developer Documentation",
+     "url": "https://developer.apple.com/design/human-interface-guidelines/materials",
+     "date": null,
+     "snippet": "Materials | Apple Developer Documentation Materials | Apple Developer Documentation"
+    },
+    {
+     "title": "Liquid Glass | Apple Developer Documentation",
+     "url": "https://developer.apple.com/documentation/technologyoverviews/liquid-glass",
+     "date": null,
+     "snippet": "Liquid Glass | Apple Developer Documentation Liquid Glass | Apple Developer Documentation"
+    }
+   ],
+   "all_urls": [
+    "https://developer.apple.com/design/human-interface-guidelines",
+    "https://developer.apple.com/design/human-interface-guidelines/materials",
+    "https://developer.apple.com/documentation/technologyoverviews/liquid-glass",
+    "https://developer.apple.com/videos/play/wwdc2025/219/",
+    "https://ux.detroit3d.com/design-systems/apple-hig-summary.html"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Exactly the right Apple sources (HIG, HIG Materials, Liquid Glass tech overview, WWDC25 'Meet Liquid Glass'), but highlights for the Apple pages are empty (title repeated only; JS-rendered), so an agent gets URLs but little text."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 1.78,
+   "exa_searchTime_ms": 1246.7,
+   "n_results": 5,
+   "chars": 35237,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Exa vs Parallel vs Tavily, Independently Benchmarked, 2026 | Openbenchmarks",
+     "url": "https://openbenchmarks.com/web-search/exa-vs-parallel-vs-tavily",
+     "date": null,
+     "snippet": "Exa vs Parallel vs Tavily: Exa fast leads at 99.3% accuracy on 300 company-news questions, independently benchmarked Sep 26, 2026. What this page compares. This page ranks measured results from 3 boar"
+    },
+    {
+     "title": "Exa vs Parallel: Benchmarking Retrieval APIs for AI Agents in 2026 | Tavily Blog",
+     "url": "https://www.tavily.com/blog/exa-vs-parallel-benchmarking-retrieval-apis-for-ai-agents-in-2026",
+     "date": "2026-04-27",
+     "snippet": "Exa and Parallel both help AI agents retrieve web context, but they are optimized for different jobs. Exa is search-centered. It is strongest when your agent needs semantic discovery, similar-page sea"
+    },
+    {
+     "title": "OpenAI Web Search vs Parallel vs Exa vs Tavily: Best API | Parallel",
+     "url": "https://parallel.ai/articles/openai-web-search-vs-parallel-vs-exa-vs-tavily-how-to-choose",
+     "date": "2026-10-05",
+     "snippet": "Choosing between OpenAI's built-in web search and a dedicated search API decides how much control you keep over retrieval quality, cost, and model choice. This guide compares OpenAI, Parallel, Exa, an"
+    }
+   ],
+   "all_urls": [
+    "https://openbenchmarks.com/web-search/exa-vs-parallel-vs-tavily",
+    "https://www.tavily.com/blog/exa-vs-parallel-benchmarking-retrieval-apis-for-ai-agents-in-2026",
+    "https://parallel.ai/articles/openai-web-search-vs-parallel-vs-exa-vs-tavily-how-to-choose",
+    "https://exa.ai/versus/tavily",
+    "https://www.tavily.com/blog/tavily-vs-exa-vs-parallel-vs-firecrawl-vs-perplexity-vs-brave-choosing-the-right-web-search-api"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Direct comparisons: openbenchmarks (independent, Sep 2026), Tavily blog (Apr and Sep 2026), Parallel article (5 Oct 2026), exa.ai/versus. Most are vendor-authored, so bias risk."
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 1.64,
+   "exa_searchTime_ms": 1116.9,
+   "n_results": 5,
+   "chars": 14588,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "cskwork/reddit-skill",
+     "url": "https://github.com/cskwork/reddit-skill",
+     "date": null,
+     "snippet": "Claude skill for posting to Reddit in ... human style with proper flair handling — backed by a CLI, with an optional MCP server. ... A Claude **skill** (`reddit-poster`) for posting to Reddit the way "
+    },
+    {
+     "title": "MCP vs API: When to Build an MCP Server, and When the API Is Enough",
+     "url": "https://dev.to/rss_holmes/mcp-vs-api-when-to-build-an-mcp-server-and-when-the-api-is-enough-1g08",
+     "date": "2026-10-08",
+     "snippet": "MCP vs API is rarely an either-or choice: MCP is a protocol that lets an AI agent discover and call tools at runtime, and an API is usually the service those tools wrap, so most teams building agents "
+    },
+    {
+     "title": "Reddit MCP server",
+     "url": "https://www.manifoldmcp.com/mcp/reddit.md",
+     "date": null,
+     "snippet": "> Search Reddit posts and comments, size up subreddits and read whole threads from Claude, ChatGPT or Cursor. Hosted, with no Reddit API keys of your own. ... - Claude Code: Run this, ... sign in. `cl"
+    }
+   ],
+   "all_urls": [
+    "https://github.com/cskwork/reddit-skill",
+    "https://dev.to/rss_holmes/mcp-vs-api-when-to-build-an-mcp-server-and-when-the-api-is-enough-1g08",
+    "https://www.manifoldmcp.com/mcp/reddit.md",
+    "https://github.com/jimbolo/reddit-mcp",
+    "https://dev.to/skillgild/best-mcp-servers-for-claude-code-3kpm"
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "No Reddit threads at all. Results are a GitHub 'reddit-skill', a Reddit MCP server listing, MCP vs API article, 'best MCP servers' listicle: keyword-matched on 'reddit', 'skill', 'MCP' rather than intent."
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 2.1,
+   "exa_searchTime_ms": 1582.2,
+   "n_results": 5,
+   "chars": 15621,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Junior Product Designer at Quantum",
+     "url": "https://jobs.ashbyhq.com/quantum/9b73d656-597b-47c0-b3b5-f19783c241f7",
+     "date": "2026-09-28",
+     "snippet": "# Junior Product Designer at Quantum - **Company:** Quantum - **Location:** London - **Department:** Technology - **Employment type:** Full Time - **Published:** 2026-09-28 ... Our Digital Experience "
+    },
+    {
+     "title": "15 Junior Product Designer Jobs in London",
+     "url": "https://www.reed.co.uk/jobs/junior-product-designer-jobs-in-london",
+     "date": null,
+     "snippet": "Junior Product Designer Jobs in London | Reed.co.uk # 85 Junior Product Designer Jobs in London ... Junior Industrial Designer / Product Development Engineer - DFM ... Designer / Product Development E"
+    },
+    {
+     "title": "Junior Product Designer at Accenture UK | Flexa Careers",
+     "url": "https://flexa.careers/in/jobs/accenture-junior-product-designer-69d714fdc8e6a1f681d0c793",
+     "date": null,
+     "snippet": "Junior Product Designer at Accenture UK | Flexa Careers # Junior Product Designer ... Position: Junior Product Designer Career Level: Senior Analyst - CL10 Location : London WHO WE ARE ... As a Junior"
+    }
+   ],
+   "all_urls": [
+    "https://jobs.ashbyhq.com/quantum/9b73d656-597b-47c0-b3b5-f19783c241f7",
+    "https://www.reed.co.uk/jobs/junior-product-designer-jobs-in-london",
+    "https://flexa.careers/in/jobs/accenture-junior-product-designer-69d714fdc8e6a1f681d0c793",
+    "https://talents.studysmarter.co.uk/companies/medly-ai/city-of-london/junior-product-designer-49745108/",
+    "https://uk.linkedin.com/jobs/junior-product-designer-jobs"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Live listings: Ashby posting (Quantum, 28 Sep 2026), Reed search page, Accenture via Flexa, Medly AI, LinkedIn UK jobs page."
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 3.46,
+   "exa_searchTime_ms": 2957.1,
+   "n_results": 5,
+   "chars": 10917,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Figma to Website: Free Figma Plugin | Figment",
+     "url": "https://figment.so/",
+     "date": null,
+     "snippet": "Figma to Website: Free Figma Plugin | Figment # Turn your Figma design into a real website. That portfolio you keep tweaking. That idea you can't put down. Take it out of Figma and give it a little ho"
+    },
+    {
+     "title": "Turn Figma designs into live websites with Framer",
+     "url": "https://www.framer.com/solutions/figma-to-html/?075f0a22_page=1%2C2%2C1%2C2%2C1%2C2%2C2%2C1%2C1%2C1%2C2%2C2%2C3",
+     "date": null,
+     "snippet": "# Turn Figma designs into live websites with Framer Framer gives teams a practical Figma to HTML workflow without exporting static code. Import your Figma design, refine it on a visual canvas, use AI "
+    },
+    {
+     "title": "Make websites from Figma (publish or export web HTML,CSS,JS)",
+     "url": "https://www.figma.com/community/plugin/1329237288766226289/figma-to-website-by-divriots-make-websites-from-figma-publish-or-export-web-html-css-js",
+     "date": null,
+     "snippet": "figma.to.website — by ‹div›RIOTS — Make websites from Figma (publish or export web HTML,CSS,JS) | Figma"
+    }
+   ],
+   "all_urls": [
+    "https://figment.so/",
+    "https://www.framer.com/solutions/figma-to-html/?075f0a22_page=1%2C2%2C1%2C2%2C1%2C2%2C2%2C1%2C1%2C1%2C2%2C2%2C3",
+    "https://www.figma.com/community/plugin/1329237288766226289/figma-to-website-by-divriots-make-websites-from-figma-publish-or-export-web-html-css-js",
+    "https://www.builder.io/blog/figma-to-website",
+    "https://www.quest.ai/website"
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Figment plugin, Framer Figma-to-HTML, divRIOTS figma.to.website plugin, Builder.io blog (mentions Figma Sites in body), Quest. Reasonable tools but Figma Sites not surfaced as a top result."
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 4.12,
+   "exa_searchTime_ms": 3480.4,
+   "n_results": 5,
+   "chars": 10764,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Appended: A simple note app",
+     "url": "https://appended.app/",
+     "date": null,
+     "snippet": "Appended: A simple note app ... A simple note app. ... This is not your typical notes app! ... This app is that: a note taking app reminiscent of pen and paper, where the only form of organization was"
+    },
+    {
+     "title": "One Line — the note app that sorts notes, to-dos and routines",
+     "url": "https://oneline.date/en",
+     "date": null,
+     "snippet": "One Line — the note app that sorts notes, to-dos and routines # Notes, to-dos and routines, sorted as you write them Write one line and it lands where it belongs. No folders, no rules to learn. Tags o"
+    },
+    {
+     "title": "Minimali",
+     "url": "https://minimali.app/",
+     "date": null,
+     "snippet": "# One note. Every device. Instantly. A single plain-text note that opens in an instant on iPhone, iPad, Mac and the web, and works offline. ... Write a line, a list, a thought before a meeting. It sav"
+    }
+   ],
+   "all_urls": [
+    "https://appended.app/",
+    "https://oneline.date/en",
+    "https://minimali.app/",
+    "https://noteonly.ai/",
+    "https://minimalistnotes.com/simple-notes-app"
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Five obscure single-product landing pages (Appended, One Line, Minimali, NoteOnly, minimalistnotes); no mainstream recommendations (Apple Notes, Obsidian, Bear, etc.) or Reddit/listicle comparisons. Self-promo style results."
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 2.94,
+   "exa_searchTime_ms": 2443.4,
+   "n_results": 5,
+   "chars": 8525,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Triangles to Quads - Blender 5.2 LTS Manual",
+     "url": "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/triangles_quads.html",
+     "date": null,
+     "snippet": "Triangles to Quads - Blender 5.2 LTS Manual ... Mode: : Edit Mode Menu: : Face ‣ Triangles to Quads Shortcut: : Alt- J Merges adjacent triangles in the selection into quads. This is essentially the op"
+    },
+    {
+     "title": "How do I convert a triangle mesh to a quads one?",
+     "url": "https://blender.stackexchange.com/questions/5538/how-do-i-convert-a-triangle-mesh-to-a-quads-one",
+     "date": null,
+     "snippet": "While in Edit Mode, select the parts of your mesh you want to convert and use Alt + J or from the Faces special menu with Ctrl + F > Tris to Quads to convert tris to quads or via the 3d view header, u"
+    },
+    {
+     "title": "Triangles to Quads - Blender 4.5 LTS Manual",
+     "url": "https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/face/triangles_quads.html",
+     "date": null,
+     "snippet": "Triangles to ... This operator converts selected triangles into quads by merging adjacent triangles and removing the shared edge to form a quad, based on a threshold. It works with a selection of mult"
+    }
+   ],
+   "all_urls": [
+    "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/triangles_quads.html",
+    "https://blender.stackexchange.com/questions/5538/how-do-i-convert-a-triangle-mesh-to-a-quads-one",
+    "https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/face/triangles_quads.html",
+    "https://blender.stackexchange.com/questions/345441/convert-triangular-mesh-to-quad-mesh",
+    "https://github.com/Rulesobeyer/Optimized-Tris-to-Quads-Converter"
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Blender manual 'Triangles to Quads' (Alt+J) latest and 4.5, two Blender Stack Exchange threads (mention Remesh/QRemeshify), a GitHub add-on. Manual duplicated across versions."
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "error": null,
+   "retry_first_error": null,
+   "latency_s": 3.68,
+   "exa_searchTime_ms": 3029.3,
+   "n_results": 5,
+   "chars": 24862,
+   "costDollars": 0.007,
+   "top": [
+    {
+     "title": "Continue local sessions from any device with Remote Control",
+     "url": "https://code.claude.com/docs/en/remote-control",
+     "date": null,
+     "snippet": "Remote Control connects claude.ai/code or the Claude app for iOS and Android to a Claude Code session running on your machine. Start a task at your desk, then pick it up from your phone on the couch o"
+    },
+    {
+     "title": "[BUG] \"Remote Control environments are not available for your ...",
+     "url": "https://github.com/anthropics/claude-code/issues/29449",
+     "date": null,
+     "snippet": "# [BUG] \"Remote Control environments are not available for your account.\" for Claude Code Pro Plan user ... After answering `y` to enable Remote Control, the CLI immediately returns `Remote Control en"
+    },
+    {
+     "title": "[BUG]  Unable to create remote session - No cloud environment created despite GitHub connection",
+     "url": "https://github.com/anthropics/claude-code/issues/19573",
+     "date": null,
+     "snippet": "# [BUG] Unable to create remote session - No cloud environment created despite GitHub connection ... - Claude Code v2.1.12 - macOS - Claude Max subscription - GitHub connected and repo authorized (pri"
+    }
+   ],
+   "all_urls": [
+    "https://code.claude.com/docs/en/remote-control",
+    "https://github.com/anthropics/claude-code/issues/29449",
+    "https://github.com/anthropics/claude-code/issues/19573",
+    "https://github.com/anthropics/claude-code/issues/29698",
+    "https://github.com/anthropics/claude-code/issues/55312"
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Typos handled well: understood as Claude Code remote. Returns Remote Control docs + four anthropics/claude-code GitHub issues on remote/cloud environments not available. No network-access/permissions docs for cloud sessions in top 5."
+  }
+ ],
+ "extras": [
+  {
+   "q": 4,
+   "tool": "EXA_ANSWER",
+   "query_used": "Exa search API price per 1000 searches",
+   "args": {
+    "query": "Exa search API price per 1000 searches"
+   },
+   "ok": true,
+   "latency_s": 2.23,
+   "chars": 2955,
+   "costDollars": {
+    "total": 0.005
+   },
+   "answer": "Exa's search API pricing starts at $4 per 1,000 requests for the Instant endpoint and $7 per 1,000 requests for Fast or Auto endpoints [1][2][3]. These base rates include up to 10 results per request [4][5][3]. \n\nEach additional result beyond the first 10 costs $1 per 1,000 results [4][1][6]. Consequently, the total cost per 1,000 requests increases with the number of results requested; for example, a 30-result search on the Fast/Auto endpoint costs $27 per 1,000 requests [6][3]. AI page summaries are billed separately at $1 per 1,000 pages [4][1][7].",
+   "citations": [
+    {
+     "title": "Pricing - Exa",
+     "url": "https://exa.ai/docs/admin/pricing",
+     "date": null
+    },
+    {
+     "title": "Exa Search API plans, limits and prices (checked 2026-10-09) · Web Data API Plan Finder",
+     "url": "https://plans.intoperson.com/p/exa-search",
+     "date": null
+    },
+    {
+     "title": "Exa Pricing and Exa API Cost per Search | ClawEngine.ai",
+     "url": "https://clawengine.ai/exa-pricing",
+     "date": null
+    },
+    {
+     "title": "Pricing",
+     "url": "https://exa.ai/pricing?tab=api",
+     "date": null
+    },
+    {
+     "title": "",
+     "url": "https://exa.ai/docs/reference/pricing",
+     "date": null
+    },
+    {
+     "title": "",
+     "url": "https://keirolabs.cloud/blogs/comparisons/exa-search-api-pricing-per-1000-requests-2026",
+     "date": null
+    },
+    {
+     "title": "Exa Pricing in 2026: How Much Does It Really Cost? | TinyFish Blog",
+     "url": "https://www.tinyfish.ai/blog/exa-pricing",
+     "date": "2026-08-08"
+    },
+    {
+     "title": "Pay with x402 - Exa",
+     "url": "https://exa.ai/docs/integrations/payments/x402/quickstart",
+     "date": null
+    }
+   ],
+   "note": "Correct and current: $4/1k instant, $7/1k fast/auto, up to 10 results, +$1/1k extra results. Cites exa.ai docs/pricing plus third-party pricing pages. 2.2 s, $0.005. Quality: high."
+  },
+  {
+   "q": 13,
+   "tool": "EXA_ANSWER",
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "args": {
+    "query": "Apple Liquid Glass Human Interface Guidelines summary"
+   },
+   "ok": true,
+   "latency_s": 2.3,
+   "chars": 3199,
+   "costDollars": {
+    "total": 0.005
+   },
+   "answer": "Liquid Glass is a dynamic, translucent material introduced by Apple to unify design across its platforms. It functions as a distinct layer for navigation and controls, such as tab bars and sidebars, that floats above content to establish visual hierarchy and depth.\n\nTo adopt it, prioritize standard system components from SwiftUI, UIKit, or AppKit, which apply the material and its adaptive behaviors automatically. Avoid using Liquid Glass in content layers or overusing it in custom controls. When implementing custom elements, choose between two variants: Regular for general use and Clear for media-rich backgrounds, ensuring you never mix them.",
+   "citations": [
+    {
+     "title": "Liquid Glass",
+     "url": "https://developer.apple.com/documentation/technologyoverviews/liquid-glass.md",
+     "date": null
+    },
+    {
+     "title": "Meet Liquid Glass - WWDC25 - Videos - Apple Developer",
+     "url": "https://developer.apple.com/videos/play/wwdc2025/219/",
+     "date": "2025-06-09"
+    },
+    {
+     "title": "Materials — Apple Developer Docs",
+     "url": "https://apple-docs.everest.mt/docs/design/human-interface-guidelines/materials/",
+     "date": null
+    },
+    {
+     "title": "Adopting Liquid Glass | Apple Developer Documentation",
+     "url": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass",
+     "date": null
+    },
+    {
+     "title": "Apple Human Interface Guidelines — Working Summary · UX Encyclopedia",
+     "url": "https://ux.detroit3d.com/design-systems/apple-hig-summary.html",
+     "date": null
+    },
+    {
+     "title": "Adopting Liquid Glass",
+     "url": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass.md",
+     "date": null
+    },
+    {
+     "title": "skills/hig/materials.md",
+     "url": "https://github.com/Prisma-Labs-Dev/apple-skills/blob/HEAD/skills/hig/materials.md",
+     "date": null
+    },
+    {
+     "title": "Adopting Apple's Liquid Glass: Examples and best practices - LogRocket Blog",
+     "url": "https://blog.logrocket.com/ux-design/adopting-liquid-glass-examples-best-practices/",
+     "date": "2025-06-30"
+    }
+   ],
+   "note": "Good concise summary of Liquid Glass guidance (navigation layer, use system components, Regular vs Clear variants, avoid in content layer). Cites developer.apple.com, WWDC25, LogRocket plus some mirrors. 2.3 s, $0.005. Quality: high; a better answer than the search highlights for this question since HIG pages returned empty highlights."
+  }
+ ]
+}

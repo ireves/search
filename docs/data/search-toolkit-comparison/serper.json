@@ -1,0 +1,690 @@
+{
+ "toolkit": "serper",
+ "tool_slugs": [
+  "SERPER_SEARCH_WEB",
+  "SERPER_SEARCH_SHOPPING"
+ ],
+ "settings": {
+  "country_code": "gb",
+  "language_code": "en",
+  "result_count": 10,
+  "autocorrect": true
+ },
+ "cost_info": "Tool description: SERPER_SEARCH_SHOPPING costs 2 credits per page (web search presumably 1 credit). No credit counter returned in responses.",
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 2.12,
+   "n_results": 10,
+   "chars": 4608,
+   "top": [
+    {
+     "title": "ISA reforms 2027 what the changes mean for investors and ...",
+     "url": "https://www.hl.co.uk/news/isa-reforms-2027-what-the-changes-mean-for-investors-and-savers",
+     "date": "17 Aug 2026",
+     "snippet": "From 6 April 2027, the Cash ISA allowance will be cut to just £12,000 for savers under the age of 65. Those wanting to make full use of their ..."
+    },
+    {
+     "title": "Cash Individual Savings Account (ISA) limit reduction",
+     "url": "https://www.gov.uk/government/publications/reduction-in-the-cash-individual-savings-account-isa-limit/cash-individual-savings-account-isa-limit-reduction",
+     "date": "17 Sept 2026",
+     "snippet": "cash ISA subscription limit to £12,000 for individuals aged under 65 from 6 April 2027."
+    },
+    {
+     "title": "Cash ISAs: How they work and what's changing in April 2027",
+     "url": "https://www.closesavings.co.uk/personal/news/cash-isas-how-they-work-and-whats-changing-in-april-2027",
+     "date": "17 Mar 2026",
+     "snippet": "If you are under 65, the Cash ISA limit will reduce to £12,000 · If you are 65 or over, the Cash ISA limit will remain £20,000."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "HL then GOV.UK (#2), Close Brothers, Starling; all state the £12k cut."
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 1.47,
+   "n_results": 10,
+   "chars": 4641,
+   "top": [
+    {
+     "title": "xiwai 0.2M Right Angled USB 2.0 Type-A Male to USB-C ...",
+     "url": "https://www.amazon.com/xiwai-Right-Angled-Type-Type-C/dp/B0D5RN25L9",
+     "date": null,
+     "snippet": "Right Angled USB 2.0 Type-A Male to USB-C Type-C Male Data Flat Slim FPC Cable for FPV & Disk & Phone Cable length: 20cm · This cable enables you to connect ..."
+    },
+    {
+     "title": "Slim Right Angle USB C to USB C Cable - 75mm",
+     "url": "https://www.adafruit.com/product/6372?srsltid=AU7gw4Uj4VtWH9t7bXxYpvm9xOujPywDgcZyWUCYgvS9CybaOMSAKSEP",
+     "date": null,
+     "snippet": "Black Woven Right Angle USB C to USB A Cable - 0.2m long - Angled Black Woven Right Angle USB C to USB A Cable - 0.2m long · USB Type C PD to 5.5mm/2.1mm ..."
+    },
+    {
+     "title": "USB 3.2 Gen 2 Type C Cable 100W Charging Right Angle ...",
+     "url": "https://www.aliexpress.com/item/1005005496884088.html",
+     "date": null,
+     "snippet": "USB 3.2 Gen 2 Type C to Type C cable with E-marker, supports 100W charging, 20Gbps data transfer, 5A current. Available in 0.2M to 3M lengths."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "Same as TinyFish: Amazon.com top, Pi Hut UK 0.2m #4; despite gl=gb results not UK-first."
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 1.48,
+   "n_results": 10,
+   "chars": 4760,
+   "top": [
+    {
+     "title": "All in One Disinfectant Spray Crisp Linen 300ml",
+     "url": "https://www.dettol.co.uk/household-disinfection/multi-purpose-cleaning/dettol-all-in-one-disinfectant-spray-crisp-linen-300-ml/",
+     "date": null,
+     "snippet": "Per 100g contains 57.81g ethanol, 0.09g Alkyl Dimethyl Benzyl Ammonium Saccharinate. Contains Perfume. Our approach to ingredients."
+    },
+    {
+     "title": "Dettol Antibacterial Spray Crisp Pear 750ml",
+     "url": "https://www.dettol.co.uk/household-disinfection/everyday-cleaning/dettol-antibacterial-spray-crisp-pear-750ml/",
+     "date": null,
+     "snippet": "Per 100g liquid: 2.24g lactic acid. Contains less than 5% non-ionic surfactants, less than 5% anionic surfactants, disinfectant, parfum. Our approach to ..."
+    },
+    {
+     "title": "Dettol Protect 24 Hour Antibacterial Cleaning Spray",
+     "url": "https://groceries.morrisons.com/products/dettol-protect-24-hour-antibacterial-cleaning-spray/112886109?srsltid=AU7gw4U40VubVlR4Pmy9gtbXrU3ay9qYkUkORBdmwXpFKSRqHk34MfnN",
+     "date": null,
+     "snippet": "Ingredients: Antibacterial Action - Benzalkonium chloride, didecyldimonium chloride bathroom sinks, floors, and toilet seats"
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "Generic Dettol UK sprays first; Morrisons Protect 24 Hour #3."
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 1.13,
+   "n_results": 10,
+   "chars": 4089,
+   "top": [
+    {
+     "title": "Exa API Pricing | Pay-as-You-Go Plans for AI Search",
+     "url": "https://exa.ai/pricing",
+     "date": null,
+     "snippet": "Exa API pricing: Free tier and enterprise pricing available. Up to 1,000 results per search. Base price, with up to 10 results(per 1k requests) $4 $7 $12 $15 $ ..."
+    },
+    {
+     "title": "Pricing",
+     "url": "https://exa.ai/docs/admin/pricing",
+     "date": "25 Sept 2026",
+     "snippet": "Each endpoint has a base price per request that includes up to 10 results. /search ( instant ) $4 / 1k requests $1 / 1k results $1 / 1k pages / ..."
+    },
+    {
+     "title": "Exa Pricing in 2026: What 100000 Searches Cost, and ...",
+     "url": "https://fastcrw.com/blog/exa-pricing-explained",
+     "date": "21 Jul 2026",
+     "snippet": "As of 2026-07-21, Exa search costs $7 per 1,000 requests (up to 10 results), Deep Search $12, Deep-Reasoning Search $15, Answer $5, and ..."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "exa.ai/pricing, docs pricing (dated), fastcrw 2026 explainer."
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 1.84,
+   "n_results": 10,
+   "chars": 4080,
+   "top": [
+    {
+     "title": "Environment variables",
+     "url": "https://vercel.com/docs/environment-variables",
+     "date": "17 Sept 2026",
+     "snippet": "When adding variables in the dashboard or with the CLI, choose Config or Secret need to update the environment variable for your custom ..."
+    },
+    {
+     "title": "vercel env",
+     "url": "https://vercel.com/docs/cli/env",
+     "date": "20 Aug 2026",
+     "snippet": "To run a command with environment variables without writing them to a file, use vercel env run -- <command> . This fetches the environment ..."
+    },
+    {
+     "title": "Environment Variables UI",
+     "url": "https://vercel.com/blog/environment-variables-ui",
+     "date": "14 Apr 2020",
+     "snippet": "To configure an Environment Variable for your project, simply navigate to your Project Settings and look for the newly added Environment ..."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Vercel docs Environment variables top."
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 1.77,
+   "n_results": 10,
+   "chars": 4150,
+   "top": [
+    {
+     "title": "Set up a custom email domain for iCloud Mail on all your ...",
+     "url": "https://support.apple.com/en-gb/guide/icloud/mm0e4339d289/icloud",
+     "date": null,
+     "snippet": "Go to Settings > [your name] > iCloud. Tap Custom Email Domain, then follow the onscreen instructions. Go to icloud.com/icloudplus, then sign in to your Apple ..."
+    },
+    {
+     "title": "Use a custom domain name for email with Apple iCloud+",
+     "url": "https://www.youtube.com/watch?v=QDqvVsHeZ0w&xstg=CAMSBhUDze3xHw%3D%3D",
+     "date": "2 years ago",
+     "snippet": "In this video, I will show you how to set up a custom domain name with Apple iCloud+ and use that to send emails."
+    },
+    {
+     "title": "How (and Why) to Set Up Custom Email in iCloud",
+     "url": "https://devondundee.com/blog/how-and-why-to-set-up-custom-email-in-icloud",
+     "date": "17 Jul 2023",
+     "snippet": "Under the iCloud+ section of this page, choose Custom Email Domain. Here, you'll be asked whether you already own the domain you want to use or ..."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Apple Support custom email domain guide + 'Add an email domain you already own' page."
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 1.38,
+   "n_results": 10,
+   "chars": 3739,
+   "top": [
+    {
+     "title": "Do you think woolite is worth it? : r/Frugal",
+     "url": "https://www.reddit.com/r/Frugal/comments/6ofqbt/do_you_think_woolite_is_worth_it/",
+     "date": "9 years ago",
+     "snippet": "If you are buying it for dark clothing, then no. I did that early on too, but there are much better ways to keep you clothing from fading."
+    },
+    {
+     "title": "Thoughts on Woolite?",
+     "url": "https://www.reddit.com/r/laundry/comments/1m7f0o2/thoughts_on_woolite/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Woolite Dark Defense for fade protection",
+     "url": "https://www.facebook.com/groups/thedealfairy/posts/1494603256044093/",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 1,
+   "note": "Reddit and Facebook; no Woolite source in top 4."
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 2.38,
+   "n_results": 9,
+   "chars": 4133,
+   "top": [
+    {
+     "title": "Check your National Insurance record",
+     "url": "https://www.gov.uk/check-national-insurance-record",
+     "date": null,
+     "snippet": "You can check your National Insurance record online to see: what you've paid, if you'll benefit from paying voluntary contributions. Email the National ..."
+    },
+    {
+     "title": "Voluntary National Insurance: Overview",
+     "url": "https://www.gov.uk/voluntary-national-insurance-contributions",
+     "date": null,
+     "snippet": "Check your National Insurance record to find out: if you have any gaps; how much it will cost to pay voluntary contributions; if you'll benefit from paying ..."
+    },
+    {
+     "title": "Voluntary National Insurance contributions and State ...",
+     "url": "https://www.moneyhelper.org.uk/en/pensions-and-retirement/state-pension/voluntary-national-insurance-contributions-and-the-state-pension",
+     "date": null,
+     "snippet": "You can check your National Insurance recordOpens in a new window on GOV.UK to see your State Pension summary, if you can make voluntary contributions."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "GOV.UK both pages top 2."
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 1.26,
+   "n_results": 10,
+   "chars": 4068,
+   "top": [
+    {
+     "title": "Transcribe audio with Voice Memo : r/shortcuts",
+     "url": "https://www.reddit.com/r/shortcuts/comments/16qijl1/transcribe_audio_with_voice_memo/",
+     "date": "3 years ago",
+     "snippet": "voice memo directly from the Voice Memos app into VOMO AI, and it transcribes everything automatically into text and even summarizes it."
+    },
+    {
+     "title": "Looking for a shortcut that records audio, transcribes it, and saves both in ...",
+     "url": "https://www.reddit.com/r/shortcuts/comments/1obnqgo/looking_for_a_shortcut_that_records_audio/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Auto transcribe new voice memo in Drafts - Shortcuts",
+     "url": "https://talk.automators.fm/t/auto-transcribe-new-voice-memo-in-drafts/13674",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "Reddit/forum threads only."
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 1.41,
+   "n_results": 10,
+   "chars": 4015,
+   "top": [
+    {
+     "title": "Direct Import in Europe",
+     "url": "https://support.ynab.com/en_us/direct-import-in-europe-Syae1z_A9",
+     "date": null,
+     "snippet": "Which Countries Are Supported for Direct Import? YNAB can currently connect to at least one bank in the countries listed below. Austria. Belgium. Denmark."
+    },
+    {
+     "title": "How Direct Import Works",
+     "url": "https://support.ynab.com/en_us/how-direct-import-works-H1IGYLgnxl",
+     "date": null,
+     "snippet": "Direct Import is completely optional. YNAB works with multiple import providers (MX and Plaid) to offer our Direct Import feature."
+    },
+    {
+     "title": "Anybody else NOT use direct import? : r/ynab",
+     "url": "https://www.reddit.com/r/ynab/comments/8wkdk8/anybody_else_not_use_direct_import/",
+     "date": "8 years ago",
+     "snippet": "For me, using direct import would defeat the purpose of YNAB – which is to be more knowledgeable about my money and my transaction habits"
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "YNAB help pages; Starling not confirmed in snippets."
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 1.63,
+   "n_results": 10,
+   "chars": 4170,
+   "top": [
+    {
+     "title": "How to Prevent a free Project from Pausing? : r/Supabase",
+     "url": "https://www.reddit.com/r/Supabase/comments/1mk881i/how_to_prevent_a_free_project_from_pausing/",
+     "date": "1 year ago",
+     "snippet": "I have gone a little overboard and have more than a few Supabase projects on the free plan. Mostly side projects I don't plan on monetizing. No matter ..."
+    },
+    {
+     "title": "Project Pausing | Supabase Docs",
+     "url": "https://supabase.com/docs/guides/platform/free-project-pausing",
+     "date": null,
+     "snippet": "To prevent future automatic pausing, upgrade to the Pro Plan from Billing Settings. Paid projects cannot be paused and are not subject to pausing for inactivity ..."
+    },
+    {
+     "title": "Prevent Supabase projects from getting paused due to ...",
+     "url": "https://github.com/travisvn/supabase-pause-prevention",
+     "date": null,
+     "snippet": "Solution / How it works · Creating a cron job (scheduled task) that makes a simple database call. (This keeps your Supabase project active) · Fetching keep-alive."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Reddit, Supabase docs, GitHub keep-alive, Supabase discussion."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 1.69,
+   "n_results": 10,
+   "chars": 4449,
+   "top": [
+    {
+     "title": "[BUG] Additional allowed domains setting not applied to ...",
+     "url": "https://github.com/anthropics/claude-code/issues/19087",
+     "date": "18 Jan 2026",
+     "snippet": "Domains added to \"Additional allowed domains\" should be included in the allowed_hosts claim of the JWT issued to Claude Code containers, ..."
+    },
+    {
+     "title": "Cowork: \"Allow network egress → All domains\" is set, but ...",
+     "url": "https://www.reddit.com/r/ClaudeAI/comments/1wdkm14/cowork_allow_network_egress_all_domains_is_set/",
+     "date": "4 weeks ago",
+     "snippet": "The UI confirms it in plain text: \"Claude can access all domains on the internet.\" What actually happens inside the sandbox: CONNECT mydomain."
+    },
+    {
+     "title": "How to Configure Network Egress in Claude AI",
+     "url": "https://www.youtube.com/watch?v=5pHBtzx1kes&vl=en&xstg=CAMSBhUDze3xHw%3D%3D",
+     "date": "6 months ago",
+     "snippet": "In this step-by-step tutorial, you will learn how to configure Network Egress in Claude AI completely for FREE."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 1,
+   "note": "GitHub bug, Reddit, YouTube; no official docs."
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 1.85,
+   "n_results": 10,
+   "chars": 4283,
+   "top": [
+    {
+     "title": "Materials | Apple Developer Documentation",
+     "url": "https://developer.apple.com/design/human-interface-guidelines/materials",
+     "date": null,
+     "snippet": "Liquid Glass is a dynamic material that unifies the design language across Apple platforms, allowing you to present controls and navigation without obscuring ..."
+    },
+    {
+     "title": "Meet Liquid Glass - WWDC25 - Videos",
+     "url": "https://developer.apple.com/videos/play/wwdc2025/219/",
+     "date": "9 Jun 2025",
+     "snippet": "Liquid Glass unifies Apple platform design language while providing a more dynamic and expressive user experience."
+    },
+    {
+     "title": "Human Interface Guidelines",
+     "url": "https://developer.apple.com/design/human-interface-guidelines",
+     "date": null,
+     "snippet": "The HIG contains guidance and best practices that can help you design a great experience for any Apple platform. Design fundamentals."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "HIG Materials, WWDC25, HIG home."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 2.28,
+   "n_results": 10,
+   "chars": 4343,
+   "top": [
+    {
+     "title": "Which search API should I use between Tavily.com, Exa.ai ...",
+     "url": "https://www.reddit.com/r/Rag/comments/1gr8jnr/which_search_api_should_i_use_between_tavilycom/",
+     "date": "1 year ago",
+     "snippet": "Exa seems to be a bit faster. endpoint and noticed that the results are not as accurate as I expected. Exa or Parallel web systems?"
+    },
+    {
+     "title": "Top 4 Parallel AI Alternatives for Web Search and Data ...",
+     "url": "https://www.firecrawl.dev/blog/parallel-alternatives",
+     "date": "24 Sept 2026",
+     "snippet": "Exa is an AI-powered search engine built specifically for machines. Unlike Parallel's accuracy like Parallel, Exa is search and discovery ..."
+    },
+    {
+     "title": "Tavily vs Exa vs Perplexity vs fastCRW API (2026)",
+     "url": "https://fastcrw.com/blog/crw-vs-tavily-exa-perplexity-search-answer-api",
+     "date": "12 Jul 2026",
+     "snippet": "This piece compares them on model transparency, citation handling, pricing model, self-hosting, and migration cost."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "Reddit r/Rag, Firecrawl Parallel alternatives (Sept 2026), fastcrw comparison; no single 3-way benchmark at top."
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 1.41,
+   "n_results": 10,
+   "chars": 4498,
+   "top": [
+    {
+     "title": "Claude Skills Vs Claude + MCP : r/ClaudeCode",
+     "url": "https://www.reddit.com/r/ClaudeCode/comments/1q6j6e0/claude_skills_vs_claude_mcp/",
+     "date": "9 months ago",
+     "snippet": "With that in mind, it's probably best to separate concerns: MCP servers add tools to Claude Code it didn't already have, and skills add ..."
+    },
+    {
+     "title": "So skills are a lighter MCP : r/ClaudeAI",
+     "url": "https://www.reddit.com/r/ClaudeAI/comments/1oa9381/so_skills_are_a_lighter_mcp/",
+     "date": "11 months ago",
+     "snippet": "I also don't think its necessary to use skills to tell claude when to use mcp servers, thats usually defined in the MCP server schema."
+    },
+    {
+     "title": "Skills vs. MCP : r/ClaudeAI",
+     "url": "https://www.reddit.com/r/ClaudeAI/comments/1oaza6g/skills_vs_mcp/",
+     "date": "11 months ago",
+     "snippet": "`skills` are specific and more flexible. MCPs are meant to fetch data to provide better context usually from a remote source. However skills ..."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Real Reddit threads."
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 1.3,
+   "n_results": 10,
+   "chars": 4227,
+   "top": [
+    {
+     "title": "Junior Product Designer jobs in London",
+     "url": "https://uk.indeed.com/q-junior-product-designer-l-london-jobs.html",
+     "date": null,
+     "snippet": "175 Junior Product Designer jobs available in London on Indeed.com. Apply to Nice Agency, Moniepoint, Flo Health and more companies!"
+    },
+    {
+     "title": "694 Junior Product Designer jobs in United Kingdom",
+     "url": "https://uk.linkedin.com/jobs/junior-product-designer-jobs",
+     "date": null,
+     "snippet": "Today's top 694 Junior Product Designer jobs in United Kingdom. Leverage your professional network, and get hired. New Junior Product Designer jobs added ..."
+    },
+    {
+     "title": "154 Junior product designer jobs in London, England",
+     "url": "https://www.glassdoor.co.uk/Job/london-junior-product-designer-jobs-SRCH_IL.0,6_IC2671300_KO7,30.htm",
+     "date": null,
+     "snippet": "154 open jobs for Junior product designer in London. Junior Product Designer London, England £33k - £38k (Employer provided) £15.00 - £20.00 Per hour (Employer ..."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Indeed, LinkedIn, Glassdoor, UI/UX jobs board London."
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 1.26,
+   "n_results": 10,
+   "chars": 4201,
+   "top": [
+    {
+     "title": "Process for Turning a Figma Web Design into a Real ...",
+     "url": "https://www.reddit.com/r/FigmaDesign/comments/11qkic1/process_for_turning_a_figma_web_design_into_a/",
+     "date": "3 years ago",
+     "snippet": "I would look at using the Figma → Webflow plugin , as webflow is kind of an all in one solution for web hosting and design. The most basic way: ..."
+    },
+    {
+     "title": "Builder.io - Figma to Code & AI Apps (React, Vue, Tailwind ...",
+     "url": "https://www.figma.com/community/plugin/747985167520967365/builder-io-figma-to-code-ai-apps-react-vue-tailwind-etc",
+     "date": null,
+     "snippet": "Use AI to turn Figma designs into code, create on-brand designs, or convert websites to Figma in real time. Convert Figma to Code."
+    },
+    {
+     "title": "How to Turn Figma Designs into Live Websites in 10 Minutes!",
+     "url": "https://www.youtube.com/watch?v=tM8LezzlM3o&vl=en",
+     "date": "1 year ago",
+     "snippet": "Install & Set up Node.js and Cursor. Generate clean, structured code from your Figma design. Deploy your website using Netlify"
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "Reddit Webflow, Builder.io plugin, YouTube, Siter.io; no Figma Sites."
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 1.71,
+   "n_results": 10,
+   "chars": 4183,
+   "top": [
+    {
+     "title": "Notion, but simpler : r/productivity",
+     "url": "https://www.reddit.com/r/productivity/comments/12w4biy/notion_but_simpler/",
+     "date": "3 years ago",
+     "snippet": "OneNote for work notes, Apple's note app for quick notes about everyday issues. Things3 for tasks and habit tracking."
+    },
+    {
+     "title": "My favorite Notion alternatives",
+     "url": "https://medium.com/@danielasgharian/my-favorite-notion-alternatives-0f47b4cc7dae",
+     "date": "11 months ago",
+     "snippet": "Affine has databases just like Notion, Affine still has a learning curve, but the learning curve feels simpler than something like Notion, and ..."
+    },
+    {
+     "title": "The 9 best Notion alternatives in 2026",
+     "url": "https://zapier.com/blog/best-notion-alternatives/",
+     "date": "3 Nov 2025",
+     "snippet": "Coda for powerful formulas and databases. Mem for AI-powered personal knowledge management. Tana for turning daily notes into networked hubs."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Reddit, Medium, Zapier 2026, It's FOSS."
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 1.44,
+   "n_results": 10,
+   "chars": 4277,
+   "top": [
+    {
+     "title": "How do I convert a triangle mesh to a quads one?",
+     "url": "https://blender.stackexchange.com/questions/5538/how-do-i-convert-a-triangle-mesh-to-a-quads-one",
+     "date": "15 Dec 2013",
+     "snippet": "I'm throwing a 3D triangulated mesh into an acoustic simulator. The simulator instructions say that ideally it wants quads. If it receives triangles, ..."
+    },
+    {
+     "title": "Tris to Quads in Blender",
+     "url": "https://www.youtube.com/watch?v=mDbFeqC_ang",
+     "date": "2 years ago",
+     "snippet": "Very quickly convert tris to quads in Blender. Also learn how to isolate meshes during your workflow."
+    },
+    {
+     "title": "How to convert Tri to Quad Mesh in Blender to a BREP ...",
+     "url": "https://www.youtube.com/watch?v=fDIQKzDsgE4",
+     "date": "4 years ago",
+     "snippet": "In this video we round out the workflow of working with a converted CAD mesh comprised of Tris, converting it to Quads in Blender and ..."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 3,
+   "note": "Blender SE, YouTube, Blender manual #4."
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 1.3,
+   "n_results": 10,
+   "chars": 4487,
+   "top": [
+    {
+     "title": "Continue local sessions from any device with Remote Control",
+     "url": "https://code.claude.com/docs/en/remote-control",
+     "date": null,
+     "snippet": "When you start a Remote Control session on your machine, Claude keeps running locally the entire time, so your code execution and filesystem access stay on your ..."
+    },
+    {
+     "title": "Claude Code Remote Control Security Risks",
+     "url": "https://www.penligent.ai/hackinglabs/claude-code-remote-control-security-risks-when-a-local-session-becomes-a-remote-execution-interface/",
+     "date": "3 Mar 2026",
+     "snippet": "Remote Control sessions are reachable from web/mobile surfaces. Controls Egress restrict: domain allowlists, deny-by-default outbound from the ..."
+    },
+    {
+     "title": "claude rc fails on macOS with 403 \"OAuth token does not ...",
+     "url": "https://github.com/anthropics/claude-code/issues/28583",
+     "date": "25 Feb 2026",
+     "snippet": "Access denied (403): OAuth token does not meet scope requirement user:sessions:claude_code. Check your organization permissions."
+    }
+   ],
+   "answer": null,
+   "paa_count": 0,
+   "score": 2,
+   "note": "Read as Remote Control (docs, 403 issue, Reddit)."
+  }
+ ],
+ "extra_rows": [
+  {
+   "q": 2,
+   "extra": "SERPER_SEARCH_SHOPPING",
+   "query_used": "0.2m right angle data usb-c cable (country_code gb)",
+   "ok": true,
+   "latency_s": 2.32,
+   "n_results": 40,
+   "chars": 24354,
+   "top": [
+    {
+     "title": "kenable Right Angle USB-C to USB-C Plug 100W Charger Cable 22AWG Lead 1m",
+     "url": "https://www.google.com/search?ibp=oshop&q=0.2m+right+angle+data+usb-c+cable&prds=localAnnotatedOfferId:1,catalogid:15939975604163545720,gpcid:7240960853823040379,pvo:2,pvt:hg&gl=gb&udm=28&pvorigin=2",
+     "date": null,
+     "snippet": "£4.73 | Amazon.co.uk - Amazon.co.uk-Seller | rating None"
+    },
+    {
+     "title": "UGREEN Right Angle USB-C Fast Charging Cable 18W",
+     "url": "https://www.google.com/search?ibp=oshop&q=0.2m+right+angle+data+usb-c+cable&prds=localAnnotatedOfferId:1,catalogid:14773156326899541890,gpcid:13320549298145138073,pvo:2,pvt:hg&gl=gb&udm=28&pvorigin=2",
+     "date": null,
+     "snippet": "£6.69 | Amazon.co.uk - Amazon.co.uk-Seller | rating 4.9"
+    },
+    {
+     "title": "Right Angle USB C Extension Cable 0.2m, 90 Degree USB C 3.2 Gen 2 Extender | 20Gbps Type C Male to Female 4K Video Extension Short Cord, L-Shape Lead",
+     "url": "",
+     "date": null,
+     "snippet": "£7.99 | Amazon.co.uk - Amazon.co.uk-Seller | rating None"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "40 UK products in GBP (Amazon.co.uk, kenable, AliExpress). #3 and #5 are 0.2m right-angle USB-C (20Gbps extension) but #1 is a 1m charge cable. Links go to Google Shopping, some null."
+  }
+ ]
+}

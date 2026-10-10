@@ -1,0 +1,647 @@
+{
+ "toolkit": "openalex",
+ "tool_slugs": [
+  "OPENALEX_QUERY_WORKS"
+ ],
+ "settings": {
+  "search": "<question text>",
+  "per_page": 5,
+  "select": "not used (full work records returned)",
+  "cursor": "*"
+ },
+ "cost_info": "Tool description: keyword search is part of normal OpenAlex usage (no per-call cost shown in responses); semantic_search mode costs $0.001 per call (not used). No cost field in responses; meta only shows db_response_time_ms.",
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 2.01,
+   "n_results": 5,
+   "total_count": 133,
+   "chars": 76673,
+   "top": [
+    {
+     "title": "Economics and climate change: adaptation and mitigation strategies for economic development",
+     "url": "https://doi.org/10.58224/2500-3747-2024-4-225-230",
+     "date": "2024-05-17",
+     "snippet": "статья рассматривает вопрос взаимосвязи между экономикой и климатическими изменениями, а также предлагает стратегии адаптации и смягчения воздействия последних на экономическое развитие. В контексте у"
+    },
+    {
+     "title": "Impact of a Safety Valve in an Emission Trading System: A Real Options Approach",
+     "url": "http://hdl.handle.net/10012/7546",
+     "date": "2013-05-22",
+     "snippet": "For more than 20 years, cap-and-trade system has served as an efficient market-based mechanism to reduce emission of air pollutants such as sulfur dioxide and greenhouse gas. In this system, a limited"
+    },
+    {
+     "title": "Is reaching net zero a growth and prosperity plan? Economics, tools and actions for a rapidly changing world",
+     "url": "https://doi.org/10.33774/coe-2025-bfmg5",
+     "date": "2025-01-17",
+     "snippet": "Drawing on the latest evidence from a range of disciplines, this joint University of Cambridge and London School of Economics and Political Science (LSE) policy report aims to assist decision-makers i"
+    }
+   ],
+   "score": 0,
+   "note": "Climate/economics papers; nothing on ISAs.",
+   "answer": null
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 1.04,
+   "n_results": 5,
+   "total_count": 63,
+   "chars": 73378,
+   "top": [
+    {
+     "title": "Development of a real-time aided inertia navigation system for an underwater robotic vehicle",
+     "url": "https://doi.org/10.32657/10356/6166",
+     "date": "2005-01-01",
+     "snippet": "Underwater robotic vehicles (URV) have a practical significance in the offshore engineering field, especially in underwater environment surveying, man-made structure inspection, and pipe and cable lay"
+    },
+    {
+     "title": "Visual guidance technology of flying cars based on multilevel markers and depth",
+     "url": "https://doi.org/10.21203/rs.3.rs-3729393/v1",
+     "date": "2023-12-12",
+     "snippet": "Abstract Split-type flying car will play an important role in the future transportation. This paper adopts a guidance method that couples visual information and depth information, and improves the doc"
+    },
+    {
+     "title": "Development and Validation of a Smart Hallway for Human Stride Analysis Using Marker-Less 3D Depth Sensors",
+     "url": "https://doi.org/10.20381/ruor-24499",
+     "date": "2020-03-19",
+     "snippet": "Human stride analysis is a viable tool for identifying mobility changes, classifying abnormal gait, estimating fall risk, monitoring progression of rehabilitation programs, and indicating progression "
+    }
+   ],
+   "score": 0,
+   "note": "Irrelevant engineering papers.",
+   "answer": null
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 1.04,
+   "n_results": 1,
+   "total_count": 1,
+   "chars": 15353,
+   "top": [
+    {
+     "title": "Research and technology for increasing the efficiency and output of lamb production systems",
+     "url": "https://doi.org/10.5962/bhl.title.63001",
+     "date": "1987-01-01",
+     "snippet": "and Beef Cattle Nutrition Program, for their contributions to the section on Ruminant Digestion and Trace Mineral Research and Appendix E.The authors also acknowledge the valuable support and contribu"
+    }
+   ],
+   "score": 0,
+   "note": "One irrelevant 1987 agriculture report.",
+   "answer": null
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 0.83,
+   "n_results": 5,
+   "total_count": 77,
+   "chars": 147632,
+   "top": [
+    {
+     "title": "Exa-Dune—Flexible PDE Solvers, Numerical Methods and Applications",
+     "url": "https://doi.org/10.1007/978-3-030-47956-5_9",
+     "date": "2020-01-01",
+     "snippet": "In the Exa-Dune project we have developed, implemented and optimised numerical algorithms and software for the scalable solution of partial differential equations (PDEs) on future exascale systems exh"
+    },
+    {
+     "title": "Exa-Dune -- Flexible PDE Solvers, Numerical Methods and Applications",
+     "url": "https://doi.org/10.48550/arxiv.1911.01492",
+     "date": "2019-11-04",
+     "snippet": "In the Exa-Dune project we have developed, implemented and optimised numerical algorithms and software for the scalable solution of partial differential equations (PDEs) on future exascale systems exh"
+    },
+    {
+     "title": "The NASA Exoplanet Archive and Exoplanet Follow-up Observing Program: Data, Tools, and Usage",
+     "url": "https://doi.org/10.3847/psj/ade3c2",
+     "date": "2025-08-01",
+     "snippet": "Abstract The NASA Exoplanet Archive (NEA) and the Exoplanet Follow-up Observing Program service are two widely used resources for the exoplanet community. The NEA provides a complete and accurate acco"
+    }
+   ],
+   "score": 0,
+   "note": "Matches \"Exa\" to exascale/exoplanet papers; no pricing.",
+   "answer": null
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 0.93,
+   "n_results": 5,
+   "total_count": 23,
+   "chars": 78466,
+   "top": [
+    {
+     "title": "GitIt: An Interactive Online Platform for Teaching Command Line Based Skills Through Visualizations",
+     "url": "https://hdl.handle.net/10919/135026",
+     "date": "2025-06-03",
+     "snippet": "We developed Gitit, the infrastructure to teach command line and version control skills which are essential for academia and industry. The tool provides an accessible, engaging experience that support"
+    },
+    {
+     "title": "DocShare: Development and Evaluation of a Secure Full-Stack Document Sharing Application",
+     "url": "http://www.theseus.fi/handle/10024/922109",
+     "date": "2026-01-01",
+     "snippet": "Secure document sharing is a common need in modern organizations, yet many available solutions raise concerns about data privacy, compliance, and control. Small teams and privacy-conscious users often"
+    },
+    {
+     "title": "A platform for touristic visualisation",
+     "url": "http://hdl.handle.net/10400.13/7783",
+     "date": "2026-02-26",
+     "snippet": "In modern data analytics, visualisation platforms play a vital role in transforming raw data into useful insights. With the vast amount of data available online, these platforms make it easier to extr"
+    }
+   ],
+   "score": 0,
+   "note": "Irrelevant software papers.",
+   "answer": null
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 1.12,
+   "n_results": 5,
+   "total_count": 239,
+   "chars": 104872,
+   "top": [
+    {
+     "title": "Warmy Io Coupon Code \"AVA20\" Get 20% Off On All Plans",
+     "url": "https://doi.org/10.5281/zenodo.17791020",
+     "date": "2025-12-02",
+     "snippet": "Warmy Io Coupon Code \"AVA20\" – Get 20% Off on All Plans (Ultimate Guide 2025) Are you searching for a verified Warmy Io coupon code to instantly save money on your next purchase? Look no further. With"
+    },
+    {
+     "title": "One Email, Many Faces: A Deep Dive into Identity Confusion in Email Aliases",
+     "url": "https://doi.org/10.14722/ndss.2026.230148",
+     "date": "2026-01-01",
+     "snippet": "Email addresses serve as a universal identifier for online account management, however, their aliasing mechanisms introduce significant identity confusion between email providers and external platform"
+    },
+    {
+     "title": "Weak Links in Authentication Chains: A Large-scale Analysis of Email Sender Spoofing Attacks",
+     "url": "https://doi.org/10.48550/arxiv.2011.08420",
+     "date": "2020-11-17",
+     "snippet": "As a fundamental communicative service, email is playing an important role in both individual and corporate communications, which also makes it one of the most frequently attack vectors. An email's au"
+    }
+   ],
+   "score": 0,
+   "note": "Top hit is a Zenodo coupon-code spam page; others are email-security research. Spam flag.",
+   "answer": null
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 0.92,
+   "n_results": 5,
+   "total_count": 12,
+   "chars": 67530,
+   "top": [
+    {
+     "title": "Mummy influencers and professional sharenting",
+     "url": "https://doi.org/10.1177/13675494211004593",
+     "date": "2021-04-03",
+     "snippet": "Sharenting (sharing parenting on social media) has become a widespread activity, and some of those parents become family influencers. Female influencers have been on the rise, partly as an alternative"
+    },
+    {
+     "title": "Subliminal Advertising Techniques",
+     "url": "http://hdl.handle.net/2346/23068",
+     "date": "1989-07-01",
+     "snippet": ""
+    },
+    {
+     "title": "The Simultaneous Book: Women's Writing in Contemporary Art",
+     "url": "https://ir.lib.uwo.ca/etd/6793",
+     "date": "2019-01-01",
+     "snippet": "Novels written by women authors who don’t adhere to the classification “visual artist” are nonetheless gaining momentum in today's contemporary art world. Yet works by authors such as Chris Kraus or C"
+    }
+   ],
+   "score": 0,
+   "note": "Irrelevant humanities papers.",
+   "answer": null
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 2.78,
+   "n_results": 5,
+   "total_count": 49263,
+   "chars": 83191,
+   "top": [
+    {
+     "title": "Community Motivation and Learning to Pay the National Health Insurance Contribution",
+     "url": "https://doi.org/10.3923/ajsr.2018.276.286",
+     "date": "2018-03-15",
+     "snippet": "Background and Objective:The implementation of national health insurance in Indonesia is still very new and vulnerable to various problems.Investigating community motivation and learning towards natio"
+    },
+    {
+     "title": "Self Employed People and National Insurance Contributions",
+     "url": "https://eprints.whiterose.ac.uk/id/eprint/73398/1/Document.pdf",
+     "date": "1998-06-01",
+     "snippet": "To explore knowledge and understanding among self-employed people of the Class 2 NICS scheme, including liabilities for payments, associated entitlements to contributory pensions and benefits, and vie"
+    },
+    {
+     "title": "Willingness to Pay for Social Health Insurance in Central Vietnam",
+     "url": "https://doi.org/10.3389/fpubh.2017.00089",
+     "date": "2017-04-25",
+     "snippet": "Background A social health insurance (SHI) program was implemented in Vietnam in 1992. Participation is compulsory for some groups, such as formal-sector workers, and voluntary for other groups. In 20"
+    }
+   ],
+   "score": 1,
+   "note": "One 1998 UK study on Class 2 NICs (White Rose eprints) - topical but outdated and not a how-to.",
+   "answer": null
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 2.12,
+   "n_results": 5,
+   "total_count": 27,
+   "chars": 61831,
+   "top": [
+    {
+     "title": "Teacher Feedback Tools",
+     "url": "https://doi.org/10.1007/978-3-031-36033-6_12",
+     "date": "2023-01-01",
+     "snippet": "Abstract Before digital technology, students submitted handwritten or typed papers to their instructor, who responded with handwritten marginal and end comments, often with the infamous “red pen” (Duk"
+    },
+    {
+     "title": "An ethnographic case study of young children's experiences of technology use at home and school",
+     "url": "https://etheses.durham.ac.uk/id/eprint/11151/1/phd_thesis.pdf",
+     "date": "2015-01-01",
+     "snippet": "This is an exploratory case study describing the context and content of young children’s technology activities. The study approach is based on ethnographic techniques so as to explore children’s learn"
+    },
+    {
+     "title": "Re-imaging the UI for metadata entry & media production",
+     "url": "https://koara.lib.keio.ac.jp/xoonips/modules/xoonips/detail.php?koara_id=KO40001001-00002013-0274",
+     "date": "2013-01-01",
+     "snippet": "Digital technology allows a great amount of content creation but people usually get burdened with the curation and organization of content.Research shows that tagging content allows for better content"
+    }
+   ],
+   "score": 0,
+   "note": "Irrelevant education/tech papers.",
+   "answer": null
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 1.4,
+   "n_results": 0,
+   "total_count": 0,
+   "chars": 250,
+   "top": [],
+   "score": 0,
+   "note": "Zero results.",
+   "answer": null
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 1.12,
+   "n_results": 4,
+   "total_count": 4,
+   "chars": 63116,
+   "top": [
+    {
+     "title": "KOA: An AI-Integrated Productivity Intelligence Platform for Coding Skill Development and Real-Time Performance Analytics",
+     "url": "https://doi.org/10.48175/ijarsct-30631",
+     "date": "2025-12-29",
+     "snippet": "The exponential growth in online coding education has created a significant gap between theoretical learning and practical productivity measurement. Traditional coding learning platforms lack comprehe"
+    },
+    {
+     "title": "AI Caretaker: An Intelligent Voice-Activated Support System for Dementia Care",
+     "url": "https://doi.org/10.7759/cureus.115149",
+     "date": "2026-08-25",
+     "snippet": "Introduction Dementia care frequently requires continuous supervision, a demand that becomes difficult to meet when caregivers must balance outside responsibilities, particularly in home-based care, w"
+    },
+    {
+     "title": "Business plan enuimo",
+     "url": "http://hdl.handle.net/10362/203351",
+     "date": "2025-12-16",
+     "snippet": "Enuimo is a gamified mobile app that turns children’s real‑world movement into care for a virtual avatar, helping kids aged 6–12 build healthy activity habits while enjoying screen time instead of add"
+    }
+   ],
+   "score": 0,
+   "note": "Unrelated app papers.",
+   "answer": null
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 0.97,
+   "n_results": 5,
+   "total_count": 7057,
+   "chars": 99510,
+   "top": [
+    {
+     "title": "Energy-Efficient Networking Solutions in Cloud-Based Environments",
+     "url": "https://doi.org/10.1145/2764464",
+     "date": "2015-05-26",
+     "snippet": "The energy consumed by data centers hosting cloud services is increasing enormously. This brings the need to reduce energy consumption of different components in data centers. In this work, we focus o"
+    },
+    {
+     "title": "Claude Code Complete User Handbook",
+     "url": "https://doi.org/10.48550/arxiv.2608.26742",
+     "date": "2026-08-27",
+     "snippet": "Claude Code is an agentic work environment: a language model operating in a loop with filesystem access, shell execution, browser control, scheduled and cloud execution, external tool connections thro"
+    },
+    {
+     "title": "Code Generation by Large Language Models: A Comparative Analysis of ChatGPT, Claude, and DeepSeek",
+     "url": "https://doi.org/10.18178/ijeetc.15.1.19-28",
+     "date": "2026-01-01",
+     "snippet": "As generative Artificial Intelligence (AI) models become increasingly integrated into software development workflows, understanding their efficiency and code quality is critical. This study offers a c"
+    }
+   ],
+   "score": 1,
+   "note": "#2 is an arXiv \"Claude Code Complete User Handbook\" (Aug 2026) - loosely related, not the official docs.",
+   "answer": null
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 1.03,
+   "n_results": 5,
+   "total_count": 1577,
+   "chars": 85383,
+   "top": [
+    {
+     "title": "Guidelines for auditory interface design : an empirical investigation",
+     "url": "https://dspace.lboro.ac.uk/2134/27100",
+     "date": "1996-01-01",
+     "snippet": "A Doctoral Thesis. Submitted in partial fulfilment of the requirements for the award of Doctor of Philosophy at Loughborough University."
+    },
+    {
+     "title": "Interface Realisms: The Interface as Aesthetic Form",
+     "url": "https://doi.org/10.1353/pmc.2005.0013",
+     "date": "2005-01-01",
+     "snippet": "Udgivelsesdato: January"
+    },
+    {
+     "title": "Imaginary interfaces",
+     "url": "https://doi.org/10.1145/1866029.1866033",
+     "date": "2010-10-03",
+     "snippet": "Screen-less wearable devices allow for the smallest form factor and thus the maximum mobility. However, current screen-less devices only support buttons and gestures. Pointing is not supported because"
+    }
+   ],
+   "score": 0,
+   "note": "Old HCI papers on interfaces; nothing on Liquid Glass.",
+   "answer": null
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 0.88,
+   "n_results": 5,
+   "total_count": 9,
+   "chars": 73982,
+   "top": [
+    {
+     "title": "Agentic Forecasting with Structured Linguistic Beliefs",
+     "url": "https://doi.org/10.48550/arxiv.2604.18576",
+     "date": "2026-04-20",
+     "snippet": "We propose the Bayesian Linguistic Forecaster (BLF), which is a search-based ReAct style agent for (binary) forecasting that augments its context with a linguistic 'belief state', consisting of a prob"
+    },
+    {
+     "title": "Architecture for Open Deep Search Systems in Intelligent Knowledge Discovery Platforms",
+     "url": "https://doi.org/10.14293/pr2199.003131.v1",
+     "date": "2026-03-09",
+     "snippet": "The exponential growth of digital information has created an urgent need for intelligent systems capable of navigating complex knowledge landscapes, yet the most advanced deep search capabilities rema"
+    },
+    {
+     "title": "Prism-Reranker: Beyond Relevance Scoring -- Jointly Producing Contributions and Evidence for Agentic Retrieval",
+     "url": "https://doi.org/10.48550/arxiv.2604.23734",
+     "date": "2026-04-26",
+     "snippet": "Modern retrieval pipelines increasingly serve downstream consumers like retrieval-augmented generation (RAG) and autonomous agents that need more than a scalar relevance score. A reranker that only te"
+    }
+   ],
+   "score": 1,
+   "note": "2026 arXiv papers on agentic search/reranking; no Exa/Parallel/Tavily comparison.",
+   "answer": null
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 0.79,
+   "n_results": 5,
+   "total_count": 31,
+   "chars": 87500,
+   "top": [
+    {
+     "title": "Model Context Protocol (MCP) Tool Descriptions Are Smelly! Towards Improving AI Agent Efficiency with Augmented MCP Tool Descriptions",
+     "url": "https://doi.org/10.48550/arxiv.2602.14878",
+     "date": "2026-02-16",
+     "snippet": "The Model Context Protocol (MCP) introduces a standard specification that defines how Foundation Model (FM)-based agents should interact with external systems by invoking tools. However, to understand"
+    },
+    {
+     "title": "SkCC: Portable and Secure Skill Compilation for Cross-Framework LLM Agents",
+     "url": "https://doi.org/10.48550/arxiv.2605.03353",
+     "date": "2026-05-05",
+     "snippet": "LLM agents increasingly rely on reusable skills (e.g., SKILL markdown files) to execute complex tasks, yet these artifacts lack portability: agent frameworks are highly sensitive to prompt formatting,"
+    },
+    {
+     "title": "Beyond Domains: Reusing Web Skills via Transferable Interaction Patterns",
+     "url": "https://doi.org/10.48550/arxiv.2606.17645",
+     "date": "2026-06-16",
+     "snippet": "Large language model (LLM) web agents are usually deployed as tool callers: each turn, the model reads a fresh page observation and emits one structured tool action. When every action is a low-level p"
+    }
+   ],
+   "score": 1,
+   "note": "2026 arXiv papers on MCP tool descriptions and agent skills - on topic academically, but no Reddit discussion.",
+   "answer": null
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 1.91,
+   "n_results": 5,
+   "total_count": 3482,
+   "chars": 82962,
+   "top": [
+    {
+     "title": "Job matching in the Uk and Europe",
+     "url": "http://dera.ioe.ac.uk/7125/1/research-report-25-job-matching-in-the-uk-and-europe.pdf",
+     "date": "2007-01-01",
+     "snippet": ""
+    },
+    {
+     "title": "DEVELOPING STRATEGIES FOR JUNIOR DESIGNERS TO MANAGE THEIR DESIGN AND EMOTIONS",
+     "url": "https://doi.org/10.62476/ndi.8105",
+     "date": "2024-04-06",
+     "snippet": "Junior designers may encounter difficulties when considering customers from a distinct generation who possess dissimilar physical and physiological requirements compared to their own. The understandin"
+    },
+    {
+     "title": "DO BETTER SKETCHERS BECOME BETTER PRODUCT DESIGNERS?",
+     "url": "https://doi.org/10.21278/idc.2018.0113",
+     "date": "2018-01-01",
+     "snippet": "The importance and value of sketching as part of the creative design process has already been extensively argued. Not only the act of sketching and the number of sketches made have a positive effect o"
+    }
+   ],
+   "score": 0,
+   "note": "Labour-market and design-education papers; no jobs.",
+   "answer": null
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 1.27,
+   "n_results": 5,
+   "total_count": 438,
+   "chars": 80732,
+   "top": [
+    {
+     "title": "FigmaTrace: Capturing Creative Nuances in Human Figma Design Workflows",
+     "url": "https://doi.org/10.48550/arxiv.2608.21460",
+     "date": "2026-08-20",
+     "snippet": "Vision Language Models have recently shown improvements in several objective and verifiable domains such as object detection but continue to underperform on subjective and creative design tasks. A maj"
+    },
+    {
+     "title": "DEVELOPMENT AND USABILITY EVALUATION OF A MOBILE-BASED EDUCATIONAL SYSTEM PROTOTYPE USING FIGMA",
+     "url": "https://ejournal.amdatech.com/index.php/DigitalFrontier/article/view/4",
+     "date": "2025-06-30",
+     "snippet": "The rapid development of digital technology has revolutionized the education sector, emphasizing the need for easily accessible and user-friendly learning platforms. This research focuses on developin"
+    },
+    {
+     "title": "Bridging Web and Figma: Automating Large-Scale UI Dataset Generation for AI-Enhanced Design",
+     "url": "https://doi.org/10.1145/3731406.3734974",
+     "date": "2025-06-20",
+     "snippet": "Large-scale User Interface (UI) data is essential for developing Artificial Intelligence (AI)-driven tools that can support designers in creating interfaces. However, many publicly available datasets "
+    }
+   ],
+   "score": 0,
+   "note": "Figma-related research (FigmaTrace, web-to-Figma datasets); does not name Figma Sites/Framer etc.",
+   "answer": null
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 1.14,
+   "n_results": 5,
+   "total_count": 55913,
+   "chars": 97966,
+   "top": [
+    {
+     "title": "The Checklist App That Doesn't Exist",
+     "url": "https://doi.org/10.5281/zenodo.20764291",
+     "date": "2026-06-19",
+     "snippet": "Episode summary: Daniel asked a deceptively simple question: is there an app for recurring checklists and SOPs that isn't built for enterprise teams? The answer reveals a surprising gap in the softwar"
+    },
+    {
+     "title": "Apps as Artefacts: Towards a Critical Perspective on Mobile Health and Medical Apps",
+     "url": "https://doi.org/10.3390/soc4040606",
+     "date": "2014-10-29",
+     "snippet": "Although over 100,000 health and medical mobile apps have been placed on the market, few critical social analyses have been yet undertaken of the role of these apps in healthcare, preventive health an"
+    },
+    {
+     "title": "Exploring Personal Data Processing in Video Conferencing Apps",
+     "url": "https://doi.org/10.3390/electronics12051247",
+     "date": "2023-03-05",
+     "snippet": "The use of video conferencing applications has increased tremendously in recent years, particularly due to the COVID-19 pandemic and the associated restrictions on movements. As a result, the correspo"
+    }
+   ],
+   "score": 0,
+   "note": "Zenodo podcast summary and mobile-health papers; no note app recommendations.",
+   "answer": null
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 0.91,
+   "n_results": 0,
+   "total_count": 0,
+   "chars": 250,
+   "top": [],
+   "score": 0,
+   "note": "Zero results (no fuzzy/stemmed match on trimesh/quadmesh).",
+   "answer": null
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 0.96,
+   "n_results": 0,
+   "total_count": 0,
+   "chars": 250,
+   "top": [],
+   "score": 0,
+   "note": "Zero results; no typo tolerance.",
+   "answer": null
+  }
+ ],
+ "extras": [
+  {
+   "query_used": "retrieval augmented generation web search agents evaluation",
+   "ok": true,
+   "latency_s": 0.94,
+   "n_results": 5,
+   "total_count": 33140,
+   "chars": 86662,
+   "top": [
+    {
+     "title": "Evaluation of Retrieval-Augmented Generation: A Survey",
+     "url": "https://doi.org/10.1007/978-981-96-1024-2_8",
+     "date": "2025-01-01",
+     "snippet": "",
+     "cited_by": 172
+    },
+    {
+     "title": "Active Retrieval Augmented Generation",
+     "url": "https://doi.org/10.18653/v1/2023.emnlp-main.495",
+     "date": "2023-01-01",
+     "snippet": "Zhengbao Jiang, Frank Xu, Luyu Gao, Zhiqing Sun, Qian Liu, Jane Dwivedi-Yu, Yiming Yang, Jamie Callan, Graham Neubig. Proceedings of the 2023 Conference on Empirical Methods in Natural Language Proces",
+     "cited_by": 459
+    },
+    {
+     "title": "Benchmarking Retrieval-Augmented Generation for Medicine",
+     "url": "https://doi.org/10.18653/v1/2024.findings-acl.372",
+     "date": "2024-01-01",
+     "snippet": "While large language models (LLMs) have achieved state-of-the-art performance on a wide range of medical question answering (QA) tasks, they still face challenges with hallucinations and outdated know",
+     "cited_by": 276
+    },
+    {
+     "title": "WeKnow-RAG: An Adaptive Approach for Retrieval-Augmented Generation Integrating Web Search and Knowledge Graphs",
+     "url": "https://doi.org/10.48550/arxiv.2408.07611",
+     "date": "2024-08-14",
+     "snippet": "Large Language Models (LLMs) have greatly contributed to the development of adaptive intelligent agents and are positioned as an important way to achieve Artificial General Intelligence (AGI). However",
+     "cited_by": 7
+    },
+    {
+     "title": "Retrieval-Augmented Generation (RAG)",
+     "url": "https://doi.org/10.1007/s12599-025-00945-3",
+     "date": "2025-06-01",
+     "snippet": "The necessity for information is a fundamental aspect of human nature, and as such, there are ongoing efforts to enhance information retrieval with information systems (Alavi and Leidner 2001 ; Alavi ",
+     "cited_by": 82
+    }
+   ],
+   "score": 3,
+   "note": "Fair academic query: all 5 results on-topic, well-cited peer-reviewed/arXiv RAG papers (RAG evaluation survey 172 cites, Active RAG EMNLP 2023 459 cites, medical RAG benchmark ACL 2024 276 cites, WeKnow-RAG web-search+KG). Relevance-ranked, not recency-ranked."
+  }
+ ],
+ "stats": {
+  "success_rate": 1.0,
+  "mean_latency": 1.26,
+  "median_latency": 1.04,
+  "mean_chars": 69041,
+  "mean_score": 0.2,
+  "zero_result_queries": [
+   10,
+   19,
+   20
+  ]
+ }
+}

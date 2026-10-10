@@ -1,0 +1,646 @@
+{
+ "toolkit": "duckduckgo",
+ "tool_slugs": [
+  "COMPOSIO_SEARCH_DUCK_DUCK_GO"
+ ],
+ "settings": {
+  "query": "as given",
+  "start": "default (0)",
+  "region": "no region parameter available"
+ },
+ "cost_info": "No cost information in description or response. Composio-hosted; no per-call cost visible.",
+ "stats": {
+  "success": "20/20",
+  "mean_latency_s": 2.13,
+  "median_latency_s": 2.12,
+  "min_latency_s": 1.43,
+  "max_latency_s": 2.76,
+  "mean_score": 2.6,
+  "mean_chars": 6188,
+  "mean_n_results": 10.9,
+  "retries": 0
+ },
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 2.15,
+   "n_results": 11,
+   "chars": 5726,
+   "top": [
+    {
+     "title": "ISA reform 2027: anti-circumvention rules factsheet - GOV.UK",
+     "url": "https://www.gov.uk/government/publications/fiscal-events-2026-factsheets/isa-reform-2027-anti-circumvention-rules-factsheet",
+     "date": "Jun 23, 2026",
+     "snippet": "At Autumn Budget 2025, it was announced that from April 2027, the Cash ISA allowance would be reduced to £12,000 while the limit for Stocks and Shares and Innovative Finances ISA ("
+    },
+    {
+     "title": "ISA Allowance 2026/27 — Limits, Rules & the 2027 Cash ISA Change",
+     "url": "https://uktax.tools/isa-allowance/",
+     "date": "Aug 6, 2026",
+     "snippet": "ISA allowance for 2026-27: £20,000 overall limit, LISA and Junior ISA caps, how many ISAs you can open, and the April 2027 cash ISA change explained."
+    },
+    {
+     "title": "2027 Cash ISA Allowance Changes - YBS",
+     "url": "https://www.ybs.co.uk/savings/guides/2027-changes-to-the-cash-isa-limit",
+     "date": null,
+     "snippet": "Changes to the Cash ISA allowance due to arrive in 2027 were announced in the Autumn budget 2025. Find out what is set to happen here."
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "GOV.UK factsheet (Jun 2026) top, plus YBS; dated."
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 1.69,
+   "n_results": 11,
+   "chars": 6433,
+   "top": [
+    {
+     "title": "Amazon.com: USB C RIGHT ANGLE CABLE",
+     "url": "https://www.amazon.com/USB-C-RIGHT-ANGLE-CABLE/s?k=USB+C+RIGHT+ANGLE+CABLE",
+     "date": null,
+     "snippet": "SUNGUY Right Angle USB C Cable 2Pack 3.3FT, 60W Fast Charging Type C Cord Braided 90 Degree USB C to USB C Data Cable for iPhone 17/16/15 Pro Max, Tesla Model Y, MacBook, iPad, Sam"
+    },
+    {
+     "title": "chenyang USB C Flat Cable USB 2.0 Male to USB C Male 90 Degree Right ...",
+     "url": "https://www.amazon.com/chenyang-Cable-Ribbon-Extension-Adapter/dp/B0CR198C55",
+     "date": null,
+     "snippet": "Buy chenyang USB C Flat Cable USB 2.0 Male to USB C Male 90 Degree Right Angled Data Transfer Charging Ribbon Flex Extension Cable Adapter 0.2M: USB Cables - Amazon.com FREE DELIVE"
+    },
+    {
+     "title": "Quyaojz Right Angle USB C Extension Cable 0.2M,90 Degree 10Gbps Type C ...",
+     "url": "https://www.walmart.com/ip/Quyaojz-Right-Angle-USB-C-Extension-Cable-0-2M-90-Degree-10Gbps-Type-C-3-1-3-2-Gen2-Female-Male-Extender-Short-Cord-L-Shape-Thunderbolt-3-Lead-iPhone/19974159095",
+     "date": null,
+     "snippet": "This USB‑C charging cable features a high-quality copper core for stable, efficient charging and fast data transfer. It also includes multiple safety protections against overheatin"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Amazon.com search page, Amazon.com flat USB-A cable, Walmart 0.2 m right-angle USB-C extension; all US, no UK."
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 1.89,
+   "n_results": 11,
+   "chars": 6413,
+   "top": [
+    {
+     "title": "Dettol Ingredients Transparency | Dettol UK",
+     "url": "https://www.dettol.co.uk/purpose/ingredient-transparency/",
+     "date": null,
+     "snippet": "Ever wondered what Dettol is made of, read the back of the pack and still had no idea what Dettols ingredients are? Well, this one's for you!"
+    },
+    {
+     "title": "Dettol Ingredients Transparency",
+     "url": "https://www.dettol.pk/purpose/ingredient-transparency/",
+     "date": null,
+     "snippet": "Composed of essential oils or partly synthetic ingredients - our fragrances do not disappoint. Kind moisturisers For our personal care products, moisturisers are used to protect, h"
+    },
+    {
+     "title": "Dettol Protect 24 Hour Multipurpose Cleaning Spray Citrus ... - Woolworths",
+     "url": "https://www.woolworths.com.au/shop/productdetails/309814/dettol-protect-24-hour-multipurpose-cleaning-spray-citrus-burst",
+     "date": null,
+     "snippet": "Dettol Protect 24 Multipurpose Cleaner Citrus Burst Surface Spray Disinfectant keeps killing 99.9% of germs/bacteria* on your surfaces for 24 hours^, cuts through grease and grime,"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Generic Dettol UK ingredient-transparency page, Dettol Pakistan, Woolworths AU Protect 24 Hour listing."
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 2.29,
+   "n_results": 11,
+   "chars": 6383,
+   "top": [
+    {
+     "title": "Exa API Pricing | Pay-as-You-Go Plans for AI Search",
+     "url": "https://exa.ai/pricing",
+     "date": null,
+     "snippet": "Exa API pricing: pay-as-you-go plans for AI web search, deep research, and Websets. Free tier and enterprise pricing available. Try our API for free."
+    },
+    {
+     "title": "Exa Pricing 2026: API Cost per 1,000 Requests and Free Tier",
+     "url": "https://keirolabs.cloud/blog/exa-api-pricing-2026",
+     "date": "Sep 23, 2026",
+     "snippet": "Exa's search API costs $7 per 1,000 requests in 2026, and the base price includes 10 results. Every result past 10 adds $1 per 1,000, so a 30-result search bills $27 per 1,000."
+    },
+    {
+     "title": "Exa Pricing in 2026: What 100,000 Searches Cost, and When fastCRW Is ...",
+     "url": "https://fastcrw.com/blog/exa-pricing-explained",
+     "date": "Jul 21, 2026",
+     "snippet": "Every Exa number here comes from their live pricing page, docs, or changelog as seen on 2026-07-21, and where their model is a good deal we say so. The short version Exa's base rat"
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "exa.ai/pricing top, plus 2026-dated explainers quoting $7 per 1k."
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 1.9,
+   "n_results": 11,
+   "chars": 5982,
+   "top": [
+    {
+     "title": "How to add and manage environment variables on Vercel",
+     "url": "https://vercel.com/kb/guide/how-to-add-vercel-environment-variables",
+     "date": "Jul 27, 2026",
+     "snippet": "Add environment variables to Vercel through the dashboard, CLI, or REST API, scope them to each environment, and pull them into local development."
+    },
+    {
+     "title": "Environment variables - Vercel",
+     "url": "https://vercel.com/docs/environment-variables",
+     "date": "Sep 17, 2026",
+     "snippet": "Environment variables for local development are defined in the .env.local file. This is a plain text file that contains key=value pairs of environment variables, that you can manua"
+    },
+    {
+     "title": "Vercel Environment Variables: Dashboard, CLI & Edge - env.dev",
+     "url": "https://env.dev/guides/vercel-env-variables",
+     "date": "Jun 5, 2026",
+     "snippet": "How to configure environment variables on Vercel: the dashboard, CLI (vercel env pull), system variables, per-env settings, and Edge function access."
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Vercel KB guide and Vercel docs, dated 2026."
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 2.58,
+   "n_results": 11,
+   "chars": 5978,
+   "top": [
+    {
+     "title": "Use Custom Email Domain with iCloud Mail - Apple Support",
+     "url": "https://support.apple.com/en-us/102540",
+     "date": "Sep 30, 2026",
+     "snippet": "When you subscribe to iCloud+, you can use a custom domain name that you already own to personalize your iCloud email address, or you can purchase a new domain."
+    },
+    {
+     "title": "Set up a custom email domain for iCloud Mail on all your devices",
+     "url": "https://support.apple.com/guide/icloud/set-up-a-custom-email-domain-mm0e4339d289/icloud",
+     "date": null,
+     "snippet": "Set up a custom email domain for iCloud Mail on all your devices If you or someone in your Family Sharing group has an iCloud+ subscription, you can add a custom email domain you a"
+    },
+    {
+     "title": "How to Set Up a Custom Email Domain with iCloud+",
+     "url": "https://aiemaily.com/blog/icloud-custom-email-domain-setup",
+     "date": "Aug 4, 2026",
+     "snippet": "Set up a custom email domain with iCloud+: the DNS records Apple needs, platform steps, family sharing limits, and what the feature can't do."
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Two Apple Support pages on top (102540 dated Sep 2026)."
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 1.43,
+   "n_results": 11,
+   "chars": 6306,
+   "top": [
+    {
+     "title": "Woolite® Darks Defense | Woolite® | Love your clothes & keep them ...",
+     "url": "https://www.woolite.us/woolitereg-darks-defense/",
+     "date": null,
+     "snippet": "Woolite Darks Defense is a first of its kind formula that keeps your clothes looking like new, even synthetics and blends! It provides fade protection to keep your darks dark."
+    },
+    {
+     "title": "Woolite® Darks Defense",
+     "url": "https://www.woolite.us/woolitereg-products/woolite-darks-defense-40-fl-oz/",
+     "date": null,
+     "snippet": "Woolite® Darks Defense 40 FL. OZ. (1.25 QT.) (1.18L) Woolite Darks Defense is a first of its kind formula that keeps your dark clothes looking like new, even synthetics and blends!"
+    },
+    {
+     "title": "Woolite For Darks Reviews: Worth The Extra Price? - Stain Removal 101",
+     "url": "https://www.stain-removal-101.com/woolite-for-darks.html",
+     "date": null,
+     "snippet": "Woolite for Darks is a detergent specially formulated to wash dark clothing to prevent fading. Read reviews from readers of how it worked, and also some allergy problems it has cau"
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Two woolite.us pages (near duplicate) and a review site."
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 1.79,
+   "n_results": 11,
+   "chars": 6355,
+   "top": [
+    {
+     "title": "Check your National Insurance record - GOV.UK",
+     "url": "https://www.gov.uk/check-national-insurance-record",
+     "date": null,
+     "snippet": "Find out if you've paid enough National Insurance to qualify for the full State Pension - check gaps, contributions and credits, get a National Insurance statement, call the helpli"
+    },
+    {
+     "title": "Voluntary National Insurance: Overview - GOV.UK",
+     "url": "https://www.gov.uk/voluntary-national-insurance-contributions",
+     "date": null,
+     "snippet": "National Insurance contributions you can choose to pay when you have a gap in your National Insurance record."
+    },
+    {
+     "title": "Check Your National Insurance Record for State Pension",
+     "url": "https://uktax.tools/check-national-insurance-record/",
+     "date": "Aug 21, 2026",
+     "snippet": "What can I see in my National Insurance record? The online service shows contributions recorded up to the start of the current tax year, National Insurance credits, non-qualifying "
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Both GOV.UK pages (check record, voluntary NI) in top 2."
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 1.72,
+   "n_results": 11,
+   "chars": 6073,
+   "top": [
+    {
+     "title": "How to Transcribe iPhone Voice Memos to Text: Full Guide",
+     "url": "https://tapescribe.com/blog/how-to-transcribe-iphone-voice-memos-to-text",
+     "date": "Aug 4, 2026",
+     "snippet": "Learn how to transcribe iPhone Voice Memos to text using the built-in iOS transcript, plus how to export M4A files and get timestamped output."
+    },
+    {
+     "title": "How to Transcribe Voice Memos on iPhone: 3 Easy Ways",
+     "url": "https://soundscapehq.com/how-to-transcribe-voice-memo-on-iphone/",
+     "date": "Oct 8, 2026",
+     "snippet": "Learn how to transcribe voice memos on iPhone using built-in iOS features, top-rated third-party apps, and free online tools for fast, accurate text."
+    },
+    {
+     "title": "Instantly transcribe voice messages to text on your iPhone ... - Reddit",
+     "url": "https://www.reddit.com/r/shortcuts/comments/11g4pk2/instantly_transcribe_voice_messages_to_text_on/",
+     "date": null,
+     "snippet": "Existing audio notes (like in whatsapp, Telegram or voice memos) Or by recording a new voice note with the Shortcut directly"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Third-party guides covering the built-in iOS transcript; one r/shortcuts thread. No Apple source."
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 2.29,
+   "n_results": 10,
+   "chars": 5127,
+   "top": [
+    {
+     "title": "How Direct Import Works - support.ynab.com",
+     "url": "https://support.ynab.com/en_us/how-direct-import-works-H1IGYLgnxl",
+     "date": "Jul 2, 2026",
+     "snippet": "Learn how YNAB's Direct Import feature helps automatically link your bank account, import transactions, manage balances, and troubleshoot issues."
+    },
+    {
+     "title": "My bank isn't listed in YNAB - support.ynab.com",
+     "url": "https://support.ynab.com/en_us/my-bank-isnt-listed-HJivlLavle",
+     "date": "Nov 10, 2025",
+     "snippet": "Provides the information you need when your bank isn't listed for direct import in YNAB"
+    },
+    {
+     "title": "Starling Bank to YNAB Sync | BudgetSyncer | BudgetSyncer",
+     "url": "https://budgetsyncer.com/sync/starling-to-ynab",
+     "date": null,
+     "snippet": "Does YNAB support Starling Bank with Direct Import? YNAB Direct Import (Plaid) only covers select banks in United Kingdom — many users still CSV-import from Starling Bank."
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Two official YNAB help pages but snippets do not confirm Starling; third-party BudgetSyncer page claims limited coverage."
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 2.24,
+   "n_results": 11,
+   "chars": 6776,
+   "top": [
+    {
+     "title": "Project Pausing | Supabase Docs",
+     "url": "https://supabase.com/docs/guides/platform/free-project-pausing",
+     "date": null,
+     "snippet": "How automatic pausing works# A Free plan project is considered inactive if it does not receive sufficient user database activity over the past week. Projects with too few user que"
+    },
+    {
+     "title": "GitHub - travisvn/supabase-pause-prevention: Prevent Supabase projects ...",
+     "url": "https://github.com/travisvn/supabase-pause-prevention",
+     "date": null,
+     "snippet": "🛑 Stop Supabase projects from pausing due to inactivity! 🙌 On the free-tier plan, projects that are inactive for more than 7 days are paused."
+    },
+    {
+     "title": "Stop Supabase Free Tier Pausing — Automatic Keep-Alive Fix",
+     "url": "https://runhooks.app/blog/preventing-supabase-free-tier-pausing/",
+     "date": "May 20, 2026",
+     "snippet": "Frequently Asked Questions Why did my Supabase free project pause? Supabase automatically pauses free-tier projects after 7 days of inactivity. Inactivity means no API requests, no"
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Supabase docs Project Pausing top, plus keep-alive GitHub repo."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 2.01,
+   "n_results": 11,
+   "chars": 6781,
+   "top": [
+    {
+     "title": "Configure cloud environments - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/cloud-environments",
+     "date": null,
+     "snippet": "Configure cloud environments for Claude Code cloud sessions: network access levels, environment variables, setup scripts, and environment caching."
+    },
+    {
+     "title": "Cloud environment setup - Claude Platform Docs",
+     "url": "https://platform.claude.com/docs/en/managed-agents/environments",
+     "date": "Apr 1, 2026",
+     "snippet": "A host that you add to allowed_hosts for these tools is also open to the sandbox. unrestricted networking and self-hosted environments do not limit these tools. To restrict them fu"
+    },
+    {
+     "title": "Enterprise network configuration - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/network-config",
+     "date": null,
+     "snippet": "Claude Code supports various enterprise network and security configurations through environment variables. This includes routing traffic through corporate proxy servers, trusting c"
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "code.claude.com cloud-environments top, plus platform and network-config docs."
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 2.22,
+   "n_results": 11,
+   "chars": 6524,
+   "top": [
+    {
+     "title": "Liquid Glass | Apple Developer Documentation",
+     "url": "https://developer.apple.com/documentation/technologyoverviews/liquid-glass",
+     "date": null,
+     "snippet": "The Human Interface Guidelines contains guidance and best practices that can help you design a great experience for any Apple platform. Browse the HIG to discover more about adapti"
+    },
+    {
+     "title": "Apple Human Interface Guidelines — Working Summary",
+     "url": "https://ux.detroit3d.com/design-systems/apple-hig-summary.html",
+     "date": null,
+     "snippet": "Current state (mid-2026): Liquid Glass At WWDC 2025 Apple shipped its biggest visual redesign since iOS 7: Liquid Glass, a dynamic translucent material that refracts and reflects s"
+    },
+    {
+     "title": "Human Interface Guidelines - Liquid Glass Design",
+     "url": "https://liquidglassdesign.com/resources/human-interface-guidelines",
+     "date": "Dec 12, 2025",
+     "snippet": "← Back to resources Human Interface Guidelines The HIG contains guidance and best practices that can help you design a great experience for any Apple platform."
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Apple Developer Liquid Glass page plus two summaries."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 2.01,
+   "n_results": 11,
+   "chars": 6271,
+   "top": [
+    {
+     "title": "OpenAI Web Search vs Parallel vs Exa vs Tavily: Best API",
+     "url": "https://parallel.ai/articles/openai-web-search-vs-parallel-vs-exa-vs-tavily-how-to-choose",
+     "date": "Sep 26, 2026",
+     "snippet": "Compare OpenAI web search, Parallel, Exa, and Tavily on cost, accuracy, freshness, and flexibility to choose the best search API for AI agents."
+    },
+    {
+     "title": "Best AI Search for Agents: 6 APIs Compared (2026) | Parallel",
+     "url": "https://parallel.ai/articles/best-ai-search-for-agents",
+     "date": "Sep 26, 2026",
+     "snippet": "September 26, 2026 Best AI search for agents: 6 web search APIs compared (2026) On BrowseComp, agents scored from 32% to 74% depending on the search API and price tier in our Septe"
+    },
+    {
+     "title": "Exa vs Tavily: Which Search API for Your AI Agent? (2026)",
+     "url": "https://www.apipick.com/blog/exa-vs-tavily-search-api-for-ai-agents",
+     "date": "May 29, 2026",
+     "snippet": "Exa vs Tavily, compared for AI agents in 2026: neural index vs agent-native web access, API shape, pricing math, latency, and when each wins — plus where a pay-as-you-go alternativ"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Directly on topic but two of three are Parallel's own articles (vendor bias); all dated 2026."
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 2.47,
+   "n_results": 11,
+   "chars": 6388,
+   "top": [
+    {
+     "title": "Claude Skills vs MCP Servers: What's the Difference and When to Use ...",
+     "url": "https://agenticskills.io/learn/skills-vs-mcp-servers",
+     "date": null,
+     "snippet": "Learn the key differences between Claude Skills and MCP Servers — when to use skills (knowledge), when to use MCP servers (access), and when to combine both for powerful AI agent w"
+    },
+    {
+     "title": "Claude Skills vs MCP Servers: When to Use Each (2026)",
+     "url": "https://maketocreate.com/claude-skills-vs-mcp-servers-when-to-use-each-2026/",
+     "date": "Jun 23, 2026",
+     "snippet": "Skills are cheap context, MCP is live tooling. A Skill costs roughly 100 tokens idle.A 5-server, 58-tool MCP setup re-injects ~55,000 tokens every conversation turn (MindStudio ben"
+    },
+    {
+     "title": "Claude Code Skills vs MCP Servers — What to Use, How to Install, and ...",
+     "url": "https://dev.to/williamwangai/claude-code-skills-vs-mcp-servers-what-to-use-how-to-install-and-the-best-ones-in-2026-548k",
+     "date": "Apr 10, 2026",
+     "snippet": "Claude Code has two main extension systems: skills (Markdown files) and MCP servers (protocol-based tools). Both make Claude Code more powerful, but they work differently and are b"
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Relevant articles but no Reddit threads in the top 3 despite 'reddit' in the query."
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 2.76,
+   "n_results": 11,
+   "chars": 5447,
+   "top": [
+    {
+     "title": "Junior Product Designer Jobs in London (431 Open Roles) | LinkedIn",
+     "url": "https://uk.linkedin.com/jobs/junior-product-designer-jobs-london",
+     "date": null,
+     "snippet": "Today's top 431 Junior Product Designer jobs in London. Leverage your professional network, and get hired. New Junior Product Designer jobs added daily."
+    },
+    {
+     "title": "672 Junior Product Designer jobs in United Kingdom - LinkedIn",
+     "url": "https://uk.linkedin.com/jobs/junior-product-designer-jobs",
+     "date": null,
+     "snippet": "Today's top 672 Junior Product Designer jobs in United Kingdom. Leverage your professional network, and get hired. New Junior Product Designer jobs added daily."
+    },
+    {
+     "title": "Junior Product Designer Job in London (with Salaries) - Indeed",
+     "url": "https://uk.indeed.com/q-junior-product-designer-l-london-jobs.html?vjk=288f720bed1ef54a",
+     "date": null,
+     "snippet": "Apply to Junior Product Designer jobs now hiring in London on Indeed.com, the worlds largest job site."
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "LinkedIn London, LinkedIn UK, Indeed London listings pages."
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 1.9,
+   "n_results": 11,
+   "chars": 5648,
+   "top": [
+    {
+     "title": "Export Figma to Websites and HTML by Siter.io | Figma",
+     "url": "https://www.figma.com/community/plugin/1014191120140241695/export-figma-to-websites-and-html-by-siter-io",
+     "date": null,
+     "snippet": "Siter.io is a website builder that lets you create and publish entire websites without any coding at all. It works by directly exporting Figma design files without hassle of conver"
+    },
+    {
+     "title": "Free Figma to Website Converter | Turn Designs to Live Websites Instantly",
+     "url": "https://sider.ai/agents/web-creator/free-figma-website-converter",
+     "date": null,
+     "snippet": "Use our free Figma to website converter to turn your designs into clean, responsive HTML or React code. No-code, instant conversion from Figma to a live website."
+    },
+    {
+     "title": "figma.to.website — by ‹div›RIOTS — Make websites from Figma (publish or ...",
+     "url": "https://www.figma.com/community/plugin/1329237288766226289/figma-to-website-by-divriots-make-websites-from-figma-publish-or-export-web-html-css-js",
+     "date": null,
+     "snippet": "Design and publish websites without leaving Figma! No code, no extra tools required. 💬 Need help? 📐 Use all your favorite Figma features, they're supported! AutolayoutComponents an"
+    }
+   ],
+   "answer": null,
+   "score": 2,
+   "note": "Figma plugins (Siter.io, figma.to.website) and sider.ai; does not name Figma Sites/Framer."
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 2.72,
+   "n_results": 11,
+   "chars": 6056,
+   "top": [
+    {
+     "title": "12 Best Free Note-Taking Apps in 2026 (Tested & Compared)",
+     "url": "https://toolradar.com/blog/best-free-note-taking-apps",
+     "date": "Jan 15, 2026",
+     "snippet": "We tested every major free note-taking app. Here are the 12 best in 2026, from Notion and Obsidian to Apple Notes, with honest pros and cons."
+    },
+    {
+     "title": "The 9 best Notion alternatives in 2026 - Zapier",
+     "url": "https://zapier.com/blog/best-notion-alternatives/",
+     "date": "Nov 3, 2025",
+     "snippet": "These alternatives to Notion offer unique takes on the all-in-one workspace app, with that same blank slate feel you get from Notion."
+    },
+    {
+     "title": "Best 7 Notion Alternatives In 2026 | 100+ Personally Tested Tools",
+     "url": "https://thebusinessdive.com/notion-alternatives",
+     "date": "Oct 6, 2026",
+     "snippet": "I spent +500 hours on personal tests and tried +100 apps to find the best Notion alternatives in 2026. In this article, I show the top ones."
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Toolradar, Zapier and a 2026 listicle; dated."
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 2.09,
+   "n_results": 11,
+   "chars": 6898,
+   "top": [
+    {
+     "title": "How to Convert Tris/Triangles to Quads/Squares and Vice Versa in Blender",
+     "url": "https://gachoki.com/how-to-convert-tris-triangles-to-quads-squares-and-vice-versa-on-a-mesh-in-blender/",
+     "date": "Jan 30, 2026",
+     "snippet": "Converting Quads to Tris in Blender Sometimes, you need to convert quads into tris, especially when preparing models for game engines or simulations that require triangulated geome"
+    },
+    {
+     "title": "Triangles to Quads - Blender 5.2 LTS Manual",
+     "url": "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/triangles_quads.html",
+     "date": "Oct 6, 2026",
+     "snippet": "Merges adjacent triangles in the selection into quads. This is essentially the opposite of Triangulate Faces and can be run on a complete mesh in one go. The operator uses angle th"
+    },
+    {
+     "title": "topology - How do I convert a triangle mesh to a quads one? - Blender ...",
+     "url": "https://blender.stackexchange.com/questions/5538/how-do-i-convert-a-triangle-mesh-to-a-quads-one",
+     "date": null,
+     "snippet": "While in Edit Mode, select the parts of your mesh you want to convert and use Alt + J or from the Faces special menu with Ctrl + F > Tris to Quads to convert tris to quads or via t"
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Blog, Blender manual and Blender Stack Exchange."
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 2.39,
+   "n_results": 11,
+   "chars": 6199,
+   "top": [
+    {
+     "title": "Configure cloud environments - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/cloud-environments",
+     "date": null,
+     "snippet": "Configure cloud environments for Claude Code cloud sessions: network access levels, environment variables, setup scripts, and environment caching."
+    },
+    {
+     "title": "Continue local sessions from any device with Remote Control",
+     "url": "https://code.claude.com/docs/en/remote-control",
+     "date": null,
+     "snippet": "Continue a local Claude Code session from your phone, tablet, or any browser using Remote Control. Works with claude.ai/code and the Claude mobile app."
+    },
+    {
+     "title": "[BUG] \"Remote Control environments are not available for your ... - GitHub",
+     "url": "https://github.com/anthropics/claude-code/issues/29449",
+     "date": "Feb 27, 2026",
+     "snippet": "Additional Information After answering y to enable Remote Control, the CLI returns Remote Control environments are not available for your account. claude auth status confirms I am "
+    }
+   ],
+   "answer": null,
+   "score": 3,
+   "note": "Typo handled: Claude Code cloud-environments doc, Remote Control doc and a GitHub issue."
+  }
+ ],
+ "ddg_evidence": "favicon URLs on external-content.duckduckgo.com; date_raw in ISO format (2026-06-23T00:00:00.0000000); usually 11 results per page."
+}
