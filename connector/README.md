@@ -6,7 +6,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 
 | Tool | What Claude gets | Behind it |
 |---|---|---|
-| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set |
+| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set; Apify job-board scrapers added to `jobs` searches when its token is set |
 | `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
@@ -54,6 +54,23 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - **Fallback:** for `fast` searches and for `news`, `jobs` and `x`, Firecrawl runs only when Exa and Parallel return fewer than 3 results. The reply then says so. Never used for `papers`, `people`, `companies` or `financial`, where Exa's structured index is better.
 - Search results only (title, link, Google's short snippet, and the date when the snippet starts with one); no pages are read, so a search costs 2 credits per 10 results. Site filters are passed on, dates become Google's custom date range, and `country` is passed on.
 - A rejected key or empty credit adds a note; the other engines' results still come back.
+
+**Job boards through Apify (optional).** When `APIFY_API_TOKEN` is set, `jobs` searches at standard or thorough depth also run four [Apify](https://apify.com) scrapers side by side, and their adverts are merged in with Exa's:
+
+| Board | Apify scraper | Free-plan price | Notes |
+|---|---|---|---|
+| LinkedIn | [`curious_coder/linkedin-jobs-scraper`](https://apify.com/curious_coder/linkedin-jobs-scraper) | $2 per 1,000 adverts ($1 on paid plans) | Company pages skipped to save time |
+| Indeed | [`valig/indeed-jobs-scraper`](https://apify.com/valig/indeed-jobs-scraper) | $0.10 per 1,000 + $0.001 a run | `GB` is sent as Indeed's `uk` |
+| Glassdoor | [`valig/glassdoor-jobs-scraper`](https://apify.com/valig/glassdoor-jobs-scraper) | $0.40 per 1,000 + $0.001 a run | |
+| Totaljobs | [`blackfalcondata/totaljobs-scraper`](https://apify.com/blackfalcondata/totaljobs-scraper) | $1.39 per 1,000 + $0.01 a run | UK searches only; search-page snippets, not full adverts, to keep it fast |
+
+- **Role and place.** Job boards search by role and place, not by sentence. The place comes from the `location` parameter, or from a trailing "in Manchester" / "near Leeds" in the query; words like "jobs", "roles" and "vacancies" are dropped. With no place, the whole country is searched. `country` defaults to `GB`.
+- **Dates.** The jobs default of the last 30 days (or `after`) becomes each board's "posted within" filter. Indeed only offers 1, 3, 7 or 14 days, so longer windows there mean no limit.
+- **Limits.** Each board returns at most `max_results` adverts. Every run also carries a charge ceiling (`maxTotalChargeUsd`) and a 60-second time limit, so a stuck scraper can't run up a bill or hold the search for long.
+- **Sites.** A `sites` list naming a board (such as `linkedin.com`) runs only that board; `exclude_sites` skips it.
+- **Results.** Each advert shows the board, place, salary when listed, and other details such as applicant numbers or company rating, then the start of the description.
+- **Cost.** Apify doesn't report a run's cost in the reply, so the cost line shows an estimate from the free-plan prices above (an upper bound). A typical search with 8 adverts per board costs about 4 cents.
+- A board that fails or runs out of credit adds a note; the other boards and Exa still answer. These are unofficial scrapers, so a change to a board's site can break one until its maker fixes it.
 
 **Merging.** Results from all engines are combined by rank (reciprocal rank fusion), with duplicates and mirrored copies folded together. Each engine's top result always keeps a place, so one engine's best find isn't crowded out by pages the other two agree on. When two engines return different passages from the same page, the newer copy's passage leads and the other is shown underneath ("Another copy of this page says"), because one engine's stored copy can be out of date.
 

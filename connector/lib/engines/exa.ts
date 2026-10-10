@@ -13,7 +13,7 @@ export interface Hit {
   date?: string;
   author?: string;
   excerpt: string;
-  engine: "exa" | "parallel" | "firecrawl";
+  engine: "exa" | "parallel" | "firecrawl" | "apify";
   // Structured profile data (people, companies, papers), already compact.
   facts?: string;
 }

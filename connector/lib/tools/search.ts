@@ -1,3 +1,4 @@
+import { apifyJobs, apifyKey, boardName, boardsFor } from "../engines/apify.js";
 import { exaSearch, type ExaType, type Hit } from "../engines/exa.js";
 import { firecrawlKey, firecrawlSearch } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
@@ -31,6 +32,9 @@ interface Plan {
   // others at standard and thorough depth; otherwise it is only a fallback
   // when Exa and Parallel come back with too little.
   firecrawl?: { second?: boolean; suffix?: string; include?: string[]; news?: boolean };
+  // Job boards through Apify (only when its key is set), at standard and
+  // thorough depth.
+  boards?: boolean;
   exaWeight: number;
   parallelWeight: number;
   firecrawlWeight?: number;
@@ -100,11 +104,40 @@ const PLANS: Record<SearchType, Plan> = {
   jobs: {
     exa: { prefix: "Job posting on a company careers page or applicant tracking site: ", fresh: true, defaultAfter: "30d" },
     firecrawl: { suffix: " jobs" },
+    boards: true,
     exaWeight: 1,
     parallelWeight: 0,
   },
   financial: { exa: { category: "financial report" }, exaWeight: 1, parallelWeight: 0 },
 };
+
+// Job boards search by role and place, so the place and words about the
+// search itself ("jobs", "roles") are taken out of the query. With no place
+// given, a trailing "in Manchester" or "near Leeds" is used as the place.
+const JOB_WORDS = new Set(
+  "job jobs role roles vacancy vacancies position positions opening openings opportunity opportunities hiring posting postings advert adverts career careers live current latest new open".split(" "),
+);
+
+export function jobQuery(query: string, location?: string): { role: string; location?: string } {
+  let q = query.trim();
+  let place = location?.trim() || undefined;
+  if (!place) {
+    const m = /\s+(?:in|near|around|based in)\s+((?:[A-Z][\p{L}'.-]*)(?:[\s,]+[A-Z][\p{L}'.-]*)*)\s*$/u.exec(q);
+    if (m) {
+      place = m[1].replace(/\s*,\s*/g, ", ");
+      q = q.slice(0, m.index);
+    }
+  } else {
+    for (const part of place.split(/[,;]/).map((p) => p.trim()).filter(Boolean)) {
+      q = q.replace(new RegExp(`\\s*\\b(?:in|near|around)?\\s*${part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi"), " ");
+    }
+  }
+  const words = q
+    .replace(/["“”'‘’()[\]{}?!,;:]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w && !JOB_WORDS.has(w.toLowerCase()));
+  return { role: keywords(words.join(" "), 6) || query, location: place };
+}
 
 // Fewer merged results than this counts as "too little", and Firecrawl is
 // asked as well before the answer goes back.
@@ -122,6 +155,7 @@ export interface SearchInput {
   sites?: string[];
   exclude_sites?: string[];
   country?: string;
+  location?: string;
   max_results?: number;
   fresh?: boolean;
   depth?: Depth;
@@ -221,6 +255,25 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
       });
   const asSecond = Boolean(fc?.second) && depth !== "fast";
   if (asSecond) jobs.push(firecrawlJob());
+
+  // Job boards: each runs its own scraper, so they are slower (up to a
+  // minute) but return live adverts with salary and place.
+  if (plan.boards && depth !== "fast" && (await apifyKey())) {
+    const code = (input.country?.trim() || "GB").toUpperCase();
+    const country = code === "UK" ? "GB" : code;
+    const { role, location } = jobQuery(query, input.location);
+    const days = after ? Math.max(1, Math.round((Date.parse(today()) - Date.parse(after)) / 86_400_000)) : undefined;
+    for (const board of boardsFor(country, sites, excluded)) {
+      jobs.push(
+        apifyJobs(board, { role, location, country, days, limit, maxChars: perResult })
+          .then((hits) => ({ hits, weight: 1 }))
+          .catch((e) => {
+            notes.push(`${boardName(board)} jobs unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
+            return null;
+          }),
+      );
+    }
+  }
 
   type List = { hits: Hit[]; weight: number };
   const keep = (lists: (List | null)[]) =>

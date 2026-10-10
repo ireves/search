@@ -2,18 +2,20 @@
 // can end with its cost. Exa reports its own cost; Parallel's is worked out
 // from its price list (see PARALLEL_PRICES in engines/parallel.ts). Firecrawl
 // is counted in credits, since its plans are a monthly credit allowance.
+// Apify's job-board scrapers are estimated from their price per advert.
 
 import { AsyncLocalStorage } from "node:async_hooks";
 
 export interface Meter {
   exa: number;
   parallel: number;
+  apify: number;
   firecrawlCredits: number;
 }
 
 const current = new AsyncLocalStorage<Meter>();
 
-export function addCost(engine: "exa" | "parallel", dollars: number | null | undefined): void {
+export function addCost(engine: "exa" | "parallel" | "apify", dollars: number | null | undefined): void {
   const meter = current.getStore();
   if (meter && typeof dollars === "number" && Number.isFinite(dollars) && dollars > 0) meter[engine] += dollars;
 }
@@ -24,7 +26,7 @@ export function addCredits(engine: "firecrawl", credits: number): void {
 }
 
 export async function metered<T>(fn: () => Promise<T>): Promise<{ value: T; meter: Meter }> {
-  const meter: Meter = { exa: 0, parallel: 0, firecrawlCredits: 0 };
+  const meter: Meter = { exa: 0, parallel: 0, apify: 0, firecrawlCredits: 0 };
   const value = await current.run(meter, fn);
   return { value, meter };
 }
@@ -34,7 +36,8 @@ export function dollars(n: number): string {
 }
 
 export function costLine(meter: Meter): string {
-  const total = meter.exa + meter.parallel;
+  const total = meter.exa + meter.parallel + meter.apify;
+  const apify = meter.apify ? `, Apify ${dollars(meter.apify)}` : "";
   const credits = meter.firecrawlCredits ? `, Firecrawl ${meter.firecrawlCredits} credit${meter.firecrawlCredits === 1 ? "" : "s"}` : "";
-  return `Search cost of this call: ${dollars(total)} (Exa ${dollars(meter.exa)}, Parallel ${dollars(meter.parallel)}${credits})`;
+  return `Search cost of this call: ${dollars(total)} (Exa ${dollars(meter.exa)}, Parallel ${dollars(meter.parallel)}${apify}${credits})`;
 }
