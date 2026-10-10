@@ -34,6 +34,8 @@ A few habits help with answers that aren't clear-cut:
 
 **Pages that won't load don't hold things up.** A page read gives up after about 30 seconds in total (45 seconds for live prices), instead of trying each reading service in turn for up to two minutes. Claude also only reads links that came from search results, never guessed addresses.
 
+**Research papers and long PDFs.** For specific facts, a worker asks the page a narrow question and gets the matching passages from anywhere in the document. To understand a whole paper (a summary, its methods or limits), a worker reads it in full: up to 60,000 characters at once, which covers most papers. Longer documents are read in parts, each part by its own worker if needed, so no worker runs short of room.
+
 **Where workers run:** in the Claude app wherever Cowork features are available, and in Claude Code. If workers aren't available (for example in a plain chat where Cowork features haven't reached your account yet), Claude does the searches itself, the same way version 1 did. The answer is the same; it just uses more of the main Claude's memory.
 
 **New names:** `/uni-search` (replaces deep-search) and `/better-search` (replaces web-search). In the Claude app they may show as `/search:uni-search` and `/search:better-search`.

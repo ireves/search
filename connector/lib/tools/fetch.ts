@@ -8,6 +8,7 @@ export interface FetchInput {
   urls: string[] | string;
   question?: string;
   max_chars?: number;
+  start?: number;
   fresh?: boolean;
 }
 
@@ -40,9 +41,28 @@ const FRESH_BUDGET_MS = 45_000;
 const MIN_TRY_MS = 2000;
 const TOO_SLOW = "took too long";
 
+// Per page at most this many characters: enough for most whole papers. Longer
+// documents are read in parts with start.
+export const FETCH_PAGE_CHARS = 60_000;
 // All pages in one call together return at most this many characters (about
-// 8,000 tokens), so a reply never floods the helper reading it.
-export const FETCH_TOTAL_CHARS = 30_000;
+// 22,000 tokens), so one reply stays a known share of a helper's memory.
+export const FETCH_TOTAL_CHARS = 80_000;
+// Furthest point start can reach into a document.
+const MAX_START = 500_000;
+
+// The part of a document from start, cut at a sentence end within max
+// characters. next says where the following part begins, when there is more.
+export function windowOf(text: string, start: number, max: number): { content: string; next?: number } {
+  const part = text.slice(start);
+  if (part.length <= max) return { content: part };
+  const room = max - 2; // leaves space for the " …" marker
+  const cut = part.slice(0, room);
+  const stop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf(".\n"), cut.lastIndexOf("\n"));
+  const end = stop > room * 0.6 ? stop + 1 : Math.max(cut.lastIndexOf(" "), Math.floor(room * 0.8));
+  return { content: `${part.slice(0, end).trimEnd()} …`, next: start + end };
+}
+
+const moreNote = (next: number) => `More follows. Read on with start: ${next}, or ask a question to get the relevant passages from anywhere in it.`;
 
 // Short pages that are only a bot check, a block or a login wall.
 const BLOCK_PAGE = /captcha|checking your browser|verify you are human|are you a robot|access denied|log ?in to (a free account|continue)|sign ?in to continue/i;
@@ -83,12 +103,16 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const urls = [...new Set(list.filter((u): u is string => Boolean(u)))].slice(0, 5);
   if (!urls.length) return { text: "Give 1 to 5 web addresses in urls.", isError: true };
   const question = input.question?.trim() || undefined;
-  const asked = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), 20_000);
+  const asked = Math.min(Math.max(Math.round(input.max_chars ?? (question ? 4000 : 6000)), 500), FETCH_PAGE_CHARS);
   const maxChars = Math.min(asked, Math.floor(FETCH_TOTAL_CHARS / urls.length));
+  // start only applies to reading from the top; a question searches the whole document.
+  const start = question ? 0 : Math.min(Math.max(Math.round(input.start ?? 0), 0), MAX_START);
+  // Ask the readers for a little more than needed, to tell whether more follows.
+  const want = start + maxChars + 1000;
   const fresh = Boolean(input.fresh);
   const budget = Number(process.env.FETCH_BUDGET_MS) || (fresh ? FRESH_BUDGET_MS : BUDGET_MS);
-  const start = Date.now();
-  const deadline = start + budget;
+  const began = Date.now();
+  const deadline = began + budget;
   const left = () => deadline - Date.now();
   const minTry = Math.min(MIN_TRY_MS, budget / 10);
 
@@ -102,20 +126,20 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const firecrawlFirst = (await firecrawlKey()) ? others.filter((u) => !FIRECRAWL_SKIP.test(hostOf(u)) && !looksLikePdf(u)) : [];
   const viaFirecrawl = async () => {
     if (!firecrawlFirst.length) return;
-    const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh, start + budget / 2, minTry);
+    const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh, began + budget / 2, minTry);
     if (problem) failures.push(`${problem.friendly} Exa and Parallel read the pages instead.`);
     for (const r of read) {
       if (r.error === TOO_SLOW) slow.add(r.url);
       if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) continue;
-      const content = question ? relevantPassages(r.content, question, maxChars) : truncate(r.content, maxChars);
-      const cut = !question && r.content.length > maxChars;
+      const view = question ? { content: relevantPassages(r.content, question, maxChars) } : windowOf(r.content, start, maxChars);
+      if (!view.content) continue;
       pages.set(r.url, {
         url: r.url,
         title: r.title,
         date: r.date,
         author: r.author,
-        content,
-        note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
+        content: view.content,
+        note: view.next ? moreNote(view.next) : undefined,
       });
     }
   };
@@ -129,10 +153,18 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const viaParallel = async (targets: string[]) => {
     if (!targets.length || tooLate(targets)) return;
     try {
-      const results = await parallelExtract(targets, question ?? "The main content of the page", maxChars, { fresh, timeoutMs: left() });
+      // Reading on from start needs the full text; otherwise the main passages do.
+      const whole = start > 0;
+      const results = await parallelExtract(targets, question ?? "The main content of the page", maxChars, {
+        fresh,
+        timeoutMs: left(),
+        ...(whole ? { full: true, fullChars: want } : {}),
+      });
       for (const r of results) {
-        if (r.ok) pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: r.excerpts });
-        else pages.set(r.url, { url: r.url, content: "", error: r.error });
+        const view = whole && r.full ? windowOf(cleanText(r.full), start, maxChars) : { content: r.ok ? r.excerpts : "" };
+        if (r.ok && view.content) {
+          pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: view.content, note: "next" in view && view.next ? moreNote(view.next) : undefined });
+        } else pages.set(r.url, { url: r.url, content: "", error: r.ok ? "nothing past that point" : r.error });
       }
     } catch (e) {
       const timedOut = e instanceof EngineError && e.status === -1;
@@ -146,17 +178,17 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     let retry: string[] = [];
     try {
       // Leave Parallel a share of the time as the backup reader.
-      const results = await exaContents(targets, question, maxChars, fresh, Math.max(minTry, Math.floor(left() * 0.6)));
+      const results = await exaContents(targets, question, question ? maxChars : want, fresh, Math.max(minTry, Math.floor(left() * 0.6)));
       for (const r of results) {
-        if (r.ok && !looksThin(r.content, Boolean(question))) {
-          const cut = !question && r.content.length >= maxChars * 0.97;
+        const view = question ? { content: r.content } : windowOf(r.content, start, maxChars);
+        if (r.ok && view.content && (start > 0 || !looksThin(view.content, Boolean(question)))) {
           pages.set(r.url, {
             url: r.url,
             title: r.title,
             date: r.date,
             author: r.author,
-            content: r.content,
-            note: cut ? `Cut off at ${maxChars} characters. Ask again with a question (or a higher max_chars) to reach later parts.` : undefined,
+            content: view.content,
+            note: "next" in view && view.next ? moreNote(view.next) : undefined,
           });
         } else {
           retry.push(r.url);
@@ -188,7 +220,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     }
     const by = cleanAuthor(p.author);
     const meta = [p.url, p.date ? `published ${p.date}` : "", by ? `by ${by}` : ""].filter(Boolean).join(" · ");
-    return [`## ${p.title ?? hostOf(url)}`, meta, truncate(p.content, maxChars), p.note ? `[${p.note}]` : ""].filter(Boolean).join("\n");
+    return [`## ${p.title ?? hostOf(url)}`, meta, truncate(p.content, maxChars + 2), p.note ? `[${p.note}]` : ""].filter(Boolean).join("\n");
   });
   const anyOk = urls.some((u) => pages.get(u)?.content);
   const notes = [...new Set(failures)];

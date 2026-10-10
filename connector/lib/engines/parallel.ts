@@ -104,10 +104,10 @@ export async function parallelExtract(
   urls: string[],
   objective: string | undefined,
   maxChars: number,
-  opts: { full?: boolean; fresh?: boolean; timeoutMs?: number } = {},
+  opts: { full?: boolean; fullChars?: number; fresh?: boolean; timeoutMs?: number } = {},
 ): Promise<ParallelPage[]> {
   const advanced: Record<string, unknown> = { excerpt_settings: { max_chars_per_result: maxChars } };
-  if (opts.full) advanced.full_content = { max_chars_per_result: Math.max(maxChars, 60_000) };
+  if (opts.full) advanced.full_content = { max_chars_per_result: Math.max(maxChars, opts.fullChars ?? 60_000) };
   if (opts.fresh) advanced.fetch_policy = { max_age_seconds: 600 };
   const data = await callJson<{
     results?: ParallelResult[];

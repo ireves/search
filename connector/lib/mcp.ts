@@ -73,7 +73,8 @@ export const TOOLS = [
       properties: {
         urls: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 5, description: "Full web addresses." },
         question: { type: "string", description: "What you need from the page(s). Strongly recommended for long pages and PDFs." },
-        max_chars: { type: "integer", minimum: 500, maximum: 20000, description: "Per page. Default 4000 with a question, 6000 without. All pages in one call share 30000 at most." },
+        max_chars: { type: "integer", minimum: 500, maximum: 60000, description: "Per page. Default 4000 with a question, 6000 without. Up to 60000 reads most whole papers. All pages in one call share 80000 at most." },
+        start: { type: "integer", minimum: 0, description: "Without a question: character to start reading from, to read on through a long document. The reply says where the next part starts." },
         fresh: { type: "boolean", description: "Re-download instead of using a stored copy." },
       },
       required: ["urls"],

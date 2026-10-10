@@ -222,9 +222,42 @@ test("all pages in one fetch share a size limit", async () => {
       : undefined,
   );
   const urls = ["https://a.com/1", "https://b.com/2", "https://c.com/3", "https://d.com/4", "https://e.com/5"];
-  const { text } = await runFetch({ urls, max_chars: 20_000 });
-  assert.equal(calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.text.maxCharacters, 6000);
-  assert.ok(text.length < 33_000);
+  const { text } = await runFetch({ urls, max_chars: 60_000 });
+  // 80,000 shared by 5 pages: 16,000 each, plus a little extra asked for to tell whether more follows.
+  assert.equal(calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.text.maxCharacters, 17_000);
+  assert.ok(text.length < 83_000);
+});
+
+test("a long document is read whole up to 60,000 characters, then in parts with start", async () => {
+  const paper = Array.from({ length: 2000 }, (_, i) => `Sentence ${i} of the paper says something useful.`).join(" ");
+  mockNetwork((c) =>
+    c.url === "https://api.exa.ai/contents"
+      ? { body: { results: c.body.urls.map((u: string) => ({ url: u, title: "Paper", text: paper.slice(0, c.body.text.maxCharacters) })) } }
+      : undefined,
+  );
+  const first = await runFetch({ urls: ["https://journal.example/paper.pdf"], max_chars: 60_000 });
+  assert.match(first.text, /Sentence 0 of the paper/);
+  const next = Number(first.text.match(/Read on with start: (\d+)/)?.[1]);
+  assert.ok(next > 55_000 && next <= 60_000);
+  const second = await runFetch({ urls: ["https://journal.example/paper.pdf"], max_chars: 60_000, start: next });
+  assert.doesNotMatch(second.text, /Sentence 0 of/);
+  assert.match(second.text, /Sentence 1999 of the paper/);
+  assert.doesNotMatch(second.text, /Read on with start/);
+  // Nothing is skipped or repeated between the parts.
+  // Each reply is: title, link line, the text, then any note.
+  const body = (t: string) => t.split("\n")[2];
+  assert.equal(body(first.text).replace(/ …$/, "") + body(second.text), paper);
+});
+
+test("a question ignores start and searches the whole document", async () => {
+  mockNetwork((c) =>
+    c.url === "https://api.exa.ai/contents"
+      ? { body: { results: [{ url: c.body.urls[0], title: "Paper", highlights: ["The sample size was 412 participants. ".repeat(10)] }] } }
+      : undefined,
+  );
+  const { text } = await runFetch({ urls: ["https://journal.example/p.pdf"], question: "What was the sample size?", start: 50_000 });
+  assert.match(text, /412 participants/);
+  assert.equal(calls[0].body.highlights.maxCharacters, 4000);
 });
 
 const firecrawlSearchReply = (items: { url: string; title: string; description?: string; date?: string }[], news = false, credits = 2) => (c: {
