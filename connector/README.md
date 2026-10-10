@@ -53,6 +53,7 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - **Second opinion:** for `web`, `discussions` (adds "reddit" to the query), `reviews`, `shopping` (where Firecrawl's ranking counts most, as it finds shops in the right country) and `code` searches at standard or thorough depth, Firecrawl runs alongside Exa and Parallel and its results are merged in.
 - **Fallback:** for `fast` searches and for `news`, `jobs` and `x`, Firecrawl runs only when Exa and Parallel return fewer than 3 results. The reply then says so. Never used for `papers`, `people`, `companies` or `financial`, where Exa's structured index is better.
 - Search results only (title, link, Google's short snippet, and the date when the snippet starts with one); no pages are read, so a search costs 2 credits per 10 results. Site filters are passed on, dates become Google's custom date range, and `country` is passed on.
+- The free plan allows only a few searches a minute, so a busy reply (429) is retried once after 2.5 seconds.
 - A rejected key or empty credit adds a note; the other engines' results still come back.
 
 **Job boards through Apify (optional).** When `APIFY_API_TOKEN` is set, `jobs` searches at standard or thorough depth also run four [Apify](https://apify.com) scrapers side by side, and their adverts are merged in with Exa's:

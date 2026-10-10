@@ -130,6 +130,8 @@ interface SearchReply {
   creditsUsed?: number;
 }
 
+const RETRY_MS = Number(process.env.FIRECRAWL_RETRY_MS ?? 2500);
+
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 // Google-style snippets often open with the page date ("18 Jan 2026 · ..." or
@@ -162,7 +164,7 @@ export async function firecrawlSearch(o: FirecrawlSearchOptions): Promise<Hit[]>
   const key = await firecrawlKey();
   if (!key) throw new EngineError("Firecrawl", 0, "Firecrawl has no API key.");
   const tbs = dateRange(o.after, o.before);
-  const data = await callJson<SearchReply>("Firecrawl", `${BASE}/v2/search`, {
+  const call = () => callJson<SearchReply>("Firecrawl", `${BASE}/v2/search`, {
     headers: { authorization: `Bearer ${key}` },
     body: {
       query: o.query.slice(0, 500),
@@ -175,6 +177,16 @@ export async function firecrawlSearch(o: FirecrawlSearchOptions): Promise<Hit[]>
     },
     timeoutMs: 25_000,
   });
+  // The free plan allows only a few searches a minute, and several workers
+  // often search at once, so a busy reply gets one retry after a short wait.
+  let data: SearchReply;
+  try {
+    data = await call();
+  } catch (e) {
+    if (!(e instanceof EngineError) || e.status !== 429) throw e;
+    await new Promise((r) => setTimeout(r, RETRY_MS));
+    data = await call();
+  }
   const items = (o.news ? data.data?.news : data.data?.web) ?? [];
   addCredits("firecrawl", typeof data.creditsUsed === "number" ? data.creditsUsed : 2 * Math.ceil(Math.max(items.length, 1) / 10));
   const hits: Hit[] = [];

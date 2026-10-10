@@ -309,6 +309,22 @@ test("shopping searches weight Firecrawl highest", async () => {
   assert.match(text, /^\[1\] UK cable/m);
 });
 
+test("a busy Firecrawl search is tried once more", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  let tries = 0;
+  mockNetwork(exaSearchReply([exaResult("https://a.com/x", "Title A", "Fact A")]), parallelSearchReply([]), (c) => {
+    if (c.url !== "https://api.firecrawl.dev/v2/search") return undefined;
+    tries++;
+    return tries === 1
+      ? { status: 429, body: { error: "Rate limit exceeded" } }
+      : { body: { success: true, data: { web: [{ url: "https://b.com/y", title: "Title B", description: "Fact B" }] }, creditsUsed: 2 } };
+  });
+  const { text } = await runSearch({ query: "anything at all" });
+  assert.equal(tries, 2);
+  assert.match(text, /Title B/);
+  assert.doesNotMatch(text, /Firecrawl unavailable/);
+});
+
 test("leading dates in search snippets become the page date", () => {
   assert.deepEqual(leadingDate("18 Jan 2026 · Text"), { date: "2026-01-18", text: "Text" });
   assert.deepEqual(leadingDate("Sept 3, 2025 — Text"), { date: "2025-09-03", text: "Text" });
