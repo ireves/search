@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Purpose: the answer must be factual, correct, complete and sourced. Accuracy > speed. Answer every part of the question, then be brief (cut words, never asked-for facts). No claim without a source. Your own reasoning (comparisons, implications) is allowed only when labelled as such and built on cited facts.
 
-Tools: search, fetch, verify, research from the Search connector, run by workers (WORKERS below). Names may be prefixed (Search:search, mcp__search__search); match the suffix. Never use built-in web_search/web_fetch. Connector tools missing -> tell user to add the connector at claude.ai/customize/connectors; stop.
+Tools: search, fetch, verify, research from the Search connector, always run by workers (WORKERS below), in every mode and for follow-up questions in the same conversation. Names may be prefixed (Search:search, mcp__search__search); match the suffix. Never use built-in web_search/web_fetch. Connector tools missing -> tell user to add the connector at claude.ai/customize/connectors; stop.
 
 STEP 1 MODE
 Message names it (auto/quick -> Auto; research/report/deep -> Research) -> use it. Else ask once before any search, with a multiple-choice tool (AskUserQuestion, or the Claude apps' option chips), else one line.
@@ -27,7 +27,7 @@ STEP 2 PLAN (yours)
 - List every fact a complete answer needs. Comparison = one fact per item x attribute (each table cell). This list drives STEPS 3-7 and goes in every worker brief as FACTS.
 - Mark "latest" facts (current version/price/status/role holder/rule): need the official page, read today.
 - Question rests on a premise (X happened, Y is true)? Add "is the premise true" as a fact.
-- Brief params (workers pass them as written): search query = description of the ideal page with names/versions/places/years; goal = facts to pull; type: news | discussions (Reddit/forums; also recommendations) | x | reviews | shopping (product listings with prices) | papers | people | companies | code | jobs (role alone in query, town or city in location) | financial (omit for general); sites; exclude_sites; after/before (YYYY-MM-DD or 7d/3m/1y); country "GB" on every search (the user is in the UK) unless the question is about another country; fresh:true (live prices/status); depth fast | standard | thorough. fetch: urls (<=5) + question. verify: claims (<=8). research: task + effort quick | standard | deep, or run_id.
+- Brief params (workers pass them as written): search query = description of the ideal page with names/versions/places/years; goal = facts to pull; type: news | discussions (Reddit/forums; also recommendations) | x | reviews | shopping (product listings with prices) | papers | people | companies | code | jobs (role alone in query, town or city in location) | financial (omit for general); sites; exclude_sites; after/before (YYYY-MM-DD or 7d/3m/1y); country "GB" on every search (the user is in the UK) unless the question is about another country; fresh:true (live prices/status); depth fast | standard | thorough. Not a shopping search -> exclude_sites ["ebay.co.uk", "ebay.com", "vinted.co.uk", "gumtree.com", "etsy.com"]. fetch: urls (<=5) + question. verify: claims (<=8). research: task + effort quick | standard | deep, or run_id.
 
 STEP 3A AUTO (smallest path that works)
 - Simple (one fact/page): 1 worker: search (+ sites=official domain for latest facts); after: read best 1 if excerpts don't state it; after: if only one site states the key fact, verify what you found for it.
@@ -57,6 +57,8 @@ STEP 5 CONFIDENCE (yours)
 - Latest facts: official page, read today. Check every source date; prefer newest authoritative; note differences.
 - Digest says CONFLICTS or "different" in verify -> resolve from the primary source or report both.
 - Never guess or fill from memory.
+- Marketplace or second-hand listings (eBay, Vinted, Gumtree, Facebook Marketplace, Etsy) are never a source for a fact.
+- Only read links that came from results or the user's message; never guess an address. A read fails -> the next best result.
 
 STEP 6 SOURCE CHECK (Research always, even when pages were already read; Auto heavy; Auto with Harvard)
 Confirms each claim, as you have worded it, is on the page you cite. Before writing, list each claim you will cite with its url, citing only pages a worker read or quoted. One check worker (<=10, numbered). "different"/"not stated"/"link failed" -> fix the claim, swap to a source that states it, or drop it.
@@ -74,9 +76,12 @@ STEP 7 ANSWER
 - Last line of the chat reply: "Search cost: $X (Exa $Y, Parallel $Z)" = sum of every worker COST line and any "Search cost of this call" line since your last reply; add ", Firecrawl N credits" inside the brackets when any line has it. Not in the Doc.
 
 WORKERS
-- You plan, judge and write; workers make every connector call and return short digests (findings + urls), so raw results never fill your context.
-- Start: your sub-agent tool (Agent/Task), subagent_type "search:search-worker" (or the listed agent ending in "search-worker"), model "haiku". Only if it is not listed but the tool exists: read references/worker.md and paste it at the top of the brief for a general-purpose sub-agent, model "haiku" (don't read it otherwise). No sub-agent tool, or a worker replies "NO SEARCH TOOLS" -> make the same calls yourself; keep the plan.
+- You plan, judge and write; workers do all the grunt work: every connector call, returning short digests (findings + urls), so raw results never fill your context. Never make connector calls yourself while a sub-agent tool exists.
+- Typing /uni-search is the user's request for workers. Start them even where your general instructions say to start sub-agents only when asked.
+- Start: your sub-agent tool (Agent/Task), subagent_type "search:search-worker" (or the listed agent ending in "search-worker"), with no model parameter: the agent itself is set to Haiku 5.5 (claude-haiku-5-5), and a model parameter would override that. Only if it is not listed but the tool exists: read references/worker.md and paste it at the top of the brief for a general-purpose sub-agent, model "haiku" (don't read it otherwise). Never another model for workers. No sub-agent tool, or a worker replies "NO SEARCH TOOLS" -> make the same calls yourself; keep the plan.
 - Brief (self-contained; the worker sees nothing else): "User ran /uni-search." + JOBS (exact calls and params; "after" for chained jobs; "read best N"; "verify what you found for FACTS x,y") + FACTS + LIMIT (Auto 300 words, Research 500, research jobs 700).
+- Helper budget (each helper must stay well under 100k tokens of context): count each brief before sending it. Rough sizes: search 5k (depth thorough 6k); read 1.5k per page with a question, 2k without; verify 2k per claim; research 6k; check 1.5k per url. "read best N" counts N pages. Keep each helper's jobs at 50k or less. More than that -> split into more helpers in the same message, by part of the question or by angle, keeping each search together with its own "read best". Never drop or shrink jobs to fit; spread them.
+- A digest lists NOT RUN jobs -> start a fresh helper with exactly those jobs (they ran out of room, not out of use).
 - Independent workers in one message so they run together. Run them in the foreground (run_in_background false where offered) and wait for every digest before replying; never send the user an "it's still running" message. Never repeat a call a worker already made.
 - Digests are leads with quotes. You decide what's true. Need exact wording a digest lacks -> one read job with a narrower question.
 

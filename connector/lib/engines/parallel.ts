@@ -104,7 +104,7 @@ export async function parallelExtract(
   urls: string[],
   objective: string | undefined,
   maxChars: number,
-  opts: { full?: boolean; fresh?: boolean } = {},
+  opts: { full?: boolean; fresh?: boolean; timeoutMs?: number } = {},
 ): Promise<ParallelPage[]> {
   const advanced: Record<string, unknown> = { excerpt_settings: { max_chars_per_result: maxChars } };
   if (opts.full) advanced.full_content = { max_chars_per_result: Math.max(maxChars, 60_000) };
@@ -121,7 +121,7 @@ export async function parallelExtract(
       max_chars_total: maxChars * urls.length,
       advanced_settings: advanced,
     },
-    timeoutMs: 60_000,
+    timeoutMs: opts.timeoutMs ?? 60_000,
   });
   addCost("parallel", urls.length * PARALLEL_PRICES.extractPerUrl);
   return urls.map((url) => {

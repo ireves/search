@@ -73,7 +73,7 @@ export const TOOLS = [
       properties: {
         urls: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 5, description: "Full web addresses." },
         question: { type: "string", description: "What you need from the page(s). Strongly recommended for long pages and PDFs." },
-        max_chars: { type: "integer", minimum: 500, maximum: 20000, description: "Per page. Default 4000 with a question, 6000 without." },
+        max_chars: { type: "integer", minimum: 500, maximum: 20000, description: "Per page. Default 4000 with a question, 6000 without. All pages in one call share 30000 at most." },
         fresh: { type: "boolean", description: "Re-download instead of using a stored copy." },
       },
       required: ["urls"],
