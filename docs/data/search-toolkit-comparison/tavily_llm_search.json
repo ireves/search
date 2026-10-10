@@ -1,0 +1,773 @@
+{
+ "toolkit": "tavily_llm_search",
+ "tool_slugs": [
+  "COMPOSIO_SEARCH_TAVILY"
+ ],
+ "settings": {
+  "max_results": 5,
+  "search_depth": "basic",
+  "include_answer": true,
+  "extras": "search_depth advanced for q1, q12, q14"
+ },
+ "cost_info": "No usage/credits field returned (Composio does not expose include_usage, although its output schema has usage.credits). Tavily public pricing: basic search 1 credit, advanced 2 credits. Billed via Composio, no per-call cost shown.",
+ "stats": {
+  "success": "20/20",
+  "mean_latency_s": 2.67,
+  "median_latency_s": 2.55,
+  "min_latency_s": 2.16,
+  "max_latency_s": 3.8,
+  "mean_score": 2.45,
+  "mean_chars": 7505,
+  "mean_n_results": 5,
+  "retries": 0
+ },
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 2.37,
+   "n_results": 5,
+   "chars": 8686,
+   "top": [
+    {
+     "title": "ISA reforms 2027 what the changes mean for investors and savers | Hargreaves Lansdown",
+     "url": "https://www.hl.co.uk/news/isa-reforms-2027-what-the-changes-mean-for-investors-and-savers",
+     "date": null,
+     "snippet": "From 6 April 2027, the Cash ISA allowance will be cut to just £12,000 for savers under the age of 65. Those wanting to make full use of their annual £20,000 ISA allowance can choos"
+    },
+    {
+     "title": "Cash ISA Changes 2027: Understanding the New £12,000 Limit | IG South Africa",
+     "url": "https://www.ig.com/za/trading-strategies/cash-isa-changes-2027--understanding-the-new-p12-000-limit--260414",
+     "date": null,
+     "snippet": "From 6 April 2027, the Cash ISA limit for under-65s drops from £20,000 to £12,000, with the remaining £8,000 of your ISA allowance required to go into investing-style accounts. At "
+    },
+    {
+     "title": "New ISA rules in 2027 | Barclays",
+     "url": "https://www.barclays.co.uk/smart-investor/news-and-research/new-isa-rules-explained",
+     "date": null,
+     "snippet": "Your overall ISA allowance will stay at £20,000 a tax year.  The Investment ISA limit will stay at £20,000 a tax year.  Cash ISAs are still an available option to save in tax-effic"
+    }
+   ],
+   "answer": "From 6 April 2027, the Cash ISA limit for under-65s will drop from £20,000 to £12,000, while the overall £20,000 ISA allowance will remain unchanged. The remaining £8,000 of the ISA allowance must be invested in other types of ISAs, such as Stocks and Shares ISAs. For those aged 65 and over, the Cash ISA limit will stay at £20,000. The changes aim to encourage more investment rather than cash savi",
+   "score": 3,
+   "note": "Answer exactly right (GBP12k cash ISA for under-65s, over-65s keep GBP20k). HL/Barclays credible; IG result is the South Africa site. No GOV.UK. Latency shown is the FIRST (uncached) call made as a warm-up; the repeat in the main run took 0.34 s with Tavily response_time 0 = cache hit."
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 3.8,
+   "n_results": 5,
+   "chars": 2808,
+   "top": [
+    {
+     "title": "Black Woven Right Angle USB C to USB A Cable - 0.2m long",
+     "url": "https://thepihut.com/products/black-woven-right-angle-usb-c-to-usb-a-cable-0-2m-long",
+     "date": null,
+     "snippet": "Works great with any device or cable that has a USB C port. This cable is a little over 6 inches long (about 0.2 meters)."
+    },
+    {
+     "title": "Slim Right Angle USB C to USB C Cable - 75mm",
+     "url": "https://www.adafruit.com/product/6372",
+     "date": null,
+     "snippet": "Black Woven Right Angle USB C to USB A Cable - 0.2m long - Angled Black Woven Right Angle USB C to USB A Cable - 0.2m long · USB Type C PD to 5.5mm/2.1mm"
+    },
+    {
+     "title": "xiwai 0.2M Right Angled USB 2.0 Type-A Male to USB-C ...",
+     "url": "https://www.amazon.com/xiwai-Right-Angled-Type-Type-C/dp/B0D5RN25L9",
+     "date": null,
+     "snippet": "Right Angled USB 2.0 Type-A Male to USB-C Type-C Male Data Flat Slim FPC Cable for FPV & Disk & Phone Cable length: 20cm · This cable enables you to connect"
+    }
+   ],
+   "answer": "The sources indicate that a 0.2m right angle USB-C cable is available in various configurations. One source describes a \"Black Woven Right Angle USB C to USB A Cable - 0.2m long\" that works with any device with a USB C port. Another source mentions a \"Right Angled USB 2.0 Type-A Male to USB-C Type-C Male Data Flat Slim FPC Cable for FPV & Disk & Phone Cable length: 20cm.\" Additionally, there is a ",
+   "score": 2,
+   "note": "Relevant 0.2 m right-angle products (Pi Hut, Adafruit, Amazon.com) but USB-A to C / 75 mm variants, US Amazon not UK."
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 2.47,
+   "n_results": 5,
+   "chars": 7851,
+   "top": [
+    {
+     "title": "Dettol Dettol Multi-Surface Disinfectant Sanitizer Spray Bottle",
+     "url": "https://www.1mg.com/otc/dettol-dettol-multi-surface-disinfectant-sanitizer-spray-bottle-24-hours-antibacterial-protection-germ-kill-on-hard-and-soft-surfaces-orchard-bloom-otc877604",
+     "date": null,
+     "snippet": "Key Components: Ethanol. Alkyl Dimethyl Benzyl Ammonium Saccharinate. Purified Water IP, Monoethanolamine, Sodium Lauroyl Sarcosinate, Ammonium Hydroxide,"
+    },
+    {
+     "title": "Dettol Antibacterial Multipurpose Cleaner Trigger Spray",
+     "url": "https://rb-msds.com.au/uploadedFiles/pdf/FF8307619_D8339155%20(ANZ)%20Dettol%20Antibacterial%20Multipurpose%20Cleaner%20Trigger%20Spray%20-%20Citrus%20Lemon%20Lime.pdf",
+     "date": null,
+     "snippet": "Not available. Irritation/Corrosion 1,2,3-Propanetricarboxylic acid, 2-hydroxy-Eyes - Severe irritant Rabbit -24 hours 750 ug -Benzenesulfonic acid, C10-13-alkyl derivatives, sodiu"
+    },
+    {
+     "title": "RB - Europe (EU) SDS (Local) REACH 2020/878 - Ireland",
+     "url": "https://www.essexsupplies.co.uk/wp-content/uploads/2021/03/Dettol-All-in-One-Disinfectant-Spray-Crisp-Linen-2026.pdf",
+     "date": null,
+     "snippet": "0.05 mg/l 4 hours Product/ingredient name Result Species Dose Exposure Conclusion/Summary : Not classified. Bridging principle \"Substantially similar mixtures\" Irritation/Corrosion"
+    }
+   ],
+   "answer": "The sources list the following ingredients for Dettol 24h Protect Spray: Ethanol, Alkyl Dimethyl Benzyl Ammonium Saccharinate, Purified Water IP, Monoethanolamine, Sodium Lauroyl Sarcosinate, and Ammonium Hydroxide. However, one source indicates that the ingredient list is not available, and another source provides toxicity and hazard information but does not list specific ingredients for Dettol 2",
+   "score": 2,
+   "note": "Ingredients found but for an Indian 1mg listing and RB SDS PDFs (AU/IE), not a UK Dettol 24h page. Answer mixes products."
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 2.61,
+   "n_results": 5,
+   "chars": 7414,
+   "top": [
+    {
+     "title": "The 8 best web search tools for AI agents in 2026 | Exa Blog",
+     "url": "https://exa.ai/blog/best-web-search-tools-for-ai-agents",
+     "date": null,
+     "snippet": "Exa is a search API that builds and maintains its own index of the live web and structured data on companies, people, financial markets, code, and documents. Our pricing page lists"
+    },
+    {
+     "title": "Exa AI: Search API, Pricing, Features & Alternatives",
+     "url": "https://www.therundown.ai/tools/exa",
+     "date": null,
+     "snippet": "Starting search price :   $7 per 1,000 Search requests with up to 10 results  Core interfaces :   REST API, Python and JavaScript SDKs, dashboard, and Websets  Security :   SOC 2 T"
+    },
+    {
+     "title": "Exa Search API - Exa",
+     "url": "https://exa.ai/docs/search/quickstart",
+     "date": null,
+     "snippet": "`instant` costs $4 per 1,000 requests with up to 10 results. Latency figures are approximate and cover the search itself with cached content. `outputSchema` adds a synthesis step a"
+    }
+   ],
+   "answer": "The Exa search API charges $7 per 1,000 requests with up to 10 results. Additional results and chargeable content extraction can add cost. The pricing page lists separate indexes for the web, people, companies, and scholarly works. The current public price is $7 per 1,000 Search requests with up to 10 results. However, there is also a `instant` mode that costs $4 per 1,000 requests with up to 10 r",
+   "score": 3,
+   "note": "Exa docs + Rundown: $7 per 1k searches, $4 per 1k for instant. Answer correct; top hit is Exa blog rather than pricing page."
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 2.53,
+   "n_results": 5,
+   "chars": 8780,
+   "top": [
+    {
+     "title": "How to add and manage environment variables on Vercel | Vercel Knowledge Base",
+     "url": "https://vercel.com/kb/guide/how-to-add-vercel-environment-variables",
+     "date": null,
+     "snippet": "You add an environment variable to a Vercel project in the dashboard, with the Vercel CLI, or through the REST API. Whichever method you use, the change takes effect on your next d"
+    },
+    {
+     "title": "Environment Variables UI - Vercel",
+     "url": "https://vercel.com/blog/environment-variables-ui",
+     "date": null,
+     "snippet": "With today's release, we're making it possible to configure different Environment Variables for Production, Preview, and Development – right in the Dashboard.  ## Copy link to head"
+    },
+    {
+     "title": "Can't figure out setting up Environment variables/Secrets? · vercel/vercel · Discussion #4558 · GitH",
+     "url": "https://github.com/vercel/vercel/discussions/4558",
+     "date": null,
+     "snippet": "| Hey @tettoffensive, thanks for raising this!  The best way to handle this is entirely through the Vercel dashboard:   There you can add all environment variables (encrypted by de"
+    }
+   ],
+   "answer": "To add an environment variable in the Vercel dashboard without using the command line, navigate to your project settings and look for the newly added Environment Variables section. Here, you can add a key and value, and select the environments the variable applies to. Vercel encrypts values at rest, and you can choose between Config values, which stay readable to authorized members, and Secret val",
+   "score": 3,
+   "note": "Vercel KB guide on top; answer gives dashboard steps. Second hit is a 2020 Vercel blog post (old)."
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 2.84,
+   "n_results": 5,
+   "chars": 9017,
+   "top": [
+    {
+     "title": "How (and Why) to Set Up Custom Email in iCloud | Devon Dundee",
+     "url": "https://devondundee.com/blog/how-and-why-to-set-up-custom-email-in-icloud",
+     "date": null,
+     "snippet": "1. On your Apple device, open the Settings app, choose your name at the top, and then choose iCloud. 2. Under the iCloud+ section of this page, choose Custom Email Domain. 3. Here,"
+    },
+    {
+     "title": "Add an email domain you already own to iCloud Mail on iCloud.com - Apple Support (PH)",
+     "url": "https://support.apple.com/guide/icloud/add-a-domain-you-own-mma473945269/icloud",
+     "date": null,
+     "snippet": "Step 4. Set up the domain, select your default email address, and (optionally) import emails from your previous provider.  ## Step 1: Enter the domain details  1. Go to icloud.com/"
+    },
+    {
+     "title": "Personalized Email Address for iCloud: Step-by-Step Guide to Custom Domain Setup",
+     "url": "https://www.youtube.com/watch?v=EGvuI8u0a2Q&xstg=CAMSBhUDze3xHw%3D%3D",
+     "date": null,
+     "snippet": "Check your iCloud plus subscription to ensure eligibility for a custom email domain Purchase or use an existing domain name Set up the custom email domain through iCloud settings V"
+    }
+   ],
+   "answer": "To set up a custom email domain with iCloud+, first ensure you have an iCloud Plus subscription. On your Apple device, open Settings, choose your name, then iCloud. Under iCloud+, select Custom Email Domain. If you own the domain, follow the onscreen instructions to add it. If not, you can buy a new domain through the in-app process from Cloudflare. After adding the domain, configure your DNS reco",
+   "score": 3,
+   "note": "Apple Support guide plus a clear blog; answer gives steps including DNS. Top hit is a blog, not Apple."
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 2.58,
+   "n_results": 5,
+   "chars": 4605,
+   "top": [
+    {
+     "title": "Woolite® Darks Defense 100 FL. OZ. | Woolite® | Love your clothes & keep them looking like new",
+     "url": "https://www.woolite.us/woolitereg-products/woolite-darks-defense-100-fl-oz",
+     "date": null,
+     "snippet": "Woolite Darks Defense is a first of its kind formula that keeps your dark clothes looking like new, even synthetics and blends! It provides fade protection to keep your darks dark."
+    },
+    {
+     "title": "Woolite® Darks Defense",
+     "url": "https://www.woolite.us/woolitereg-darks-defense",
+     "date": null,
+     "snippet": "Woolite Darks Defense is a first of its kind formula that keeps your clothes looking like new, even synthetics and blends! It provides fade protection to keep"
+    },
+    {
+     "title": "FAQs | Woolite® Frequently Asked Questions | Woolite® | Love your clothes & keep them looking like n",
+     "url": "https://www.woolite.us/faqs",
+     "date": null,
+     "snippet": ":   Only Woolite can give your clothes the best possible care against fiber damages, fading and shape loss during the wash cycle. Use Woolite Darks Defense to help protect all your"
+    }
+   ],
+   "answer": "Woolite Darks Defense is a unique formula that keeps dark clothes looking new, even synthetics and blends, by providing fade protection to maintain the color of darks. It protects against fading, pilling, and stretching, and works in cold water. It combines ingredients to gently clean stains while protecting clothes, and is suitable for both regular and HE washing machines. The product is formulat",
+   "score": 3,
+   "note": "Official woolite.us pages (US); two near-duplicate product pages. Answer explains fade protection in general terms only."
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 2.33,
+   "n_results": 5,
+   "chars": 9238,
+   "top": [
+    {
+     "title": "Voluntary National Insurance: Overview - GOV.UK",
+     "url": "https://www.gov.uk/voluntary-national-insurance-contributions",
+     "date": null,
+     "snippet": "You might be able to pay voluntary contributions to fill in gaps in your National Insurance record (such as, from when you were not working or claiming benefits).     1. Check if y"
+    },
+    {
+     "title": "Checking Your NI Record | National Insurance | #GoFile Knowledgebase",
+     "url": "https://gofile.co.uk/knowledgebase/national-insurance/checking-your-ni-record",
+     "date": null,
+     "snippet": "First, check whether you were entitled to NI credits during that year (e.g. through benefits or Child Benefit). If not, you may be able to pay voluntary Class 3 contributions to fi"
+    },
+    {
+     "title": "How to Top-up Voluntary NI Contributions | My Pension Expert",
+     "url": "https://mypensionexpert.com/pensions/rules/voluntary-ni-contributions",
+     "date": null,
+     "snippet": "1. Check your National Insurance record – using your HMRC online account to see which years are complete and which have gaps. 2. Review your State Pension forecast – to confirm whe"
+    }
+   ],
+   "answer": "To check your National Insurance record and pay voluntary contributions, you can use your HMRC online account to see which years are complete and which have gaps. You can also request a printed National Insurance statement online if you live in the UK, or by post if you live abroad. To pay voluntary contributions, you can fill gaps from the last six tax years, with the current rate for voluntary C",
+   "score": 3,
+   "note": "GOV.UK voluntary NI page top; answer covers HMRC account and 6-year gap rule. GOV.UK check-record page not in top 3."
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 3.29,
+   "n_results": 5,
+   "chars": 8108,
+   "top": [
+    {
+     "title": "How to transcribe voice memos on iPhone",
+     "url": "https://talknotes.io/resources/how-to-transcribe-voice-memos-iphone",
+     "date": null,
+     "snippet": "Your shortcut is done! Tap on it to open the recording screen. Once you're done, it will automatically create a note with your text.  💡 Pro Tip: You can add your shortcut to the ho"
+    },
+    {
+     "title": "Nobody uses Voice Memos like this on iPhone & Mac (AI Workflow)",
+     "url": "https://www.youtube.com/watch?v=ZMbWfw6Hl6I",
+     "date": null,
+     "snippet": "[0:27] automate all these steps so they run one after another without having to do anything manually. For example, you can [0:35] send an audio file from the Voice Mimos app to a s"
+    },
+    {
+     "title": "Deep dive into transcribing and summarizing audio files - Beard.fm guides and blog posts",
+     "url": "https://wiki.beard.fm/whats-new-apple-intelligence-in-shortcuts/deep-dive-into-transcribing-and-summarizing-audio-files",
+     "date": null,
+     "snippet": "This release introduces a powerful new Transcribe action within the Shortcuts app, allowing you to convert audio files into text locally on your device. When combined with the Appl"
+    }
+   ],
+   "answer": "The sources indicate that you can use the Shortcuts app on your iPhone to transcribe voice memos automatically. Specifically, you can create a shortcut that transcribes audio files into text using the Transcribe action within the Shortcuts app, which converts audio to text locally on your device. This process can be further enhanced by combining it with Apple Intelligence to generate summaries and",
+   "score": 2,
+   "note": "Vendor blog (talknotes), YouTube, beard.fm on Shortcuts Transcribe action; no Apple source."
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 2.17,
+   "n_results": 5,
+   "chars": 8275,
+   "top": [
+    {
+     "title": "Tell HN: YNAB will partly remove direct bank imports | Hacker News",
+     "url": "https://news.ycombinator.com/item?id=39773819",
+     "date": null,
+     "snippet": "Here's her statement: > I am genuinely sorry this change impacts you. We don't have a way to make an exception. And we don't offer discounts on our subscription price. We will supp"
+    },
+    {
+     "title": "FAQ | Sync for YNAB",
+     "url": "https://syncforynab.com/faq",
+     "date": null,
+     "snippet": "YNAB now natively supports UK and EU banks, so you might not need this tool.  Supported Banks SIGN IN  # FAQ  ## How often are my transactions imported?  We import transactions eve"
+    },
+    {
+     "title": "How To Import Transactions In YNAB (Quick & Easy)",
+     "url": "https://www.youtube.com/watch?v=pwDnIFQ0PUI&vl=en",
+     "date": null,
+     "snippet": "In this quick and easy 2026 YNAB tutorial, you’ll learn how to import transactions manually so you can keep your budget accurate—even when your bank sync is unavailable or you pref"
+    }
+   ],
+   "answer": "The sources do not provide a definitive answer regarding whether YNAB supports Starling Bank direct import in 2026. While the FAQ mentions that YNAB now natively supports UK and EU banks and suggests using Monzo or Starling with Webhooks for real-time imports, it does not explicitly confirm direct import support for Starling Bank. Additionally, the YouTube tutorial and other sources focus on manua",
+   "score": 1,
+   "note": "HN thread from 2024 on top (outdated), third-party sync FAQ; answer admits it cannot confirm. No YNAB help page."
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 2.46,
+   "n_results": 5,
+   "chars": 7526,
+   "top": [
+    {
+     "title": "How to Prevent Your Supabase Project Database from Being Paused Using GitHub Actions - DEV Community",
+     "url": "https://dev.to/jps27cse/how-to-prevent-your-supabase-project-database-from-being-paused-using-github-actions-3hel",
+     "date": null,
+     "snippet": "Supabase, like many other database-as-a-service providers, pauses your database after a period of inactivity to conserve resources. This is especially true for free-tier projects. "
+    },
+    {
+     "title": "GitHub - travisvn/supabase-pause-prevention: Prevent Supabase projects from getting paused due to in",
+     "url": "https://github.com/travisvn/supabase-pause-prevention",
+     "date": null,
+     "snippet": "Creating a cron job (scheduled task) that makes a simple database call   + (This keeps your Supabase project active)  Fetching `keep-alive.ts` API endpoints for the other projects,"
+    },
+    {
+     "title": "Supabase Free Tier Paused and Lost Data: What Happened",
+     "url": "https://simplebackups.com/blog/supabase-free-tier-paused",
+     "date": null,
+     "snippet": "Three options, in order of effort.  Keep the project active. Supabase pauses on inactivity measured by API requests. Any request counts, including a health-check endpoint pinged on"
+    }
+   ],
+   "answer": "To prevent a Supabase free project from being paused due to inactivity, you can periodically \"ping\" the database by running a simple query. This can be done using GitHub Actions to automate the process. A daily cron-based health check is sufficient to keep the project active. Additionally, any API request to the project resets the inactivity timer, so a simple request once a day is enough to preve",
+   "score": 2,
+   "note": "Useful keep-alive guides (dev.to, GitHub) but no Supabase docs; 7-day rule not stated in top snippets."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 3.66,
+   "n_results": 5,
+   "chars": 7569,
+   "top": [
+    {
+     "title": "Configure cloud environments - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/cloud-environments",
+     "date": null,
+     "snippet": "Each environment sets one network access level, which controls the outbound connections its sessions can make. The default level, Trusted, allows package registries and other allow"
+    },
+    {
+     "title": "Use Claude Code in the cloud - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/claude-code-on-the-web",
+     "date": null,
+     "snippet": "Network access controls: in Anthropic-hosted environments, network access is limited by default and can be disabled. See Network access for the access levels, the default allowed d"
+    },
+    {
+     "title": "What domains should I add to my allowlist? | PromptArmor",
+     "url": "https://www.promptarmor.com/resources/what-domains-should-i-add-to-my-allowlist",
+     "date": null,
+     "snippet": "| Anthropic Claude Code (cloud) | `Claude Code (Desktop or Web) → Environments Button → Cloud → Add Cloud Environment → Network Access` Organization-level Environment Controls: `Or"
+    }
+   ],
+   "answer": "The sources indicate that in the Claude Code cloud environment, network access levels control outbound connections. The default level, Trusted, allows package registries and other allowlisted domains. Custom network access allows for a user-defined list of domains. Specific domains that aren't in the Trusted list can be added by selecting Custom in the environment’s network access settings and lis",
+   "score": 3,
+   "note": "Both official Claude Code docs pages in top 2; answer names Trusted default level but not the domain list."
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 2.39,
+   "n_results": 5,
+   "chars": 8320,
+   "top": [
+    {
+     "title": "Liquid Glass | Apple Developer Documentation",
+     "url": "https://developer.apple.com/documentation/technologyoverviews/liquid-glass",
+     "date": null,
+     "snippet": "## Design principles  The Human Interface Guidelines contains guidance and best practices that can help you design a great experience for any Apple platform. Browse the HIG to disc"
+    },
+    {
+     "title": "What You Should Know About Apple’s Liquid Glass Design Language",
+     "url": "https://www.rocketfarmstudios.com/blog/what-you-should-know-about-apples-liquid-glass-design-language",
+     "date": null,
+     "snippet": "Apple has released updated design components and developer tools to support Liquid Glass in both SwiftUI and UIKit. Developers building for iOS 26 or visionOS can start integrating"
+    },
+    {
+     "title": "WWDC25: Meet Liquid Glass | Apple",
+     "url": "https://www.youtube.com/watch?v=IrGYUq1mklk&vl=en&xstg=CAMSBhUDzO3xHw%3D%3D",
+     "date": null,
+     "snippet": "Explore related documentation, sample code, and more: Adopting Liquid Glass:  Human Interface Guidelines:  Human Interface Guidelines: Materials:  Get to know the new design system"
+    }
+   ],
+   "answer": "The Apple Liquid Glass Human Interface Guidelines emphasize a fluid and dynamic interaction experience with a modern, three-dimensional look. The guidelines suggest defining a layout and navigation structure that puts important content in focus, reimagining app icons with bold layers, and judiciously using color to maintain legibility. The guidelines also highlight the importance of ensuring inter",
+   "score": 3,
+   "note": "Apple Developer Liquid Glass overview top; answer is a reasonable summary. HIG Materials page itself not in top 3."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 2.96,
+   "n_results": 5,
+   "chars": 8217,
+   "top": [
+    {
+     "title": "7 Best Exa Alternatives for AI Agents in 2026 | Tavily Blog",
+     "url": "https://www.tavily.com/blog/7-best-exa-alternatives-for-ai-agents-in-2026",
+     "date": null,
+     "snippet": "The main difference between Tavily and Exa is the job each tool is optimized for. Exa is strong for semantic discovery. Tavily is built for production retrieval: finding, ranking, "
+    },
+    {
+     "title": "Comparing 10 AI-Native Search APIs and Crawlers for LLM Agents | by Kevin Meneses González | Towards",
+     "url": "https://medium.com/towardsdev/comparing-10-ai-native-search-apis-and-crawlers-for-llm-agents-ed4130d22c67",
+     "date": null,
+     "snippet": "Tavily focuses on credible, citable sources and predictable outputs.  It’s less about “exploration” and more about trusted retrieval for RAG systems.  Pros   Strong focus on author"
+    },
+    {
+     "title": "Agentic Search: Benchmark 8 Search APIs for Agents",
+     "url": "https://aimultiple.com/agentic-search",
+     "date": null,
+     "snippet": "Key findings   Top 4 APIs perform equally well. Brave Search leads with 14.89, but Firecrawl, Exa, and Parallel Search Pro are so close that the differences could be random variati"
+    }
+   ],
+   "answer": "The sources indicate that Exa is strong for semantic discovery and \"find similar\" use cases, using embeddings-based neural search, while Tavily is built for production retrieval, finding, ranking, extracting, and returning web evidence in a form an AI agent can use. Tavily includes prompt injection defense and covers search, extraction, crawling, and research through one API, with strong controls ",
+   "score": 2,
+   "note": "Top hit is Tavily's own blog (vendor bias); Medium + AIMultiple benchmark useful. Parallel barely covered in answer."
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 2.69,
+   "n_results": 5,
+   "chars": 7835,
+   "top": [
+    {
+     "title": "So skills are a lighter MCP : r/ClaudeAI",
+     "url": "https://www.reddit.com/r/ClaudeAI/comments/1oa9381/so_skills_are_a_lighter_mcp",
+     "date": null,
+     "snippet": "I also don't think its necessary to use skills to tell claude when to use mcp servers, thats usually defined in the MCP server schema."
+    },
+    {
+     "title": "Claude Skills vs MCP: Different purposes, different values | Jason Poley posted on the topic | Linke",
+     "url": "https://www.linkedin.com/posts/jasonpoley_this-is-an-interesting-take-and-there-are-activity-7385845967650037760-IH5z",
+     "date": null,
+     "snippet": "is different - MCP: Consistent interface across all servers 4) Packaging - REST: Scattered across documentation - MCP: Tools, resources, and prompts in one place 5) Ecosystem - RES"
+    },
+    {
+     "title": "Claude Skills vs MCP: When CLI+Skills Beats MCP - Verdent Guides",
+     "url": "https://www.verdent.ai/guides/claude-skills-vs-mcp",
+     "date": null,
+     "snippet": "The short version: if you're building a coding agent, build everything you can as CLI + Skill first. Reach for MCP only when the useful state genuinely lives inside someone else's "
+    }
+   ],
+   "answer": "According to the sources, Skills and MCP servers serve different purposes and are suited for different scenarios. Skills are described as lightweight and modular, ideal for building coding agents and reusable across platforms without rewriting. MCP servers, on the other hand, are seen as a live socket into another system, useful for enterprise governance and cross-system integrations. The sources ",
+   "score": 2,
+   "note": "One real r/ClaudeAI thread at #1, then LinkedIn and a vendor guide."
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 2.27,
+   "n_results": 5,
+   "chars": 6885,
+   "top": [
+    {
+     "title": "Design Jobs (UX, Product Design, Research) in London",
+     "url": "https://uiuxjobsboard.com/design-jobs/london",
+     "date": null,
+     "snippet": "Full Time  LondonUnited Kingdom  5mo  ### Wiseis hiringPrincipal Product Designer  Full Time£131,000 - £157,000  LondonUnited Kingdom  5mo  ### Capcois hiringSenior Product Designe"
+    },
+    {
+     "title": "Product Designer jobs in London",
+     "url": "https://startup.jobs/locations/london/product-designer",
+     "date": null,
+     "snippet": "Moniepoint ·  London, United Kingdom  ·  Apply  Smarkets  Senior Product Designer  Smarkets ·  London, United Kingdom  Hybrid  ·  Apply  Entrust  Junior Product Designer  Entrust ·"
+    },
+    {
+     "title": "Best Product Design Jobs in London 2026 | Built In London",
+     "url": "https://builtinlondon.uk/jobs/design-ux/search/product-design",
+     "date": null,
+     "snippet": "Lead end-to-end mechanical and electromechanical product design for SharkNinja floorcare products, from requirements and CAD through prototyping, testing, verification, and manufac"
+    }
+   ],
+   "answer": "According to the sources, there are junior product designer jobs available in London, UK. Specifically, Entrust is hiring a Junior Product Designer with a hybrid work option. Additionally, LinkedIn lists 936 Junior Designer jobs in London, indicating a high demand for junior designers in the area. The Indeed page for junior product designer jobs also suggests a variety of opportunities, though it ",
+   "score": 2,
+   "note": "Job boards but generic/senior roles; Built In hit is SharkNinja mechanical design (wrong field). Answer quotes a LinkedIn count for 'Junior Designer'."
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 2.16,
+   "n_results": 5,
+   "chars": 7618,
+   "top": [
+    {
+     "title": "Framer: Figma to HTML workflow for live websites",
+     "url": "https://www.framer.com/solutions/figma-to-html",
+     "date": null,
+     "snippet": "Showcase design, photography, and creative work with a custom portfolio.  ## Frequently asked questions  ### Can I turn a Figma design into a live website with Framer?  Yes. Framer"
+    },
+    {
+     "title": "Process for Turning a Figma Web Design into a Real ...",
+     "url": "https://www.reddit.com/r/FigmaDesign/comments/11qkic1/process_for_turning_a_figma_web_design_into_a",
+     "date": null,
+     "snippet": "I would look at using the Figma → Webflow plugin , as webflow is kind of an all in one solution for web hosting and design. The most basic way:"
+    },
+    {
+     "title": "Figma to Live Website Tutorial with Figma Sites | Part 2 | No Code",
+     "url": "https://www.youtube.com/watch?v=YUFQj3ZIuLE&vl=en",
+     "date": null,
+     "snippet": "[0:14] this video, we're going to take this Figma design and convert it into a live website. So if you remember, we use the same design to convert it into a live website using fram"
+    }
+   ],
+   "answer": "Framer allows you to turn Figma designs into a live React-based website rather than a downloadable folder of static HTML, CSS, and JavaScript files. With Framer, you can refine layouts, add interactions, connect CMS content, and publish a production-ready website from the same workspace. Additionally, figma.to.website offers an alternative by turning Figma files into real websites with Notion as t",
+   "score": 3,
+   "note": "Framer, Figma-to-Webflow (Reddit) and a Figma Sites tutorial: good spread for a vague query."
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 2.94,
+   "n_results": 5,
+   "chars": 8536,
+   "top": [
+    {
+     "title": "Best 7 Notion Alternatives In 2026 | 100+ Personally Tested Tools",
+     "url": "https://thebusinessdive.com/notion-alternatives",
+     "date": null,
+     "snippet": "Overall, Obsidian is a more powerful app than Notion for personal note-taking. While it is a complex app with a long learning curve, it offers many possibilities to organize your n"
+    },
+    {
+     "title": "39 Best Notion Alternatives of 2026: Personalized, Ad-free - NoteApps.info",
+     "url": "https://noteapps.info/best_notion_alternatives_2026_personalized_ad_free",
+     "date": null,
+     "snippet": "And yet...you're here. Why do Notion users defect in spite of the 234 (and growing) features Notion offers? For many users, the question is the answer. Apps like \"Apple Notes\" and "
+    },
+    {
+     "title": "Best Notion Alternatives for Personal Use",
+     "url": "https://eliteplanify.com/notion-alternatives-for-personal-use",
+     "date": null,
+     "snippet": "The best Notion alternative depends on your needs. OneNote is good for notebooks, Obsidian for linked notes, Todoist for tasks, Trello for visual planning, Google Keep for quick ca"
+    }
+   ],
+   "answer": "For a simpler alternative to Notion for personal notes, Google Keep, Todoist, Trello, and OneNote can feel simpler because they focus on fewer functions and require less setup. Xtiles is noted as a visually appealing app that offers many ways to visually organize your notes but is very simple with a short learning curve compared to Notion. Additionally, Apple Notes focuses on simplicity and speed,",
+   "score": 2,
+   "note": "Listicles from weaker sites; answer suggests Todoist/Trello which are not note apps, though it mentions Apple Notes/Obsidian."
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 2.19,
+   "n_results": 5,
+   "chars": 5120,
+   "top": [
+    {
+     "title": "Triangles to Quads - Blender 5.2 LTS Manual",
+     "url": "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/triangles_quads.html",
+     "date": null,
+     "snippet": "Skip to content  Blender 5.2 LTS Manual  Back to top   Edit this page  # Triangles to Quads¶  Reference  Mode: :   Edit Mode  Menu: :   Face ‣ Triangles to Quads  Shortcut: :   `Al"
+    },
+    {
+     "title": "ReMesh 3D Scan Mesh to Quads Blender",
+     "url": "https://www.youtube.com/watch?v=-8A4AWW4y24",
+     "date": null,
+     "snippet": "In this Blender tutorial, you'll learn how to transform a 3D skin mesh into quads for smoother workflows in parametric modeling programs like Fusion 360. Starting with a cleaned-up"
+    },
+    {
+     "title": "Tris to Quads in Blender",
+     "url": "https://www.youtube.com/watch?v=mDbFeqC_ang",
+     "date": null,
+     "snippet": "Very quickly convert tris to quads in Blender. Also learn how to isolate meshes during your workflow."
+    }
+   ],
+   "answer": "To convert a trimesh to a quadmesh in Blender, you can use the \"Triangles to Quads\" function. In Edit Mode, access this function via the menu: Face ‣ Triangles to Quads. The shortcut is `Alt`-`J`. This tool merges adjacent triangles into quads, using angle thresholds to avoid malformed quads. For optimal results, set Topology Influence between 100-130% and Max Angle to 180°. Additional options inc",
+   "score": 3,
+   "note": "Blender manual Triangles to Quads (Alt+J) top; answer correct."
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 2.67,
+   "n_results": 5,
+   "chars": 7690,
+   "top": [
+    {
+     "title": "Tell HN: Check your Claude settings, it may have silently enabled remote access | Hacker News",
+     "url": "https://news.ycombinator.com/item?id=49565799",
+     "date": null,
+     "snippet": "```  to my .claude/settings.json file, and the /rc in the corner went away.   `\"env\": { \"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": \"1\" },`  |  |  |  |  ---  |  |  | gar1t 34 days "
+    },
+    {
+     "title": "We Told Claude Code to Deny Access to Our Secrets. It Read Them Anyway.",
+     "url": "https://medium.com/@pankaj_pandey/we-told-claude-code-to-deny-access-to-our-secrets-it-read-them-anyway-e59940c73eb9",
+     "date": null,
+     "snippet": "Pankaj  Follow  5 min read  ·  May 1, 2026  [](  66  1  [](  [](  Listen  Share  > permissions.denyhas documented bugs that fail silently. A 10-minute setup with .claudeignore and "
+    },
+    {
+     "title": "claude rc fails on macOS with 403 \"OAuth token does not meet scope requirement user:sessions:claude_",
+     "url": "https://github.com/anthropics/claude-code/issues/28583",
+     "date": null,
+     "snippet": "1. Run `claude auth logout` 2. Run `claude auth login` (successfully completes, scope `user:sessions:claude_code` is included in the OAuth request) 3. Run `claude rc` 4. Confirm wi"
+    }
+   ],
+   "answer": "The sources indicate that users have encountered issues with remote access to the Claude Code environment, including unauthorized access to local sessions and denied access to the Remote Control feature. Specifically, a Hacker News post mentions that changes to the `.claude/settings.json` file can affect remote access, while a Medium article highlights documented bugs in the permission system that",
+   "score": 2,
+   "note": "Typo understood as Claude Code; results are about Remote Control (HN, GitHub 403 issue, Medium) rather than cloud environment network access."
+  }
+ ],
+ "tavily_api_response_time_s": [
+  0,
+  3.39,
+  2.13,
+  2.08,
+  2.21,
+  2.17,
+  1.73,
+  1.95,
+  2.8,
+  1.83,
+  1.78,
+  2.54,
+  2.03,
+  2.62,
+  1.97,
+  1.86,
+  1.71,
+  2.54,
+  1.84,
+  2.3
+ ],
+ "tavily_evidence": "Response has Tavily /search API fields: request_id (UUID), response_time, query, answer, images, follow_up_questions, results[].score/raw_content/id; Composio output schema is literally named TavilySearchResponse with usage.credits and auto_parameters. Repeating q1 returned response_time 0 (Tavily cache).",
+ "extras": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 3.49,
+   "n_results": 5,
+   "chars": 10155,
+   "top": [
+    {
+     "title": "Cash ISA Changes 2027",
+     "url": "https://www.rbs.co.uk/savings/isa-overview/autumn-budget.html",
+     "date": null,
+     "snippet": "The overall ISA allowance will remain at £20,000, 2027 the amount you can save into a Cash ISA each year will be limited to £12,000."
+    },
+    {
+     "title": "How ISAs will change in 2027",
+     "url": "https://www.fidelity.co.uk/markets-insights/personal-finance/personal-finance/how-isas-could-change-in-2027",
+     "date": null,
+     "snippet": "## The headlines   The cash ISA limit to fall to £12,000 for under-65s  Interest on cash held in stocks and shares ISAs to be charged  Lifetime ISAs are due to be phased out  ## Ho"
+    },
+    {
+     "title": "Cash ISA Changes 2027: Understanding the New £12,000 Limit | IG South Africa",
+     "url": "https://www.ig.com/za/trading-strategies/cash-isa-changes-2027--understanding-the-new-p12-000-limit--260414",
+     "date": null,
+     "snippet": "Charles Archer  Financial Writer  ### Key Takeaway  From 6 April 2027, the Cash ISA limit for under-65s drops from £20,000 to £12,000, with the remaining £8,000 of your ISA allowan"
+    }
+   ],
+   "answer": "From 6 April 2027, the Cash ISA limit for under-65s will drop from £20,000 to £12,000, while the overall ISA allowance will remain at £20,000. Savers aged 65 and over will retain the full £20,000 cash ISA allowance. The change is part of a wider package aimed at encouraging retail investment, including a ban on transfers from a Stocks and Shares ISA to a Cash ISA for under-65s, unless they are ove",
+   "extra": "tavily advanced",
+   "usage": null,
+   "api_response_time": 3.03,
+   "score": 3,
+   "note": "RBS, Fidelity, IG; answer equally correct. ~1.1 s slower than basic (uncached)."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 3.95,
+   "n_results": 5,
+   "chars": 11165,
+   "top": [
+    {
+     "title": "Configure cloud environments - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/cloud-environments",
+     "date": null,
+     "snippet": "## ​  Network access  Each environment sets one network access level, which controls the outbound connections its sessions can make. The default level, Trusted, allows package regi"
+    },
+    {
+     "title": "What domains should I add to my allowlist? | PromptArmor",
+     "url": "https://www.promptarmor.com/resources/what-domains-should-i-add-to-my-allowlist",
+     "date": null,
+     "snippet": "| Vendor | Where it's configured |  --- | | Anthropic Claude (chat) | `Organization → Capabilities → Code Execution → Allow Network Egress → Domain Allowlist`. | | Anthropic Claude"
+    },
+    {
+     "title": "Use Claude Code in the cloud - Claude Code Docs",
+     "url": "https://code.claude.com/docs/en/claude-code-on-the-web",
+     "date": null,
+     "snippet": "Network access controls: in Anthropic-hosted environments, network access is limited by default and can be disabled. See Network access for the access levels, the default allowed d"
+    }
+   ],
+   "answer": "With Trusted network access in the Claude Code cloud environment, sessions can reach the following domains by default: api.anthropic.com, docs.claude.com, platform.claude.com, code.claude.com, claude.ai, and version control. These domains are allowlisted for outbound connections, and wildcard subdomain matching is applied where indicated. The default allowed domains are specific to the Trusted net",
+   "extra": "tavily advanced",
+   "usage": null,
+   "api_response_time": 3.32,
+   "score": 3,
+   "note": "Better than basic: answer lists the default Trusted domains (api.anthropic.com, code.claude.com, claude.ai, ...); docs pages top."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 4.34,
+   "n_results": 5,
+   "chars": 10486,
+   "top": [
+    {
+     "title": "Comparing 10 AI-Native Search APIs and Crawlers for LLM Agents | by Kevin Meneses González | Towards",
+     "url": "https://medium.com/towardsdev/comparing-10-ai-native-search-apis-and-crawlers-for-llm-agents-ed4130d22c67",
+     "date": null,
+     "snippet": "Cons   Early-stage product  Limited public documentation  Less transparency around pricing and coverage  Best for:    Autonomous agents, complex reasoning tasks, cost-sensitive mul"
+    },
+    {
+     "title": "Articles - Enterprise Deep Research API Insights | Parallel",
+     "url": "https://parallel.ai/articles",
+     "date": null,
+     "snippet": "- [Tavily vs. Parallel: choosing a search API for your AI agentTavily and Parallel both return structured JSON built for LLMs. Parallel's default for the agent job is Fast, at $1 p"
+    },
+    {
+     "title": "Best Web Search APIs for AI Applications in 2026",
+     "url": "https://www.firecrawl.dev/blog/best-web-search-apis",
+     "date": null,
+     "snippet": "### Parallel AI  Agentic Web Research at Scale  Best for: Research-heavy agents that need high-accuracy outputs with clear sourcing, particularly for enterprise or compliance-sensi"
+    }
+   ],
+   "answer": "The sources indicate that Tavily focuses on credible, citable sources and predictable outputs, making it suitable for RAG pipelines, enterprise assistants, and compliance-heavy domains. Exa is preferred for retrieval that is not a web page, such as people, companies, code, and academic publications, and is noted for its tighter latency distribution, making it suitable for chained agent loops. Para",
+   "extra": "tavily advanced",
+   "usage": null,
+   "api_response_time": 3.91,
+   "score": 3,
+   "note": "Less vendor-biased than basic: Medium comparison, parallel.ai articles, Firecrawl blog round-up."
+  }
+ ]
+}

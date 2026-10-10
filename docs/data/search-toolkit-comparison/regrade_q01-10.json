@@ -1,0 +1,533 @@
+{
+ "exa": {
+  "1": {
+   "score": 3,
+   "why": "GOV.UK Sept 2026 policy paper top with exact facts in snippet; legislation memo, Barclays."
+  },
+  "2": {
+   "score": 2,
+   "why": "Exact 0.2m 90° C-to-C 20Gbps top, but amazon.ie; UK hit is an extension."
+  },
+  "3": {
+   "score": 3,
+   "why": "Official Dettol UK Protect 24 page with full ingredients; British Chemist, Morrisons."
+  },
+  "4": {
+   "score": 3,
+   "why": "Official pricing page, $7/1k visible in snippet; three near-duplicate pages."
+  },
+  "5": {
+   "score": 3,
+   "why": "Vercel 'Managing environment variables' docs and KB guide, steps in snippets."
+  },
+  "6": {
+   "score": 3,
+   "why": "Two Apple Support guides on custom email domain at top."
+  },
+  "7": {
+   "score": 2,
+   "why": "Official but US/Canada Woolite pages; marketing 'fade protection', no real mechanism."
+  },
+  "8": {
+   "score": 3,
+   "why": "GOV.UK check record, voluntary NI, Class 3 pages; dates are first-published only."
+  },
+  "9": {
+   "score": 2,
+   "why": "Apple Notes transcription page, vendor blog covering Voice Memos transcript and Shortcut."
+  },
+  "10": {
+   "score": 2,
+   "why": "Official YNAB help shows MX/Plaid; also outdated 2021 TrueLayer page; Starling unconfirmed."
+  }
+ },
+ "parallel": {
+  "1": {
+   "score": 3,
+   "why": "GOV.UK factsheet stating £12k from April 2027, plus Barclays, AJ Bell."
+  },
+  "2": {
+   "score": 1,
+   "why": "Read 0.2m as 2m: Belkin US 2m, UGREEN UAE 2m, Adafruit 1m."
+  },
+  "3": {
+   "score": 2,
+   "why": "Dettol UK Protect 24 page at #2; top is wet wipes, Malaysian spray off-target."
+  },
+  "4": {
+   "score": 3,
+   "why": "Exa official pricing pages top 3 (duplicates)."
+  },
+  "5": {
+   "score": 3,
+   "why": "Vercel KB guide and Managing env vars docs; tracking params, .md duplicates."
+  },
+  "6": {
+   "score": 3,
+   "why": "Three Apple Support articles incl. DNS records page."
+  },
+  "7": {
+   "score": 2,
+   "why": "Official US woolite.us pages, marketing only, no UK page."
+  },
+  "8": {
+   "score": 3,
+   "why": "GOV.UK check NI record plus NI browse/voluntary pages."
+  },
+  "9": {
+   "score": 2,
+   "why": "Apple Voice Memos transcription pages (official) but nothing on Shortcuts automation."
+  },
+  "10": {
+   "score": 2,
+   "why": "YNAB Linked Accounts help and Sync for YNAB saying YNAB natively supports UK; no Starling confirmation."
+  }
+ },
+ "tavily_llm_search": {
+  "1": {
+   "score": 3,
+   "why": "Correct answer; HL and Barclays; IG South Africa domain; no GOV.UK."
+  },
+  "2": {
+   "score": 2,
+   "why": "Pi Hut UK 0.2m USB-A to C top; Adafruit 75mm, amazon.com."
+  },
+  "3": {
+   "score": 1,
+   "why": "Answer gives wrong ingredients (ethanol, ADBAS) from Indian/AU products; not Protect 24."
+  },
+  "4": {
+   "score": 3,
+   "why": "Correct $7/1k answer; Exa blog, Rundown, Exa docs."
+  },
+  "5": {
+   "score": 3,
+   "why": "Vercel KB guide top; answer echoes 2020 blog wording ('newly added section')."
+  },
+  "6": {
+   "score": 3,
+   "why": "Correct step answer; blog top, Apple Support #2."
+  },
+  "7": {
+   "score": 2,
+   "why": "Official US pages; answer notes cold water, fade protection; no UK page."
+  },
+  "8": {
+   "score": 3,
+   "why": "GOV.UK voluntary NI top; answer covers HMRC account, 6-year rule."
+  },
+  "9": {
+   "score": 2,
+   "why": "Correct Transcribe action answer; vendor blog, YouTube, beard.fm; no Apple source."
+  },
+  "10": {
+   "score": 1,
+   "why": "Outdated 2024 HN thread top; answer inconclusive; no YNAB help page."
+  }
+ },
+ "duckduckgo": {
+  "1": {
+   "score": 3,
+   "why": "GOV.UK factsheet top with £12k in snippet; YBS, dated."
+  },
+  "2": {
+   "score": 1,
+   "why": "All US (amazon.com search page, Walmart); no UK listing."
+  },
+  "3": {
+   "score": 1,
+   "why": "Generic Dettol transparency pages (UK, PK) and AU Woolworths listing; no ingredients."
+  },
+  "4": {
+   "score": 3,
+   "why": "exa.ai/pricing top plus dated 2026 explainers quoting $7/1k."
+  },
+  "5": {
+   "score": 3,
+   "why": "Vercel KB how-to guide top, docs #2, dated 2026."
+  },
+  "6": {
+   "score": 3,
+   "why": "Two Apple Support pages top, one dated Sept 2026."
+  },
+  "7": {
+   "score": 2,
+   "why": "Two near-duplicate woolite.us pages plus review site."
+  },
+  "8": {
+   "score": 3,
+   "why": "GOV.UK check record and voluntary NI top 2."
+  },
+  "9": {
+   "score": 2,
+   "why": "Dated 2026 third-party guides on built-in transcript; Reddit shortcut thread."
+  },
+  "10": {
+   "score": 2,
+   "why": "Official YNAB How Direct Import Works (Jul 2026) and bank-not-listed; vendor BudgetSyncer."
+  }
+ },
+ "firecrawl": {
+  "1": {
+   "score": 3,
+   "why": "GOV.UK factsheet top, HL, Moneybox with facts in snippets."
+  },
+  "2": {
+   "score": 3,
+   "why": "Amazon UK 0.2m right-angle C-to-C and Pi Hut UK 0.2m; Kenable 1m."
+  },
+  "3": {
+   "score": 2,
+   "why": "Morrisons Protect 24 with correct actives at #3; top 2 are other Dettol sprays."
+  },
+  "4": {
+   "score": 3,
+   "why": "exa.ai/pricing and docs pricing (Sept 2026) top."
+  },
+  "5": {
+   "score": 2,
+   "why": "Vercel docs overview, CLI page, sensitive vars; steps need a click."
+  },
+  "6": {
+   "score": 3,
+   "why": "Apple Support en-GB guide top with Settings path in snippet."
+  },
+  "7": {
+   "score": 2,
+   "why": "2017 Reddit top, woolite.us FAQ, Amazon.com; no mechanism."
+  },
+  "8": {
+   "score": 3,
+   "why": "Both GOV.UK pages plus MoneyHelper."
+  },
+  "9": {
+   "score": 2,
+   "why": "2023 Reddit (third-party app), YouTube shortcut, Apple Notes transcription page."
+  },
+  "10": {
+   "score": 2,
+   "why": "YNAB help Europe/How Direct Import Works; Starling homepage irrelevant."
+  }
+ },
+ "tinyfish": {
+  "1": {
+   "score": 3,
+   "why": "GOV.UK policy paper top with dated, exact snippet; HL, YBS."
+  },
+  "2": {
+   "score": 2,
+   "why": "Relevant 0.2m listings but amazon.com, AliExpress top; Pi Hut UK at #4."
+  },
+  "3": {
+   "score": 1,
+   "why": "Top two are other Dettol sprays' ingredients (misleading); Morrisons Protect 24 without ingredients."
+  },
+  "4": {
+   "score": 3,
+   "why": "exa.ai/pricing and dated docs pricing, $7/1k visible."
+  },
+  "5": {
+   "score": 2,
+   "why": "Vercel env vars overview (dated) top; CLI page and 2020 blog follow."
+  },
+  "6": {
+   "score": 3,
+   "why": "Apple Support en-GB guide top with steps in snippet."
+  },
+  "7": {
+   "score": 1,
+   "why": "Old Reddit and Facebook groups; Woolite FAQ only at #5."
+  },
+  "8": {
+   "score": 3,
+   "why": "Both GOV.UK pages top 2, MoneyHelper #3."
+  },
+  "9": {
+   "score": 1,
+   "why": "Reddit/forum threads only, 2023 top recommends third-party app; no Apple source."
+  },
+  "10": {
+   "score": 2,
+   "why": "Official YNAB help pages (MX/Plaid in snippet); 8-year-old Reddit #3."
+  }
+ },
+ "serper": {
+  "1": {
+   "score": 3,
+   "why": "HL then GOV.UK policy paper; Close Brothers; all state £12k."
+  },
+  "2": {
+   "score": 2,
+   "why": "Same as TinyFish: amazon.com top, Pi Hut UK at #4."
+  },
+  "3": {
+   "score": 2,
+   "why": "Morrisons Protect 24 with correct actives in snippet at #3; top 2 other sprays."
+  },
+  "4": {
+   "score": 3,
+   "why": "exa.ai/pricing, dated docs pricing, fastcrw explainer; $7/1k visible."
+  },
+  "5": {
+   "score": 2,
+   "why": "Vercel env vars overview top; CLI page, 2020 blog."
+  },
+  "6": {
+   "score": 3,
+   "why": "Apple Support guide plus 'add a domain you own' page."
+  },
+  "7": {
+   "score": 1,
+   "why": "Reddit and Facebook; no Woolite source in top 4."
+  },
+  "8": {
+   "score": 3,
+   "why": "Both GOV.UK pages top 2."
+  },
+  "9": {
+   "score": 1,
+   "why": "Reddit/forum threads only; no Apple source."
+  },
+  "10": {
+   "score": 2,
+   "why": "Official YNAB help pages (MX/Plaid); Starling not confirmed."
+  }
+ },
+ "serpapi": {
+  "1": {
+   "score": 1,
+   "why": "Facebook post, X post, broker blog, LinkedIn; no GOV.UK, no snippets."
+  },
+  "2": {
+   "score": 1,
+   "why": "Newegg, Amazon.ca, Staples 2m; not UK, no snippets."
+  },
+  "3": {
+   "score": 2,
+   "why": "Amazon.co.uk Protect 24 listing #1 but no snippet; AU SDS of other spray."
+  },
+  "4": {
+   "score": 2,
+   "why": "Official pricing pages top but no snippets, price not visible."
+  },
+  "5": {
+   "score": 1,
+   "why": "StackOverflow, Sanity, YouTube; no Vercel docs."
+  },
+  "6": {
+   "score": 2,
+   "why": "icloud.com/icloudplus and Apple guide (en-NZ) but no snippets."
+  },
+  "7": {
+   "score": 1,
+   "why": "Amazon.com capsules (wrong product), Houzz, Facebook."
+  },
+  "8": {
+   "score": 1,
+   "why": "Accountant blogs, HMRC Facebook post; no GOV.UK."
+  },
+  "9": {
+   "score": 2,
+   "why": "beard.fm Voice Memos AI shortcut guide, Apple Discussions; no snippets."
+  },
+  "10": {
+   "score": 1,
+   "why": "Reddit TfL issue, comparison site, Steam forum; no YNAB help."
+  }
+ },
+ "composio_web": {
+  "1": {
+   "score": 3,
+   "why": "GOV.UK Sept 2026 policy paper; correct answer incl. anti-circumvention rules."
+  },
+  "2": {
+   "score": 2,
+   "why": "Exact 0.2m C-to-C on amazon.ie (not UK), Pimoroni UK; answer gives data speeds."
+  },
+  "3": {
+   "score": 3,
+   "why": "Dettol UK Protect 24 page, Morrisons; answer gives correct actives and amounts."
+  },
+  "4": {
+   "score": 3,
+   "why": "Docs pricing; answer correct: $4 instant, $7 fast/auto, +$1/1k extra results."
+  },
+  "5": {
+   "score": 3,
+   "why": "Vercel docs and KB; answer gives sidebar steps and redeploy."
+  },
+  "6": {
+   "score": 2,
+   "why": "Answer correct but cites Mail-on-Mac and DKIM vendor guides, not Apple iCloud guide."
+  },
+  "7": {
+   "score": 2,
+   "why": "Official US pages and Walmart; answer marketing-level."
+  },
+  "8": {
+   "score": 3,
+   "why": "GOV.UK pages; answer covers personal tax account and 6-year rule."
+  },
+  "9": {
+   "score": 2,
+   "why": "Answer correct (Get Latest Voice Memo + Transcribe Audio); vendor blogs only."
+  },
+  "10": {
+   "score": 0,
+   "why": "Confident 'No' from conflicted sync vendors; likely wrong; no official page."
+  }
+ },
+ "browser_use": {
+  "1": {
+   "score": 3,
+   "why": "Two GOV.UK sources; correct, complete answer."
+  },
+  "2": {
+   "score": 2,
+   "why": "Real 0.2m data cables but only C-to-C is amazon.ie; caveated."
+  },
+  "3": {
+   "score": 3,
+   "why": "Dettol UK page plus Morrisons; full correct ingredient list."
+  },
+  "4": {
+   "score": 3,
+   "why": "Official pricing page; $7/1k answer correct."
+  },
+  "5": {
+   "score": 3,
+   "why": "Vercel docs; correct steps incl. redeploy."
+  },
+  "6": {
+   "score": 3,
+   "why": "Apple Support guide; good steps, omits DNS record types."
+  },
+  "7": {
+   "score": 2,
+   "why": "Official US pages; mechanism from weak manualshelf page."
+  },
+  "8": {
+   "score": 3,
+   "why": "GOV.UK sources; correct 6-year rule, credits first; Class 3 only."
+  },
+  "9": {
+   "score": 2,
+   "why": "Usable Shortcut recipe; weak sources; misses built-in Voice Memos transcripts."
+  },
+  "10": {
+   "score": 1,
+   "why": "Inconclusive, leans on vendor claim Starling often unavailable; no Plaid mention."
+  }
+ },
+ "_per_question": {
+  "1": {
+   "best": [
+    "exa",
+    "tinyfish",
+    "composio_web",
+    "browser_use",
+    "serper"
+   ],
+   "wrong_facts": "None stated. Tavily's #2 is IG South Africa site.",
+   "comment": "Easy for most; GOV.UK Sept 2026 policy paper (exa, tinyfish, serper, composio_web, browser_use) beats the June factsheet. SerpAPI returned only social posts with no snippets."
+  },
+  "2": {
+   "best": [
+    "firecrawl"
+   ],
+   "wrong_facts": "Parallel treated 0.2m as 2m.",
+   "comment": "Only Firecrawl surfaced an Amazon UK 0.2m right-angle C-to-C; Exa/composio_web/browser_use found the exact cable on amazon.ie. Most others US-centric despite UK settings."
+  },
+  "3": {
+   "best": [
+    "exa",
+    "composio_web",
+    "browser_use"
+   ],
+   "wrong_facts": "Tavily answer lists ethanol/alkyl dimethyl benzyl ammonium saccharinate (wrong product, Indian listing). Firecrawl/TinyFish/Serper top 2 show ethanol/lactic acid sprays, easy to misread as the answer.",
+   "comment": "Correct actives are benzalkonium chloride + didecyldimonium chloride 0.25 g/100 g; Exa and its derivatives hit the dettol.co.uk Protect 24 page directly."
+  },
+  "4": {
+   "best": [
+    "exa",
+    "duckduckgo",
+    "tinyfish",
+    "serper",
+    "composio_web",
+    "firecrawl",
+    "browser_use"
+   ],
+   "wrong_facts": "None; all that state a price say $7/1k (some add $4 instant). No one quoted the old $5.",
+   "comment": "Near-universal success; SerpAPI lacks snippets so price not visible."
+  },
+  "5": {
+   "best": [
+    "exa",
+    "parallel",
+    "duckduckgo",
+    "composio_web",
+    "browser_use"
+   ],
+   "wrong_facts": "Tavily answer echoes 2020 blog ('Project Settings... newly added section'), slightly outdated.",
+   "comment": "Google-backed tools (TinyFish/Serper/Firecrawl) ranked the overview and CLI pages above the how-to; SerpAPI had no Vercel docs."
+  },
+  "6": {
+   "best": [
+    "parallel",
+    "exa",
+    "duckduckgo",
+    "serper",
+    "firecrawl",
+    "tinyfish"
+   ],
+   "wrong_facts": "None.",
+   "comment": "Apple Support guides easy to find; composio_web answer right but poorly cited."
+  },
+  "7": {
+   "best": [
+    "exa",
+    "parallel",
+    "tavily_llm_search",
+    "duckduckgo",
+    "composio_web",
+    "browser_use"
+   ],
+   "wrong_facts": "browser_use 'collects loose dye particles' claim from a weak manualshelf page (unverified).",
+   "comment": "No UK Woolite page exists in any result; best possible is US woolite.us marketing. Google-backed tools returned Reddit/Facebook."
+  },
+  "8": {
+   "best": [
+    "exa",
+    "parallel",
+    "duckduckgo",
+    "firecrawl",
+    "tinyfish",
+    "serper",
+    "composio_web",
+    "browser_use"
+   ],
+   "wrong_facts": "None.",
+   "comment": "GOV.UK found by all except SerpAPI."
+  },
+  "9": {
+   "best": [
+    "exa",
+    "parallel",
+    "composio_web",
+    "tavily_llm_search"
+   ],
+   "wrong_facts": "None outright; browser_use omits built-in iOS 18 transcripts.",
+   "comment": "No toolkit combined an Apple source with the Shortcuts Transcribe Audio action; Parallel had Apple Voice Memos pages, LLM answers had the Shortcut recipe."
+  },
+  "10": {
+   "best": [
+    "exa",
+    "duckduckgo",
+    "tinyfish",
+    "serper"
+   ],
+   "wrong_facts": "composio_web confidently says YNAB does not reliably support Starling (from conflicted sync vendors). Exa #3 is the 2021 TrueLayer page (outdated provider). Tavily top is a 2024 HN thread.",
+   "comment": "No toolkit found official Starling confirmation (none exists). Best results show the July 2026 help page naming MX and Plaid."
+  }
+ }
+}

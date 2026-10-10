@@ -15,7 +15,7 @@ You'll need: a Vercel account (the free plan works), an Exa account and a Parall
 
 1. Exa: sign in at [dashboard.exa.ai/api-keys](https://dashboard.exa.ai/api-keys) and create a key. Exa gives $10 of free credit each month.
 2. Parallel: sign in at [platform.parallel.ai](https://platform.parallel.ai) and create a key.
-3. Optional, Firecrawl: sign in at [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys) and copy your key. When it's added, Firecrawl reads web pages first, which saves Exa and Parallel usage. Its free plan gives 1,000 pages a month.
+3. Optional, Firecrawl: sign in at [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys) and copy your key. When it's added, Firecrawl reads web pages first, which saves Exa and Parallel usage, and adds a second opinion to searches. Its free plan gives 1,000 credits a month: a page read costs 1 credit and a search 2.
 4. Keep the keys somewhere safe for step 3. You won't need the Vercel dashboard to add them.
 
 ## 2. Put the connector on Vercel (one time)
@@ -148,7 +148,7 @@ Vercel's free plan covers personal use of the connector itself.
 | What you see | What to do |
 |---|---|
 | "has no API key" | Add the key on the settings page. |
-| "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa, Parallel or Firecrawl. If it's Firecrawl, pages are still read by Exa and Parallel. |
+| "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa, Parallel or Firecrawl. If it's Firecrawl, Exa and Parallel still search and read pages. |
 | "Storage not connected" on the settings page | Connect a private Blob store (step 2, sub-step 5). |
 | Claude asks you to reconnect | Normal after "Sign out all connections" or a password change. Reconnect in Claude's connector settings. |
 | "Setup needed" page | `ADMIN_PASSWORD` is missing or shorter than 12 characters. Add it in Vercel and redeploy. |

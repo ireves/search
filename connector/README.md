@@ -6,7 +6,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 
 | Tool | What Claude gets | Behind it |
 |---|---|---|
-| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged |
+| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set |
 | `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
@@ -47,6 +47,13 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - Reads the whole page. With a question, the connector picks the paragraphs that share the most uncommon words with the question, in page order, instead of paying Firecrawl's extra 4 credits a page for its own question format. This matches words, not meaning, so it is a little less precise than Exa.
 - Two pages at a time (the free plan's limit). The free plan also allows only about 10 pages a minute; pages turned away for that go to Exa and Parallel. A rejected key or empty credit is reported once and the remaining pages skip Firecrawl.
 - Results show credits used: "Firecrawl 2 credits" in the cost line.
+
+**Firecrawl in search (optional, same key).** Firecrawl ranks results like Google, so it finds forum threads, mainstream recommendations and pages that only partly answer a question, which Exa's meaning-based search tends to pass over (see [`docs/search-toolkit-comparison.md`](../docs/search-toolkit-comparison.md)).
+
+- **Second opinion:** for `web`, `discussions` (adds "reddit" to the query), `reviews` and `code` searches at standard or thorough depth, Firecrawl runs alongside Exa and Parallel and its results are merged in.
+- **Fallback:** for `fast` searches and for `news`, `jobs` and `x`, Firecrawl runs only when Exa and Parallel return fewer than 3 results. The reply then says so. Never used for `papers`, `people`, `companies` or `financial`, where Exa's structured index is better.
+- Search results only (title, link, Google's short snippet, and the date when the snippet starts with one); no pages are read, so a search costs 2 credits per 10 results. Site filters are passed on, dates become Google's custom date range, and `country` is passed on.
+- A rejected key or empty credit adds a note; the other engines' results still come back.
 
 **Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
 

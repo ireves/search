@@ -1,0 +1,511 @@
+{
+ "toolkit": "browser_use",
+ "tool_slugs": [
+  "BROWSER_USE_START_RUN",
+  "BROWSER_USE_GET_RUN_STATUS",
+  "BROWSER_USE_GET_RUN",
+  "BROWSER_USE_LIST_RUN_EVENTS"
+ ],
+ "settings": {
+  "model": "bu-ultrafast (Instant allows only bu-ultrafast or gpt-5.6-luna; ultrafast chosen as cheapest/fastest)",
+  "max_cost_usd": 0.5,
+  "browser_settings": {
+   "proxyCountryCode": "uk"
+  },
+  "step_cap": "none available in schema (only max_cost_usd cap)",
+  "task_template": "Search the web and answer briefly, with the source URLs you used: <question>",
+  "concurrency": "q1 alone, then batches of 4 concurrent runs (2-4 joined q1; 5-8; 9-12; 13-16)",
+  "polling": "GET_RUN_STATUS every ~5 s from a background thread in the workbench; latency = START_RUN call start to first poll seeing 'completed' (overstates by up to ~5-6 s poll interval + ~1 s per status call). server_s = run created_at -> updated_at from GET_RUN."
+ },
+ "cost_info": "GET_RUN.total_cost_usd was null. Run events (LIST_RUN_EVENTS) expose per-LLM-call charge_usd and per-search cost_usd: bu-ultrafast LLM ~$0.002-0.006 per run plus $0.007 per internal web search, so ~$0.009-0.025 per run (mean ~$0.012). However the Instant schema says max_cost_usd is 'charged when the run is accepted': with a $0.50 cap, 16 accepted runs (= $8 reserved) exhausted the Instant wallet; whether unused cap is refunded is not visible. A much lower cap (e.g. $0.05) would have stretched the wallet ~10x. Error text after exhaustion: 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.'",
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": null,
+   "server_s": 6.7,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0094,
+   "tokens_in": 13003,
+   "tokens_out": 468,
+   "n_results": 2,
+   "chars": 1475,
+   "top": [
+    {
+     "title": null,
+     "url": "https://www.gov.uk/government/publications/reduction-in-the-cash-individual-savings-account-isa-limit/cash-individual-savings-account-isa-limit-reduction",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.gov.uk/government/publications/fiscal-events-2026-factsheets/isa-reform-2027-anti-circumvention-rules-factsheet",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "From 6 April 2027 (the 2027/28 tax year), the annual Cash ISA limit for people under 65 falls from £20,000 to £12,000. People aged 65 or over can still put up to £20,000 into a Cash ISA. The overall ISA allowance remains £20,000; under-65s can use the remaining £8,000 in other eligible ISA types. The change applies to new contributions, not money already in a Cash ISA.",
+   "score": 3,
+   "correct": true,
+   "note": "Correct, two GOV.UK sources. Wall-clock latency invalid: this run was started alone and its first status poll only happened ~110 s later (the polling cell hit the 60 s MCP timeout), so measured 115.8 s is an artefact; server-side created->completed was 6.7 s."
+  },
+  {
+   "q": 2,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: 0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 13.5,
+   "server_s": 7.7,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0098,
+   "tokens_in": 14668,
+   "tokens_out": 584,
+   "n_results": 3,
+   "chars": 1604,
+   "top": [
+    {
+     "title": null,
+     "url": "https://www.redcorp.com/en/product/converter-cables/gembird/angled-usb-type-c-to-usb-a-charging-data-cable-20cm-cc-usb2-amcml-0-2m/q6362839",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.amazon.co.uk/dp/B087R5KHNW",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.amazon.ie/Degree-Gen2x2-20Gbps-Transfer-Charge/dp/B0CC59T7QX",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Here are three 0.2 m right-angle USB-C data cable options: USB-A to USB-C: Gembird angled charging/data cable; USB 2.0, up to 480 Mb/s (redcorp.com). USB-C male to female extension: UseBean 0.2 m, right-angle; listing claims USB 3.1 Gen 2, up to 20 Gbps (amazon.co.uk). USB-C to USB-C: 0.2 m right-angle cable; listing claims up to 20 Gbps (amazon.ie). Check connector type before ordering... availability and current pricing were not verified.",
+   "score": 2,
+   "correct": true,
+   "note": "Real product listings, all data-capable, but only one is a C-to-C cable (on amazon.ie, not .co.uk); one is A-to-C and one an extension. Useful, sensibly caveated."
+  },
+  {
+   "q": 3,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 13.6,
+   "server_s": 7.0,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0092,
+   "tokens_in": 12236,
+   "tokens_out": 414,
+   "n_results": 2,
+   "chars": 1359,
+   "top": [
+    {
+     "title": null,
+     "url": "https://www.dettol.co.uk/household-disinfection/multi-purpose-cleaning/dettol-protect-24-antibacterial-multi-surface-cleaner/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://groceries.morrisons.com/products/112886109/details",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Dettol Protect 24 spray lists benzalkonium chloride and didecyldimonium chloride (0.25 g each per 100 g), decylamine oxide and lauramine oxide, plus water, polymer, disodium EDTA, citric acid, tristyrylphenol ethoxylates, fragrance, and preservatives (methylisothiazolinone, benzisothiazolinone, iodopropynyl butylcarbamate). Ingredients may vary by version/market.",
+   "score": 3,
+   "correct": true,
+   "note": "Official Dettol UK product page plus Morrisons listing; full ingredient list with actives and concentrations."
+  },
+  {
+   "q": 4,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 14.4,
+   "server_s": 7.6,
+   "steps": 3,
+   "n_searches": 2,
+   "est_cost_usd": 0.0159,
+   "tokens_in": 11589,
+   "tokens_out": 165,
+   "n_results": 1,
+   "chars": 956,
+   "top": [
+    {
+     "title": null,
+     "url": "https://exa.ai/pricing",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Exa Search API costs $7 per 1,000 requests (about $0.007 per search). The listed rate includes up to 10 results per request. Source: https://exa.ai/pricing",
+   "score": 3,
+   "correct": true,
+   "note": "Official pricing page. $7/1k differs from the older $5/1k figure but matches the per-search cost Browser Use itself was billed in run events ($0.007/search), so it looks current."
+  },
+  {
+   "q": 5,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 12.4,
+   "server_s": 6.5,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0087,
+   "tokens_in": 10266,
+   "tokens_out": 282,
+   "n_results": 2,
+   "chars": 1290,
+   "top": [
+    {
+     "title": null,
+     "url": "https://vercel.com/docs/environment-variables/managing-environment-variables",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://vercel.com/docs/environment-variables/sensitive-environment-variables",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "1. Open your project in the Vercel dashboard and select Environment Variables from the sidebar. 2. Enter the variable's key and value, then choose the environment(s) it should apply to. 3. Click Save. Redeploy your project for the new variable to take effect in a deployment.",
+   "score": 3,
+   "correct": true,
+   "note": "Vercel docs; correct steps including redeploy."
+  },
+  {
+   "q": 6,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 23.4,
+   "server_s": 20.4,
+   "steps": 6,
+   "n_searches": 3,
+   "est_cost_usd": 0.0245,
+   "tokens_in": 30143,
+   "tokens_out": 572,
+   "n_results": 2,
+   "chars": 1937,
+   "top": [
+    {
+     "title": null,
+     "url": "https://support.apple.com/guide/icloud/add-a-domain-you-own-mma473945269/icloud",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://icloud.com/icloudplus",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "1. Before starting, make sure you have iCloud+, a primary iCloud Mail address, and two-factor authentication enabled... 2. Go to https://icloud.com/icloudplus, sign in, and open Custom Email Domain. Choose Add a domain you own... 3. Add any people who will share it, then enter existing addresses... 4. Select View and update the domain's DNS records through your registrar... 5. Select Finish setup, follow the prompts, and choose a default address for sending...",
+   "score": 3,
+   "correct": true,
+   "note": "Apple support guide, good step-by-step. Does not name the DNS record types (MX/SPF/DKIM) or the buy-a-domain route. Slowest run (3 searches, 6 steps)."
+  },
+  {
+   "q": 7,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 12.1,
+   "server_s": 7.4,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0088,
+   "tokens_in": 10321,
+   "tokens_out": 365,
+   "n_results": 3,
+   "chars": 1380,
+   "top": [
+    {
+     "title": null,
+     "url": "https://www.woolite.us/woolitereg-darks-defense/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.woolite.us/woolitereg-products/woolite-darks-defense-40-fl-oz/",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.manualshelf.com/product/woolite/62338-93516",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Woolite Darks is designed to gently clean dark clothes while helping protect their color and fabric from fading, pilling, and stretching. Woolite recommends using a gentle or delicate cycle and cold water unless the garment's care label says otherwise. A product manual listing describes its formula as collecting loose dye particles during washing to help reduce color transfer and fading.",
+   "score": 2,
+   "correct": true,
+   "note": "Official but US Woolite pages (user is in UK); the 'how it works' mechanism comes from a weak manualshelf page. Answer is thin on mechanism."
+  },
+  {
+   "q": 8,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 12.7,
+   "server_s": 9.0,
+   "steps": 4,
+   "n_searches": 1,
+   "est_cost_usd": 0.0094,
+   "tokens_in": 16686,
+   "tokens_out": 394,
+   "n_results": 3,
+   "chars": 1868,
+   "top": [
+    {
+     "title": null,
+     "url": "https://www.gov.uk/check-national-insurance-record",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.gov.uk/pay-voluntary-class-3-national-insurance",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://www.gov.uk/voluntary-national-insurance-contributions",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Sign in to GOV.UK's Check your National Insurance record service... It shows contributions and credits, gaps, whether paying to fill them would help your State Pension, the cost, and whether you can pay online... Before paying, check whether you qualify for National Insurance credits... follow the payment options in the voluntary Class 3 guide... Usually, only gaps in the previous six tax years can be paid for, with a 5 April deadline each year... check your forecast or contact the Future Pension Centre first.",
+   "score": 3,
+   "correct": true,
+   "note": "GOV.UK sources, correct and practical (6-year rule, credits first). Mentions only Class 3, not Class 2, and not the HMRC app."
+  },
+  {
+   "q": 9,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 11.8,
+   "server_s": 7.2,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0093,
+   "tokens_in": 12782,
+   "tokens_out": 400,
+   "n_results": 2,
+   "chars": 1421,
+   "top": [
+    {
+     "title": null,
+     "url": "https://lifetips.alibaba.com/tech-efficiency/voice-memos-to-text-with-apple-shortcuts",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://spokenly.app/blog/voice-memo-to-text-iphone",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "For a one-tap shortcut, open Shortcuts and create: Get Latest Voice Memo -> Transcribe Audio -> Save File (or Show Result). Add Copy to Clipboard if you want to paste the transcript elsewhere. To launch it from a memo's share sheet, set the shortcut to receive Audio and add Transcribe Audio. This requires you to run the shortcut; it won't automatically process every new recording by itself.",
+   "score": 2,
+   "correct": true,
+   "note": "Usable shortcut recipe but weak sources (Alibaba 'lifetips', a vendor blog); misses the built-in Voice Memos transcripts in iOS 18+ and no Apple source."
+  },
+  {
+   "q": 10,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 12.0,
+   "server_s": 9.3,
+   "steps": 4,
+   "n_searches": 2,
+   "est_cost_usd": 0.0164,
+   "tokens_in": 17215,
+   "tokens_out": 404,
+   "n_results": 2,
+   "chars": 1310,
+   "top": [
+    {
+     "title": null,
+     "url": "https://support.ynab.com/en%5Fus/how-direct-import-works-H1IGYLgnxl",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": null,
+     "url": "https://budgetsyncer.com/sync/starling-to-ynab",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "I can't confirm that YNAB supports Starling Bank direct import in 2026. YNAB says direct import depends on available providers and bank connections; third-party coverage information says Starling is often unavailable through YNAB's native import. Check whether 'Starling Bank' appears in YNAB's link-account flow, since availability can change.",
+   "score": 1,
+   "correct": false,
+   "note": "Inconclusive and leans on a third-party sync vendor (which has an interest in saying native import is missing). Did not find a YNAB UK bank list. Likely wrong/unhelpful if YNAB does support Starling (brief marks this ?)."
+  },
+  {
+   "q": 11,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 12.0,
+   "server_s": 8.9,
+   "steps": 3,
+   "n_searches": 1,
+   "est_cost_usd": 0.0089,
+   "tokens_in": 11713,
+   "tokens_out": 230,
+   "n_results": 1,
+   "chars": 1369,
+   "top": [
+    {
+     "title": null,
+     "url": "https://supabase.com/docs/guides/platform/free-project-pausing",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Supabase Free projects may be paused after 7 days of low database activity. To prevent it, generate sufficient real database activity... a few user requests per day over the previous week is typically enough. After receiving a warning, visit the project in the Supabase Dashboard or make API/database requests through your app. For a guarantee against inactivity pauses, upgrade to a paid plan; paid projects aren't automatically paused.",
+   "score": 3,
+   "correct": true,
+   "note": "Supabase docs page dedicated to this; correct."
+  },
+  {
+   "q": 12,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 17.9,
+   "server_s": 15.1,
+   "steps": 9,
+   "n_searches": 1,
+   "est_cost_usd": 0.0126,
+   "tokens_in": 68008,
+   "tokens_out": 622,
+   "n_results": 1,
+   "chars": 1413,
+   "top": [
+    {
+     "title": null,
+     "url": "https://code.claude.com/docs/en/cloud-environments",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": "Trusted network access in a Claude Code cloud environment allows outbound access to the default allowlist of domains (package registries and other common services), not arbitrary domains. The documentation groups its default list into Anthropic services, version control, container registries, cloud platforms, package managers, and developer tools. You can allow additional specific domains; a *. prefix matches subdomains. GitHub traffic, MCP connector traffic, and requests to network-secret hosts are exceptions to this allowlist.",
+   "score": 3,
+   "correct": true,
+   "note": "Official Claude Code docs (current cloud-environments page). Summarises the categories rather than listing domains. 9 steps (read the page)."
+  },
+  {
+   "q": 13,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "START_RUN accepted (status queued, run 9f6a4c66-3560-47db-930d-1a7d70fe2e5a), but every later GET_RUN_STATUS/GET_RUN call failed: 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.' Result never retrieved."
+  },
+  {
+   "q": 14,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "START_RUN accepted (status queued, run 110f35df-d1be-4532-93c9-aaaf0ebd98db), but every later GET_RUN_STATUS/GET_RUN call failed: 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.' Result never retrieved."
+  },
+  {
+   "q": 15,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: reddit Claude skills vs MCP servers when to use which",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "START_RUN accepted (status queued), but every later GET_RUN_STATUS/GET_RUN call failed: 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.' Result never retrieved."
+  },
+  {
+   "q": 16,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: junior product designer jobs London UK",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "START_RUN accepted (status queued), but every later GET_RUN_STATUS/GET_RUN call failed: 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.' Result never retrieved."
+  },
+  {
+   "q": 17,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: that tool that turns figma designs into a website",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "Not run: Instant wallet exhausted."
+  },
+  {
+   "q": 18,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: app like notion but simpler for personal notes",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "Not run: Instant wallet exhausted."
+  },
+  {
+   "q": 19,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: How to convert trimesh to a quadmesh in Blender",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "Not run: Instant wallet exhausted."
+  },
+  {
+   "q": 20,
+   "query_used": "Search the web and answer briefly, with the source URLs you used: clade code remote enviroment acces denied",
+   "ok": false,
+   "latency_s": null,
+   "n_results": 0,
+   "chars": 0,
+   "top": [],
+   "answer": "",
+   "score": 0,
+   "correct": null,
+   "note": "Not run: Instant wallet exhausted."
+  }
+ ]
+}

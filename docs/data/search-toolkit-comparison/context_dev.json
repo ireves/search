@@ -1,0 +1,720 @@
+{
+ "toolkit": "context_dev",
+ "tool_slugs": [
+  "CONTEXT_DEV_SEARCH_BRANDS",
+  "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN",
+  "CONTEXT_DEV_EXTRACT_STRUCTURED_WEB_DATA (not run)"
+ ],
+ "settings": {
+  "CONTEXT_DEV_SEARCH_BRANDS": {
+   "query": "question text verbatim (all under the 100-char limit); no other options exist; returns max 10 brands"
+  },
+  "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN": {
+   "use_main_content_only": true,
+   "country": "gb",
+   "other": "defaults (include_links true, max_age_ms 1 day cache)"
+  },
+  "runner": "COMPOSIO_REMOTE_WORKBENCH run_composio_tool, sequential, timed with time.perf_counter"
+ },
+ "cost_info": "Tool descriptions: SCRAPE_WEBPAGE_MARKDOWN 'normally consumes one Context.dev credit'; EXTRACT_STRUCTURED_WEB_DATA 'consumed 10 Context.dev credits' for a one-page call, rising with pages. SEARCH_BRANDS states no cost. No credit fields in responses. Runs on a Composio instant account; the shared instant wallet ran out mid-run (402 Metering_WalletBalanceExhausted), blocking the remaining extras.",
+ "rows": [
+  {
+   "q": 1,
+   "query_used": "cash ISA allowance 2027 changes",
+   "ok": true,
+   "latency_s": 0.66,
+   "n_results": 10,
+   "chars": 2326,
+   "top": [
+    {
+     "title": "Cash",
+     "url": "https://cash.app",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Carter Cash",
+     "url": "https://carter-cash.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "CASH",
+     "url": "https://cash.ch",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Brands matching the word 'cash' (Cash App, Cash Converters). No ISA content at all."
+  },
+  {
+   "q": 2,
+   "query_used": "0.2m right angle data usb-c cable",
+   "ok": true,
+   "latency_s": 0.87,
+   "n_results": 10,
+   "chars": 2366,
+   "top": [
+    {
+     "title": "Cable Color Honduras",
+     "url": "https://cablecolor.hn",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Warner Cable",
+     "url": "https://timewarnercable.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Cablecast",
+     "url": "https://cablecast.tv",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Cable companies/TV operators (cable.co.uk is broadband comparison). No products."
+  },
+  {
+   "q": 3,
+   "query_used": "Dettol 24h protect spray ingredients",
+   "ok": true,
+   "latency_s": 0.6,
+   "n_results": 10,
+   "chars": 2479,
+   "top": [
+    {
+     "title": "Food Ingredients First",
+     "url": "https://foodingredientsfirst.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Just Ingredients",
+     "url": "https://justingredients.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Darling Ingredients",
+     "url": "https://darlingii.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Food-ingredient companies. Dettol/Reckitt not in the 10 matches."
+  },
+  {
+   "q": 4,
+   "query_used": "Exa search API price per 1000 searches",
+   "ok": true,
+   "latency_s": 0.6,
+   "n_results": 10,
+   "chars": 2158,
+   "top": [
+    {
+     "title": "Exa",
+     "url": "https://exa.ai",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Exa FM",
+     "url": "https://exafm.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Exa",
+     "url": "https://exa.nl",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "exa.ai brand surfaces at #1 (official domain, so a starting point to scrape /pricing), but no price info. Other 9 are unrelated 'Exa' companies."
+  },
+  {
+   "q": 5,
+   "query_used": "how to add environment variable in Vercel dashboard without command line",
+   "ok": true,
+   "latency_s": 3.1,
+   "n_results": 10,
+   "chars": 2439,
+   "top": [
+    {
+     "title": "LINE",
+     "url": "https://line.me",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "(Thai personal page)",
+     "url": "https://lin.ee",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "LINE Company Thailand",
+     "url": "https://linecorp.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches 'line' (from 'command line'): LINE, linear.app. Vercel absent. 3.1 s, slowest call."
+  },
+  {
+   "q": 6,
+   "query_used": "set up custom email domain with iCloud+ step by step",
+   "ok": true,
+   "latency_s": 1.57,
+   "n_results": 10,
+   "chars": 2346,
+   "top": [
+    {
+     "title": "Stepstone",
+     "url": "https://stepstone.de",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Set Gov",
+     "url": "https://set.gov.py",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Stepik",
+     "url": "https://stepik.org",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches 'step' (Stepstone, Stepik, Stephen King). No Apple/iCloud."
+  },
+  {
+   "q": 7,
+   "query_used": "How does Woolite Darks work",
+   "ok": true,
+   "latency_s": 1.11,
+   "n_results": 10,
+   "chars": 2339,
+   "top": [
+    {
+     "title": "HP Workforce Experience",
+     "url": "https://hpdaas.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Workday",
+     "url": "https://workday.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Transformative Works",
+     "url": "https://transformativeworks.org",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches 'work(s)' (Workday, Bath & Body Works, BMW). No Woolite."
+  },
+  {
+   "q": 8,
+   "query_used": "how to check National Insurance record and pay voluntary contributions",
+   "ok": true,
+   "latency_s": 0.71,
+   "n_results": 10,
+   "chars": 2431,
+   "top": [
+    {
+     "title": "Gardening Know How",
+     "url": "https://gardeningknowhow.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "How Long to Beat",
+     "url": "https://howlongtobeat.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "How The Market Works",
+     "url": "https://howthemarketworks.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches 'how' (Gardening Know How, How Long to Beat). No GOV.UK."
+  },
+  {
+   "q": 9,
+   "query_used": "iPhone shortcut transcribe voice memo to text automatically",
+   "ok": true,
+   "latency_s": 0.6,
+   "n_results": 10,
+   "chars": 2377,
+   "top": [
+    {
+     "title": "iPhone Life magazine",
+     "url": "https://iphonelife.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "iPhone",
+     "url": "https://ezyro.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "iPhone Hacks",
+     "url": "https://iphonehacks.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "iPhone fan sites (iPhone Life, iPhone Hacks). No how-to content returned, just domains."
+  },
+  {
+   "q": 10,
+   "query_used": "does YNAB support Starling Bank direct import 2026",
+   "ok": true,
+   "latency_s": 0.71,
+   "n_results": 10,
+   "chars": 2446,
+   "top": [
+    {
+     "title": "Fondazione Milano Cortina 2026",
+     "url": "https://milanocortina2026.org",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "NY/NJ World Cup 2026",
+     "url": "https://nynjfwc26.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "DOES THE DOG DIE",
+     "url": "https://doesthedogdie.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches '2026' event sites (Milano Cortina 2026, World Cup 2026). No YNAB or Starling."
+  },
+  {
+   "q": 11,
+   "query_used": "Supabase free project paused after inactivity how to prevent",
+   "ok": true,
+   "latency_s": 1.17,
+   "n_results": 10,
+   "chars": 2397,
+   "top": [
+    {
+     "title": "Supabase",
+     "url": "https://supabase.co",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Supabase",
+     "url": "https://supabase.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Prevention",
+     "url": "https://prevention.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "supabase.com/.co/.io surface (official domain), then suicide-prevention orgs matching 'prevent'. No pausing info."
+  },
+  {
+   "q": 12,
+   "query_used": "Claude Code cloud environment network access allowed domains",
+   "ok": true,
+   "latency_s": 1.04,
+   "n_results": 10,
+   "chars": 2319,
+   "top": [
+    {
+     "title": "Expired Domains",
+     "url": "https://expireddomains.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Claude",
+     "url": "https://claude.ai",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Huge Domains",
+     "url": "https://hugedomains.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "claude.ai and claude.com surface, mixed with domain registrars matching 'domains'. No docs page."
+  },
+  {
+   "q": 13,
+   "query_used": "Apple Liquid Glass Human Interface Guidelines summary",
+   "ok": true,
+   "latency_s": 1.07,
+   "n_results": 10,
+   "chars": 2338,
+   "top": [
+    {
+     "title": "Apple",
+     "url": "https://apple.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Apple",
+     "url": "https://apple.news",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Apple",
+     "url": "https://apple.com.cn",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "apple.com at #1 plus other 'Apple' brands. No HIG or Liquid Glass content."
+  },
+  {
+   "q": 14,
+   "query_used": "Exa vs Parallel vs Tavily search API for AI agents",
+   "ok": true,
+   "latency_s": 1.14,
+   "n_results": 10,
+   "chars": 2328,
+   "top": [
+    {
+     "title": "Agentstvo Zebra",
+     "url": "https://sampo.ru",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Exa",
+     "url": "https://exa.ai",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Meilleurs Agents",
+     "url": "https://meilleursagents.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "exa.ai appears at #2 but Parallel and Tavily do not; rest match 'agents'. No comparison."
+  },
+  {
+   "q": 15,
+   "query_used": "reddit Claude skills vs MCP servers when to use which",
+   "ok": true,
+   "latency_s": 0.75,
+   "n_results": 10,
+   "chars": 2238,
+   "top": [
+    {
+     "title": "Reddit",
+     "url": "https://reddit.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Which",
+     "url": "https://which.co.uk",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Reddit",
+     "url": "https://redditinc.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "reddit.com home page and Which? (matched 'which'). No threads."
+  },
+  {
+   "q": 16,
+   "query_used": "junior product designer jobs London UK",
+   "ok": true,
+   "latency_s": 2.46,
+   "n_results": 10,
+   "chars": 2212,
+   "top": [
+    {
+     "title": "UK",
+     "url": "https://uk.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Ukdevilz",
+     "url": "https://ukdevilz.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "UK.NET",
+     "url": "https://uk.net",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches 'UK' (uk.com, WIRED UK, Cancer Research UK). One adult site (ukdevilz.com) in top 3. No jobs."
+  },
+  {
+   "q": 17,
+   "query_used": "that tool that turns figma designs into a website",
+   "ok": true,
+   "latency_s": 1.83,
+   "n_results": 10,
+   "chars": 2383,
+   "top": [
+    {
+     "title": "WebsiteWelcome",
+     "url": "https://websitewelcome.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Cdn Website",
+     "url": "https://cdn-website.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "nanoStream",
+     "url": "https://nanocosmos.de",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Matches 'website' (website.com, theresanaiforthat.com). No Figma Sites/Framer."
+  },
+  {
+   "q": 18,
+   "query_used": "app like notion but simpler for personal notes",
+   "ok": true,
+   "latency_s": 1.47,
+   "n_results": 10,
+   "chars": 2234,
+   "top": [
+    {
+     "title": "App Center",
+     "url": "https://appcenter.ms",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "App",
+     "url": "https://app.link",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Standard Notes",
+     "url": "https://standardnotes.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "Mostly 'app'/'notes' brands; Standard Notes (a simple notes app) appears at #3 by accident, so loosely useful."
+  },
+  {
+   "q": 19,
+   "query_used": "How to convert trimesh to a quadmesh in Blender",
+   "ok": true,
+   "latency_s": 1.18,
+   "n_results": 10,
+   "chars": 2397,
+   "top": [
+    {
+     "title": "Blender",
+     "url": "https://blender.org",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "Gardening Know How",
+     "url": "https://gardeningknowhow.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "How Long to Beat",
+     "url": "https://howlongtobeat.com",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 1,
+   "note": "blender.org and blenderartists.org surface (official site and forum) plus unrelated 'how'/'blender' brands. No how-to."
+  },
+  {
+   "q": 20,
+   "query_used": "clade code remote enviroment acces denied",
+   "ok": true,
+   "latency_s": 0.96,
+   "n_results": 10,
+   "chars": 2340,
+   "top": [
+    {
+     "title": "401 - Unauthorized: Access is denied due to invalid credentials.",
+     "url": "https://il.gov",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "No Body Denied Fitness",
+     "url": "https://nobodydenied.com",
+     "date": null,
+     "snippet": null
+    },
+    {
+     "title": "CLADE",
+     "url": "https://redclade.org",
+     "date": null,
+     "snippet": null
+    }
+   ],
+   "answer": null,
+   "score": 0,
+   "note": "Typo not tolerated (tool says no typo tolerance): matches 'Clade' companies and 'access denied' pages. No Claude."
+  }
+ ],
+ "extras": [
+  {
+   "test": "scrape",
+   "q": 8,
+   "tool": "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN",
+   "url": "https://www.gov.uk/check-national-insurance-record",
+   "ok": true,
+   "latency_s": 4.27,
+   "chars": 3351,
+   "markdown_chars": 2861,
+   "final_url": "https://www.gov.uk/check-national-insurance-record",
+   "title": "Check your National Insurance record",
+   "verdict": "Clean Markdown of the main content only (no nav/cookie banner), links kept. Current ('up to the start of the current tax year (6 April 2026)'). Answers the 'check' half fully (sign in, what it shows, statement by post/phone, Isle of Man note); for paying voluntary contributions it only links to /voluntary-national-insurance-contributions, so a second scrape would be needed. Score as a reader: 2."
+  },
+  {
+   "test": "scrape",
+   "q": 6,
+   "tool": "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN",
+   "url": "https://support.apple.com/en-gb/102540",
+   "ok": true,
+   "latency_s": 6.05,
+   "chars": 3649,
+   "markdown_chars": 3190,
+   "final_url": "https://support.apple.com/en-gb/102540",
+   "title": "Use Custom Email Domain with iCloud Mail - Apple Support (UK)",
+   "verdict": "No redirect. Clean Markdown, includes 'Published Date: September 30, 2026'. Explains limits (5 domains, 10 addresses each), requirements (2FA, iCloud Mail) and sharing, but the actual step-by-step and DNS records are on the linked iCloud.com guide (support.apple.com/guide/icloud/mma473945269), which was not fetched. Score as a reader: 2."
+  },
+  {
+   "test": "scrape",
+   "q": 12,
+   "tool": "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN",
+   "url": "https://code.claude.com/docs/en/claude-code-on-the-web",
+   "ok": false,
+   "latency_s": 0.26,
+   "chars": 2,
+   "error": "402 Metering_WalletBalanceExhausted (code 5508): 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.'"
+  },
+  {
+   "test": "scrape",
+   "q": 4,
+   "tool": "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN",
+   "url": "https://exa.ai/pricing",
+   "ok": false,
+   "latency_s": 0.3,
+   "chars": 2,
+   "error": "402 Metering_WalletBalanceExhausted (code 5508): 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.'",
+   "retry": {
+    "ok": false,
+    "latency_s": 0.39,
+    "error": "402 Metering_WalletBalanceExhausted (code 5508): 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.'"
+   }
+  },
+  {
+   "test": "scrape",
+   "q": 11,
+   "tool": "CONTEXT_DEV_SCRAPE_WEBPAGE_MARKDOWN",
+   "url": "https://supabase.com/docs/guides/platform/billing-on-supabase",
+   "ok": false,
+   "latency_s": null,
+   "error": "402 Metering_WalletBalanceExhausted (code 5508): 'Wallet balance is exhausted. Add credits to resume Instant tool calls or connect your account.' (run via MULTI_EXECUTE as a final re-check; supabase.com/pricing not tried)"
+  },
+  {
+   "test": "extract",
+   "q": 4,
+   "tool": "CONTEXT_DEV_EXTRACT_STRUCTURED_WEB_DATA",
+   "url": "https://exa.ai/pricing",
+   "ok": false,
+   "latency_s": null,
+   "error": "Not run: the shared Composio instant wallet was already exhausted (every instant tool call returned 402)."
+  }
+ ],
+ "summary": {
+  "success_rate": "20/20",
+  "mean_latency_s": 1.18,
+  "median_latency_s": 1.06,
+  "mean_score": 0.3,
+  "mean_chars": 2345
+ }
+}

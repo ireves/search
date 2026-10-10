@@ -1,0 +1,529 @@
+{
+ "exa": {
+  "11": {
+   "score": 3,
+   "why": "Supabase docs #1 with low-activity 7-day snippet, plus keep-alive guides and repos."
+  },
+  "12": {
+   "score": 3,
+   "why": "code.claude.com cloud-environments #1 and web docs; Trusted level visible in snippet."
+  },
+  "13": {
+   "score": 2,
+   "why": "Ideal Apple pages (Materials, Liquid Glass overview) but snippets empty; must open pages."
+  },
+  "14": {
+   "score": 3,
+   "why": "Independent openbenchmarks 3-way page #1 plus current Tavily and Parallel comparisons."
+  },
+  "15": {
+   "score": 1,
+   "why": "No Reddit threads; keyword-matched reddit-skill repo, MCP vs API article."
+  },
+  "16": {
+   "score": 3,
+   "why": "Live London ads (Quantum Ashby, 28 Sep 2026), Reed, Accenture, LinkedIn."
+  },
+  "17": {
+   "score": 2,
+   "why": "Figment, Framer, divRIOTS plugin valid tools; Figma Sites only buried in Builder.io blog."
+  },
+  "18": {
+   "score": 1,
+   "why": "Obscure single-app landing pages; no mainstream picks or comparisons."
+  },
+  "19": {
+   "score": 3,
+   "why": "Blender 5.2 manual Triangles to Quads (Alt+J) #1 plus Stack Exchange."
+  },
+  "20": {
+   "score": 2,
+   "why": "Typo understood; Remote Control docs and GitHub issues, not cloud network-access docs."
+  }
+ },
+ "parallel": {
+  "11": {
+   "score": 3,
+   "why": "Supabase docs #1 with 7-day low-activity snippet; rest redundant Supabase pages."
+  },
+  "12": {
+   "score": 3,
+   "why": "cloud-environments page #1 with access-level snippet; off-target Claude Tag page later."
+  },
+  "13": {
+   "score": 2,
+   "why": "HIG landing duplicated twice before Materials page; answer needs digging."
+  },
+  "14": {
+   "score": 2,
+   "why": "Tracxn spam stub #1; then vendor comparisons (exa.ai/versus, Tavily blog)."
+  },
+  "15": {
+   "score": 2,
+   "why": "No Reddit; Tracxn stub #1, but official Anthropic skills-vs-MCP blog answers substance."
+  },
+  "16": {
+   "score": 2,
+   "why": "Reed junior designer London and Indeed remote page; Remote4Africa weak."
+  },
+  "17": {
+   "score": 3,
+   "why": "Figma Sites #1, then Figma Make CMS and Framer: best intent match."
+  },
+  "18": {
+   "score": 0,
+   "why": "Five Notion App Store pages in different locales; intent misread."
+  },
+  "19": {
+   "score": 3,
+   "why": "Blender manual Tris to Quads (2.91 then 5.2); Japanese duplicate."
+  },
+  "20": {
+   "score": 1,
+   "why": "Third-party issues, Stack Overflow deny rule; no official remote/cloud docs."
+  }
+ },
+ "tavily_llm_search": {
+  "11": {
+   "score": 2,
+   "why": "Keep-alive guides only, no Supabase docs; answer omits Pro upgrade and low-activity nuance."
+  },
+  "12": {
+   "score": 3,
+   "why": "Both official docs top 2; answer correctly names Trusted default and Custom."
+  },
+  "13": {
+   "score": 3,
+   "why": "Apple Liquid Glass overview #1; reasonable summary answer."
+  },
+  "14": {
+   "score": 2,
+   "why": "Tavily's own blog #1 (vendor); AIMultiple useful; Parallel barely covered."
+  },
+  "15": {
+   "score": 2,
+   "why": "One real r/ClaudeAI thread #1, then LinkedIn and vendor guide."
+  },
+  "16": {
+   "score": 2,
+   "why": "Generic London design boards, senior roles, wrong-field Built In hit."
+  },
+  "17": {
+   "score": 2,
+   "why": "Framer, Webflow Reddit, Figma Sites YouTube; answer omits Figma Sites."
+  },
+  "18": {
+   "score": 2,
+   "why": "Weaker listicles; answer pads with Todoist/Trello (not note apps)."
+  },
+  "19": {
+   "score": 3,
+   "why": "Blender 5.2 manual #1; answer correct incl. Alt+J and tips."
+  },
+  "20": {
+   "score": 1,
+   "why": "HN/Medium on settings and deny rules; muddled answer, wrong problem."
+  }
+ },
+ "duckduckgo": {
+  "11": {
+   "score": 3,
+   "why": "Supabase docs #1 with 'insufficient user database activity' snippet; keep-alive repo."
+  },
+  "12": {
+   "score": 3,
+   "why": "cloud-environments page #1 plus related official docs."
+  },
+  "13": {
+   "score": 3,
+   "why": "Apple Liquid Glass overview #1 plus a mid-2026 HIG summary."
+  },
+  "14": {
+   "score": 2,
+   "why": "Directly on-topic but top two are Parallel's own articles (vendor bias)."
+  },
+  "15": {
+   "score": 2,
+   "why": "On-topic skills vs MCP articles with clear snippets, but no Reddit."
+  },
+  "16": {
+   "score": 3,
+   "why": "LinkedIn London, LinkedIn UK, Indeed London listing pages."
+  },
+  "17": {
+   "score": 2,
+   "why": "Figma plugins (Siter.io, figma.to.website) and sider.ai; no Figma Sites/Framer."
+  },
+  "18": {
+   "score": 3,
+   "why": "Current mainstream listicles (Toolradar, Zapier) naming Apple Notes, Obsidian."
+  },
+  "19": {
+   "score": 3,
+   "why": "Blender 5.2 manual and Stack Exchange; answer visible."
+  },
+  "20": {
+   "score": 3,
+   "why": "Typo understood; cloud-environments doc #1, Remote Control doc #2."
+  }
+ },
+ "firecrawl": {
+  "11": {
+   "score": 3,
+   "why": "Reddit, Supabase docs, keep-alive repo; answer reachable."
+  },
+  "12": {
+   "score": 1,
+   "why": "Missed official docs: GitHub bug, Cowork Reddit, YouTube."
+  },
+  "13": {
+   "score": 3,
+   "why": "HIG Materials page #1 with Liquid Glass snippet."
+  },
+  "14": {
+   "score": 3,
+   "why": "Direct 4-way comparison, Reddit thread (2024), independent AIMultiple benchmark."
+  },
+  "15": {
+   "score": 3,
+   "why": "Three real r/ClaudeAI / r/ClaudeCode threads with dates."
+  },
+  "16": {
+   "score": 3,
+   "why": "Indeed London, LinkedIn UK, Glassdoor London listing pages."
+  },
+  "17": {
+   "score": 2,
+   "why": "Webflow plugin Reddit (2023), Builder.io plugin, YouTube; no Figma Sites."
+  },
+  "18": {
+   "score": 3,
+   "why": "Reddit 'Notion, but simpler' thread naming Apple Notes, OneNote; Zapier list."
+  },
+  "19": {
+   "score": 3,
+   "why": "Stack Exchange answer with Alt+J in snippet; YouTube tutorials."
+  },
+  "20": {
+   "score": 2,
+   "why": "Typo understood; Remote Control troubleshooting doc and 403 issue, not cloud network docs."
+  }
+ },
+ "tinyfish": {
+  "11": {
+   "score": 3,
+   "why": "Reddit, Supabase docs (upgrade to Pro snippet), keep-alive repo."
+  },
+  "12": {
+   "score": 1,
+   "why": "GitHub bug, Reddit, YouTube; no official docs."
+  },
+  "13": {
+   "score": 3,
+   "why": "HIG Materials page #1 with Liquid Glass snippet; WWDC session."
+  },
+  "14": {
+   "score": 2,
+   "why": "Odd r/ROCm thread, fastcrw, AIMultiple; vendor-heavy, no neutral 3-way at top."
+  },
+  "15": {
+   "score": 3,
+   "why": "Multiple real Reddit threads on skills vs MCP."
+  },
+  "16": {
+   "score": 3,
+   "why": "Indeed, LinkedIn, Glassdoor London listing pages."
+  },
+  "17": {
+   "score": 2,
+   "why": "Webflow Reddit, Builder.io plugin, YouTube; Figma Sites not named."
+  },
+  "18": {
+   "score": 3,
+   "why": "Reddit 'Notion, but simpler', Medium, Zapier."
+  },
+  "19": {
+   "score": 3,
+   "why": "Stack Exchange, YouTube, Blender manual at #4."
+  },
+  "20": {
+   "score": 2,
+   "why": "Typo understood as Remote Control; RC docs and 403 issue."
+  }
+ },
+ "serper": {
+  "11": {
+   "score": 3,
+   "why": "Reddit, Supabase docs (upgrade to Pro snippet), keep-alive repo."
+  },
+  "12": {
+   "score": 1,
+   "why": "GitHub bug, Reddit, YouTube; no official docs."
+  },
+  "13": {
+   "score": 3,
+   "why": "HIG Materials #1 with Liquid Glass snippet, WWDC25, HIG home."
+  },
+  "14": {
+   "score": 2,
+   "why": "Reddit 2024, Firecrawl's Parallel alternatives, fastcrw; vendor-heavy."
+  },
+  "15": {
+   "score": 3,
+   "why": "Real Reddit threads on skills vs MCP."
+  },
+  "16": {
+   "score": 3,
+   "why": "Indeed, LinkedIn, Glassdoor London listing pages."
+  },
+  "17": {
+   "score": 2,
+   "why": "Webflow Reddit, Builder.io plugin, YouTube, Siter.io; no Figma Sites."
+  },
+  "18": {
+   "score": 3,
+   "why": "Reddit 'Notion, but simpler', Medium, Zapier, It's FOSS."
+  },
+  "19": {
+   "score": 3,
+   "why": "Stack Exchange, YouTube, Blender manual at #4."
+  },
+  "20": {
+   "score": 2,
+   "why": "Typo understood as Remote Control; RC docs and 403 issue."
+  }
+ },
+ "serpapi": {
+  "11": {
+   "score": 1,
+   "why": "GitHub discussions on data loss and YouTube; no docs, no snippets."
+  },
+  "12": {
+   "score": 1,
+   "why": "Error reference and self-hosted docs, not the network-access page."
+  },
+  "13": {
+   "score": 2,
+   "why": "Third-party blogs (ArcTouch, Medium); no Apple source, no snippets."
+  },
+  "14": {
+   "score": 1,
+   "why": "Exa vs Tavily only; Parallel missing; no snippets."
+  },
+  "15": {
+   "score": 3,
+   "why": "Four real Reddit threads on skills vs MCP (titles only)."
+  },
+  "16": {
+   "score": 2,
+   "why": "Broader LinkedIn/Indeed pages plus one Global ad; no snippets."
+  },
+  "17": {
+   "score": 3,
+   "why": "Builder.io 'Figma Sites: the built-in Figma to website tool' #1."
+  },
+  "18": {
+   "score": 2,
+   "why": "Anytype review, listicle, r/PKMS thread; no snippets."
+  },
+  "19": {
+   "score": 0,
+   "why": "Blender homepage, r/blender, Wikipedia; nothing on tris to quads."
+  },
+  "20": {
+   "score": 1,
+   "why": "Unclear GitHub issue, Remote Control Reddit, generic permission blog."
+  }
+ },
+ "composio_web": {
+  "11": {
+   "score": 3,
+   "why": "Supabase docs #1 plus guides; answer actionable (scheduled DB queries)."
+  },
+  "12": {
+   "score": 3,
+   "why": "cloud-environments docs; answer names all four levels correctly."
+  },
+  "13": {
+   "score": 3,
+   "why": "Liquid Glass overview, WWDC25, Materials mirror; good summary."
+  },
+  "14": {
+   "score": 3,
+   "why": "Openbenchmarks 3-way #1, Tavily blog, exa.ai/versus; solid synthesis."
+  },
+  "15": {
+   "score": 1,
+   "why": "No Reddit; dev.to MCP vs API, reddit-skill repo; generic answer."
+  },
+  "16": {
+   "score": 3,
+   "why": "Live individual London ads (Medly, Global, Quantum) summarised."
+  },
+  "17": {
+   "score": 2,
+   "why": "Framer (near-duplicate pages), Figment; answer omits Figma Sites."
+  },
+  "18": {
+   "score": 1,
+   "why": "Mem vendor guide, Gravity, Appended; no mainstream recommendations."
+  },
+  "19": {
+   "score": 3,
+   "why": "Stack Exchange, Blender 4.5 manual; answer gives Alt+J and remesh."
+  },
+  "20": {
+   "score": 2,
+   "why": "Typo understood; GitHub issues incl. repo-access-denied; no official docs."
+  }
+ },
+ "browser_use": {
+  "11": {
+   "score": 3,
+   "why": "Answer correct (low activity over 7 days, Pro upgrade) from Supabase docs."
+  },
+  "12": {
+   "score": 3,
+   "why": "Answer from cloud-environments page; categories and exceptions correct, levels not listed."
+  },
+  "13": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "14": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "15": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "16": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "17": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "18": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "19": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  },
+  "20": {
+   "score": null,
+   "why": "not run (Instant wallet exhausted)"
+  }
+ },
+ "_per_question": {
+  "11": {
+   "best": [
+    "exa",
+    "parallel",
+    "duckduckgo",
+    "firecrawl",
+    "tinyfish",
+    "serper",
+    "composio_web",
+    "browser_use"
+   ],
+   "wrong_facts": "composio_web: 'after 7 days of inactivity' and 'dashboard visits do not count' (key says low activity, and lists opening the dashboard as a way to keep it active). tavily: 'any API request resets the inactivity timer' oversimplifies.",
+   "comment": "Most toolkits surface the official page; serpapi and tavily miss it."
+  },
+  "12": {
+   "best": [
+    "exa",
+    "parallel",
+    "tavily_llm_search",
+    "duckduckgo",
+    "composio_web",
+    "browser_use"
+   ],
+   "wrong_facts": "none; composio_web cites a Spybara doc-history mirror as a secondary source.",
+   "comment": "Google-backed SERP tools (firecrawl, tinyfish, serper) all return the same GitHub bug, Reddit and YouTube results and miss the docs."
+  },
+  "13": {
+   "best": [
+    "firecrawl",
+    "tinyfish",
+    "serper",
+    "tavily_llm_search",
+    "duckduckgo",
+    "composio_web"
+   ],
+   "wrong_facts": "none",
+   "comment": "Exa found the best pages but returned empty highlights (JS-rendered). serpapi has no Apple source. browser_use not run."
+  },
+  "14": {
+   "best": [
+    "exa",
+    "composio_web",
+    "firecrawl"
+   ],
+   "wrong_facts": "none stated; most sources are vendor-authored (bias risk).",
+   "comment": "Only exa and composio_web surfaced the independent openbenchmarks 3-way page; parallel led with a Tracxn spam stub."
+  },
+  "15": {
+   "best": [
+    "firecrawl",
+    "tinyfish",
+    "serper",
+    "serpapi"
+   ],
+   "wrong_facts": "none",
+   "comment": "The SERP-based tools return real Reddit threads; the neural engines (exa, parallel, composio_web) ignore the 'reddit' intent."
+  },
+  "16": {
+   "best": [
+    "exa",
+    "composio_web",
+    "duckduckgo",
+    "firecrawl",
+    "tinyfish",
+    "serper"
+   ],
+   "wrong_facts": "composio_web: Medly AI junior salary GBP 55k to 77k is unusually high, unverified. tavily answer cites a LinkedIn count for 'Junior Designer' (a different query).",
+   "comment": "exa and composio_web give individual live ads; SERP tools give board pages for London."
+  },
+  "17": {
+   "best": [
+    "parallel",
+    "serpapi"
+   ],
+   "wrong_facts": "tavily answer links figma.to.website with Notion (likely confused). Neither tavily's nor composio_web's answer mentions Figma Sites.",
+   "comment": "Only parallel (figma.com/sites #1) and serpapi (Builder.io 'Figma Sites' article #1) surface the best answer."
+  },
+  "18": {
+   "best": [
+    "duckduckgo",
+    "firecrawl",
+    "tinyfish",
+    "serper"
+   ],
+   "wrong_facts": "tavily answer recommends Todoist/Trello as note apps.",
+   "comment": "parallel returned only Notion App Store pages; exa and composio_web returned obscure indie apps."
+  },
+  "19": {
+   "best": [
+    "exa",
+    "tavily_llm_search",
+    "duckduckgo",
+    "parallel",
+    "composio_web"
+   ],
+   "wrong_facts": "composio_web menu path 'Mesh > Faces' is slightly dated (current: Face menu); minor.",
+   "comment": "Universally easy except serpapi, which returned generic Blender pages."
+  },
+  "20": {
+   "best": [
+    "duckduckgo"
+   ],
+   "wrong_facts": "tavily answer conflates permission deny rules with remote access denial.",
+   "comment": "All toolkits understood the typo, but only duckduckgo surfaced the cloud-environments page; most read it as a Remote Control 403."
+  }
+ }
+}
