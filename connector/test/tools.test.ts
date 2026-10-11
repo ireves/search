@@ -676,7 +676,7 @@ const openalexWork = (doi: string, title: string, extra: Record<string, unknown>
 const openalexReply = (results: unknown[], cost = 0.001) => (c: { url: string }) =>
   c.url.startsWith("https://api.openalex.org/works?") ? { body: { meta: { count: results.length, cost_usd: cost }, results } } : undefined;
 
-test("papers searches add OpenAlex when its key is set, with citations and free full text", async () => {
+test("papers searches that ask for OpenAlex add it, with citations and free full text", async () => {
   await setSecret("OPENALEX_API_KEY", "oa-test-key");
   mockNetwork(
     exaSearchReply([exaResult("https://arxiv.org/abs/2401.00001", "Search agents that read the whole web at once", "Exa passage", "2024-01-02")]),
@@ -685,7 +685,7 @@ test("papers searches add OpenAlex when its key is set, with citations and free 
       openalexWork("10.1038/s41586-024-1", "A Nature paper Exa missed about search agents"),
     ]),
   );
-  const result = await callTool("search", { query: "how well do search agents work", type: "papers", after: "2023-01-01" });
+  const result = await callTool("search", { query: "how well do search agents work", type: "papers", after: "2023-01-01", openalex: true });
   assert.equal(result.isError, false);
   const oa = calls.find((c) => c.url.startsWith("https://api.openalex.org/"))!;
   const params = new URL(oa.url).searchParams;
@@ -706,20 +706,34 @@ test("OpenAlex falls back to keyword search when semantic search is turned down"
     (c) => (c.url.includes("search.semantic=") ? { status: 400, body: { error: "bad request" } } : undefined),
     openalexReply([openalexWork("10.1/x", "Keyword match on transformer attention heads")]),
   );
-  const { text } = await runSearch({ query: "What do transformer attention heads actually learn?", type: "papers" });
+  const { text } = await runSearch({ query: "What do transformer attention heads actually learn?", type: "papers", openalex: true });
   const last = new URL(calls.filter((c) => c.url.includes("openalex"))[1].url).searchParams;
   assert.ok(last.get("search"));
   assert.match(text, /Keyword match on transformer attention heads/);
 });
 
-test("OpenAlex is left out without a key, for other types and with a site list", async () => {
+test("OpenAlex is left out unless asked for, without a key, for other types and with a site list", async () => {
   mockNetwork(exaSearchReply([exaResult("https://a.org/p", "Paper", "x")]));
-  await runSearch({ query: "q", type: "papers" });
+  const noKey = await runSearch({ query: "q", type: "papers", openalex: true });
+  assert.match(noKey.text, /OpenAlex has no API key, so only Exa searched/);
   await setSecret("OPENALEX_API_KEY", "oa-test-key");
-  await runSearch({ query: "q", type: "papers", sites: ["arxiv.org"] });
+  await runSearch({ query: "q", type: "papers" });
+  await runSearch({ query: "q", type: "papers", openalex: true, sites: ["arxiv.org"] });
   mockNetwork(exaSearchReply([]), parallelSearchReply([]));
-  await runSearch({ query: "q", type: "web" });
+  await runSearch({ query: "q", type: "web", openalex: true });
   assert.equal(calls.filter((c) => c.url.includes("openalex")).length, 0);
+});
+
+test("OpenAlex ranks above Exa when asked for", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://blog.example.com/a", "A blog post about a paper", "x"), exaResult("https://b.org/p", "Second Exa page", "y")]),
+    openalexReply([openalexWork("10.1/one", "OpenAlex top paper"), openalexWork("10.1/two", "OpenAlex second paper")]),
+  );
+  const { text } = await runSearch({ query: "q", type: "papers", openalex: true });
+  const order = [...text.matchAll(/^\[\d+\] (.+?)(?: \(|$)/gm)].map((m) => m[1]);
+  assert.deepEqual(order.slice(0, 3), ["OpenAlex top paper", "OpenAlex second paper", "A blog post about a paper"]);
+  assert.match(text, /OpenAlex \(scholarly index\) ranked first, Exa second\./);
 });
 
 test("an OpenAlex failure leaves Exa's papers and adds a note", async () => {
@@ -728,7 +742,7 @@ test("an OpenAlex failure leaves Exa's papers and adds a note", async () => {
     exaSearchReply([exaResult("https://a.org/p", "Exa paper", "x")]),
     (c) => (c.url.includes("openalex") ? { status: 429, body: { error: "Rate limit exceeded" } } : undefined),
   );
-  const { text, isError } = await runSearch({ query: "q", type: "papers" });
+  const { text, isError } = await runSearch({ query: "q", type: "papers", openalex: true });
   assert.equal(isError, false);
   assert.match(text, /Exa paper/);
   assert.match(text, /OpenAlex unavailable: OpenAlex rate limit reached/);

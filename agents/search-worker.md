@@ -3,6 +3,7 @@ name: search-worker
 description: Runs Search connector calls (search, fetch, verify, research) exactly as briefed by the uni-search or better-search skill, and returns a short digest of what the pages say, with links. Makes no judgement calls. Use only when one of those skills sends it a brief.
 model: claude-haiku-5-5
 maxTurns: 15
+background: true
 ---
 
 <!-- Keep this body identical to skills/uni-search/references/worker.md and skills/better-search/references/worker.md (scripts/check-worker-copies.sh checks). -->

@@ -8,7 +8,7 @@ Both skills use your Search connector, which combines two search engines:
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
 - **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It also gives a second opinion on everyday, discussion and review searches, and steps in when Exa and Parallel find little. It ranks like Google, so it finds forum threads and popular recommendations that Exa can miss.
 - **Apify** (optional) adds live job adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to job searches when its key is added. Each board runs its own scraper, so job searches take up to a minute longer and cost a few cents.
-- **OpenAlex** (optional) adds a free index of about 300 million research papers to paper searches when its key is added. Each paper comes with its journal, how often it has been cited, and a link to a free copy when one exists.
+- **OpenAlex** (optional, uni-search only) adds a free index of about 300 million research papers when its key is added. For questions about studies and research, uni-search's paper searches show OpenAlex's papers first and Exa's after. Each paper comes with its journal, how often it has been cited, and a link to a free copy when one exists.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
@@ -24,7 +24,7 @@ A few habits help with answers that aren't clear-cut:
 
 1. The main Claude plans what to look for.
 2. It sends workers a short list of searches and page reads.
-   - Several workers run at the same time when a question has more than one angle.
+   - Several workers run at the same time when a question has more than one angle. Claude starts them all at once in the background, then waits until every one has reported back before answering.
 3. Each worker runs its searches and sends back a short list of facts, each with its link and date.
    - The long search results stay with the worker, so the main Claude's memory isn't filled with them.
 4. The main Claude decides what's true, fills gaps and writes the answer.

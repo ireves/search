@@ -36,8 +36,6 @@ interface Plan {
   // Job boards through Apify (only when its key is set), at standard and
   // thorough depth.
   boards?: boolean;
-  // OpenAlex's index of research papers (only when its key is set).
-  openalex?: boolean;
   exaWeight: number;
   parallelWeight: number;
   firecrawlWeight?: number;
@@ -93,9 +91,7 @@ const PLANS: Record<SearchType, Plan> = {
     parallelWeight: 0.8,
     firecrawlWeight: 1.3,
   },
-  // OpenAlex adds citation counts, venues and free full-text links, and
-  // covers journals Exa's index misses.
-  papers: { exa: { category: "publication" }, openalex: true, exaWeight: 1, parallelWeight: 0 },
+  papers: { exa: { category: "publication" }, exaWeight: 1, parallelWeight: 0 },
   people: { exa: { category: "people" }, exaWeight: 1, parallelWeight: 0 },
   companies: { exa: { category: "company" }, exaWeight: 1, parallelWeight: 0 },
   code: {
@@ -148,6 +144,12 @@ export function jobQuery(query: string, location?: string): { role: string; loca
 // asked as well before the answer goes back.
 const THIN = 3;
 
+// OpenAlex (papers searches that ask for it) ranks above Exa: it is a
+// scholarly index with citation counts and venues, while Exa's papers include
+// web pages about papers. Exa still runs, and its top result keeps a place.
+const OPENALEX_WEIGHT = 1.3;
+const EXA_WEIGHT_WITH_OPENALEX = 0.7;
+
 const EXA_TYPE: Record<Depth, ExaType> = { fast: "fast", standard: "auto", thorough: "deep" };
 const CHARS: Record<Depth, number> = { fast: 600, standard: 900, thorough: 1400 };
 
@@ -164,6 +166,7 @@ export interface SearchInput {
   max_results?: number;
   fresh?: boolean;
   depth?: Depth;
+  openalex?: boolean;
 }
 
 export async function runSearch(input: SearchInput): Promise<{ text: string; isError: boolean }> {
@@ -180,6 +183,10 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   const excluded = (input.exclude_sites ?? []).map(cleanDomain).filter(Boolean);
   const fresh = Boolean(input.fresh || plan.exa?.fresh);
   const goal = input.goal?.trim();
+  // Only papers searches that ask for it (uni-search's briefs do); OpenAlex
+  // can't limit results to sites, so a site list leaves it out.
+  const openalexWanted = type === "papers" && Boolean(input.openalex) && !sites.length;
+  const openalexOn = openalexWanted && Boolean(await openalexKey());
 
   // A site list from Claude overrides the plan's own domains. Exa can't reach
   // Reddit or X at all, so those go to Parallel whatever the type.
@@ -209,7 +216,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
         fresh,
         maxChars: perResult,
       })
-        .then((hits) => ({ hits, weight: plan.exaWeight || 1 }))
+        .then((hits) => ({ hits, weight: openalexOn ? EXA_WEIGHT_WITH_OPENALEX : plan.exaWeight || 1 }))
         .catch((e) => {
           notes.push(`Exa unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
           return null;
@@ -261,16 +268,17 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   const asSecond = Boolean(fc?.second) && depth !== "fast";
   if (asSecond) jobs.push(firecrawlJob());
 
-  // OpenAlex can't limit results to sites, so a site list leaves it out.
-  if (plan.openalex && !sites.length && (await openalexKey())) {
+  if (openalexOn) {
     jobs.push(
       openalexSearch({ query, limit, after, before, maxChars: perResult })
-        .then((hits) => ({ hits, weight: 1 }))
+        .then((hits) => ({ hits, weight: OPENALEX_WEIGHT }))
         .catch((e) => {
           notes.push(`OpenAlex unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
           return null;
         }),
     );
+  } else if (openalexWanted) {
+    notes.push("OpenAlex has no API key, so only Exa searched. Add OPENALEX_API_KEY on the connector's settings page.");
   }
 
   // Job boards: each runs its own scraper, so they are slower (up to a
@@ -315,6 +323,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   ];
   if (after || before) header.push(`Published ${after ? `from ${after}` : ""}${after && before ? " " : ""}${before ? `to ${before}` : ""} (undated pages kept).`);
   if (fresh) header.push("Pages re-downloaded for freshness.");
+  if (openalexOn) header.push("OpenAlex (scholarly index) ranked first, Exa second.");
   if (fellBack) header.push("Exa and Parallel found little, so Firecrawl searched as well (short snippets: read a page for detail).");
   if (!results.length) {
     notes.push("No results. Describe the page you want in more words, loosen filters, or try another type.");

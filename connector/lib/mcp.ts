@@ -38,7 +38,7 @@ export const TOOLS = [
           type: "string",
           enum: [...SEARCH_TYPES],
           description:
-            "web (default) | news | discussions (Reddit and forums: experiences, advice, fixes) | x (posts on X) | reviews (Trustpilot, Glassdoor, user reviews) | shopping (product listings with prices; add country) | papers (research papers; also OpenAlex when set up, with citation counts and free full-text links) | people (professional profiles) | companies | code (docs, GitHub, Stack Overflow) | jobs (live postings; also LinkedIn, Indeed, Glassdoor and Totaljobs when set up, which adds up to a minute) | financial (filings, earnings).",
+            "web (default) | news | discussions (Reddit and forums: experiences, advice, fixes) | x (posts on X) | reviews (Trustpilot, Glassdoor, user reviews) | shopping (product listings with prices; add country) | papers | people (professional profiles) | companies | code (docs, GitHub, Stack Overflow) | jobs (live postings; also LinkedIn, Indeed, Glassdoor and Totaljobs when set up, which adds up to a minute) | financial (filings, earnings).",
         },
         goal: {
           type: "string",
@@ -57,6 +57,10 @@ export const TOOLS = [
           description: "fast (quickest, one engine) | standard (default) | thorough (engines search iteratively; slower, for hard or obscure questions).",
         },
         fresh: { type: "boolean", description: "Re-download pages instead of using stored copies. For prices, stock, live status. Slower." },
+        openalex: {
+          type: "boolean",
+          description: "papers only, and only when a skill's brief sets it: also search OpenAlex (scholarly index with citation counts and free full-text links) and rank it above Exa.",
+        },
       },
       required: ["query"],
       additionalProperties: false,
