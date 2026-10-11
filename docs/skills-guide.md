@@ -73,6 +73,22 @@ A few habits help with answers that aren't clear-cut:
      - **Where sources disagree** (only if they do).
      - **Not confirmed** (only if something couldn't be checked).
      - **Sources:** a numbered list.
+- **Fact Check:** for very large checking jobs, such as a dissertation chapter, a research report or documentation.
+  1. Claude asks one more question: what to check.
+     - **Both** (checks claims against the links the document gives, and finds sources for claims with none).
+     - **Cited claims only**.
+     - **Find sources only**.
+     - Skip the question by saying it upfront, for example `/uni-search fact check, cited claims only: ...`.
+  2. Give the document by pasting it, attaching it, or linking to it. Links to your sources can be given with it.
+  3. Claude opens a Claude Doc straight away. The result always goes there.
+  4. Claude lists every claim in the document that can be checked (figures, dates, names, quotes, findings, anything credited to a source). Opinions and arguments are skipped.
+  5. Many workers check the claims at the same time, in batches:
+     - A claim with a link: a worker opens the linked page and checks it says what the document claims.
+     - A claim naming a source without a link (for example "Smith, 2021"): a worker finds that source, then checks it.
+     - A claim with no source: a worker looks for a source that states it.
+  6. Claims that aren't settled get a second, more careful look. Each claim gets one verdict: supported, partly supported, not in the cited source, contradicted, outdated, source found, no source found, or could not check.
+  7. The doc lists problems to fix first (with suggested wording), then new sources found, claims with no source, confirmed claims, and anything that couldn't be checked.
+  - **Cost and speed:** it uses the cheapest check that can settle each claim and never uses the costly research agents. A claim with a link costs about $0.002 to check; one that needs a source found costs about $0.02. If a document has more than 200 claims, Claude asks first whether to check them all (with an estimated cost) or only the key ones. It is slower than the other options.
 
 **Harvard references (optional):**
 
@@ -127,7 +143,7 @@ A few habits help with answers that aren't clear-cut:
 
 Every answer ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It adds up every search made for that answer, including the workers' searches. It doesn't include Claude's own usage, which comes out of your Claude plan as usual. Workers use Haiku, Anthropic's smallest and cheapest model.
 
-Each search costs a little under one US cent. A uni-search Research report costs up to about $1.40, mostly for the two research agents. Auto usually costs a few cents.
+Each search costs a little under one US cent. A uni-search Research report costs up to about $1.40, mostly for the two research agents. Auto usually costs a few cents. Fact Check costs about $0.002 per claim that has a link and about $0.02 per claim that needs a source found, so a 100-claim document costs between about $0.20 and $2.
 
 ## If something goes wrong
 

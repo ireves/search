@@ -20,6 +20,7 @@ Read the SKILL.md of the skill that ran (it is in this conversation if it ran he
 - Tools: only Search connector tools? Any built-in web search or web fetch?
 - Workers: subagent type, model asked for vs model the log shows, run in the background (run_in_background not false), independent workers started in the same reply and running at the same time (their start and finish times overlap; one finishing before the next starts = run one at a time), all digests in before the next step, brief self-contained (JOBS, FACTS, LIMIT)?
 - OpenAlex: uni-search papers searches set openalex:true; better-search never sets it.
+- Fact Check (uni-search): no research jobs; at most 20 claims per helper; output in a Claude Doc.
 - Worker behaviour: ran the briefed calls exactly; stayed within LIMIT; every finding has a url; ended with a COST line; made calls it was not asked to make.
 - Calls: number vs the mode's budget; any repeated call; depth/type/after/fresh as briefed.
 - Errors: engine errors, empty results, timeouts, refused or cut-off pages, "NO SEARCH TOOLS".
