@@ -26,6 +26,17 @@ export function urlKey(url: string): string {
     const id = /\/(?:abs|pdf|html)\/([^/]+?)(?:v\d+)?(?:\.pdf)?$/.exec(path);
     if (id) return `arxiv:${id[1]}`;
   }
+  if (host === "doi.org" || host === "dx.doi.org") {
+    // DOIs ignore case; arXiv's own DOIs point at the same paper as arxiv.org.
+    let doi = path.slice(1).toLowerCase();
+    try {
+      doi = decodeURIComponent(doi);
+    } catch {
+      // keep as written
+    }
+    const arxiv = /^10\.48550\/arxiv\.(.+?)(?:v\d+)?$/.exec(doi);
+    return arxiv ? `arxiv:${arxiv[1]}` : `doi:${doi}`;
+  }
   if (host === "reddit.com") path = path.replace(/\/\.json$/, "").toLowerCase();
   const params = [...u.searchParams.entries()]
     .filter(([k]) => !TRACKING.test(k))

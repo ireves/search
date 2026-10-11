@@ -3,6 +3,7 @@ import { after, beforeEach, test } from "node:test";
 import { calls, exaResult, freshStore, mockNetwork, parallelResult, restoreNetwork } from "./helpers.js";
 import { entityFacts } from "../lib/engines/exa.js";
 import { leadingDate } from "../lib/engines/firecrawl.js";
+import { rebuildAbstract } from "../lib/engines/openalex.js";
 import { jobQuery, runSearch } from "../lib/tools/search.js";
 import { salary } from "../lib/engines/apify.js";
 import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
@@ -657,4 +658,83 @@ test("salaries read naturally", () => {
   assert.equal(salary(30000, 35000, "GBP", "YEAR"), "£30,000–£35,000 a year");
   assert.equal(salary(15.5, null, "GBP", "HOUR"), "£15.5 an hour");
   assert.equal(salary(null, null, "GBP", "YEAR"), undefined);
+});
+
+const openalexWork = (doi: string, title: string, extra: Record<string, unknown> = {}) => ({
+  id: `https://openalex.org/W${doi.length}`,
+  doi: `https://doi.org/${doi}`,
+  title,
+  publication_date: "2024-03-01",
+  type: "article",
+  cited_by_count: 412,
+  authorships: [{ author: { display_name: "Ada Lovelace" } }, { author: { display_name: "Alan Turing" } }],
+  primary_location: { source: { display_name: "Nature" } },
+  open_access: { is_oa: true, oa_url: "https://europepmc.org/free.pdf" },
+  abstract_inverted_index: { We: [0], study: [1], search: [2], agents: [3] },
+  ...extra,
+});
+const openalexReply = (results: unknown[], cost = 0.001) => (c: { url: string }) =>
+  c.url.startsWith("https://api.openalex.org/works?") ? { body: { meta: { count: results.length, cost_usd: cost }, results } } : undefined;
+
+test("papers searches add OpenAlex when its key is set, with citations and free full text", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://arxiv.org/abs/2401.00001", "Search agents that read the whole web at once", "Exa passage", "2024-01-02")]),
+    openalexReply([
+      openalexWork("10.48550/arxiv.2401.00001", "Search agents that read the whole web at once"),
+      openalexWork("10.1038/s41586-024-1", "A Nature paper Exa missed about search agents"),
+    ]),
+  );
+  const result = await callTool("search", { query: "how well do search agents work", type: "papers", after: "2023-01-01" });
+  assert.equal(result.isError, false);
+  const oa = calls.find((c) => c.url.startsWith("https://api.openalex.org/"))!;
+  const params = new URL(oa.url).searchParams;
+  assert.equal(params.get("search.semantic"), "how well do search agents work");
+  assert.equal(params.get("filter"), "is_retracted:false,from_publication_date:2023-01-01");
+  assert.equal(oa.headers.authorization, "Bearer oa-test-key");
+  // The arXiv paper both found is shown once.
+  assert.equal(result.text.match(/Search agents that read the whole web/g)!.length, 1);
+  assert.match(result.text, /2 results/);
+  assert.match(result.text, /Authors: Ada Lovelace, Alan Turing · In: Nature · Cited by 412 · DOI: 10\.1038\/s41586-024-1\nFree full text: https:\/\/europepmc\.org\/free\.pdf\nWe study search agents/);
+  assert.match(result.text, /, OpenAlex \$0\.0010\)$/);
+});
+
+test("OpenAlex falls back to keyword search when semantic search is turned down", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(
+    exaSearchReply([]),
+    (c) => (c.url.includes("search.semantic=") ? { status: 400, body: { error: "bad request" } } : undefined),
+    openalexReply([openalexWork("10.1/x", "Keyword match on transformer attention heads")]),
+  );
+  const { text } = await runSearch({ query: "What do transformer attention heads actually learn?", type: "papers" });
+  const last = new URL(calls.filter((c) => c.url.includes("openalex"))[1].url).searchParams;
+  assert.ok(last.get("search"));
+  assert.match(text, /Keyword match on transformer attention heads/);
+});
+
+test("OpenAlex is left out without a key, for other types and with a site list", async () => {
+  mockNetwork(exaSearchReply([exaResult("https://a.org/p", "Paper", "x")]));
+  await runSearch({ query: "q", type: "papers" });
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  await runSearch({ query: "q", type: "papers", sites: ["arxiv.org"] });
+  mockNetwork(exaSearchReply([]), parallelSearchReply([]));
+  await runSearch({ query: "q", type: "web" });
+  assert.equal(calls.filter((c) => c.url.includes("openalex")).length, 0);
+});
+
+test("an OpenAlex failure leaves Exa's papers and adds a note", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://a.org/p", "Exa paper", "x")]),
+    (c) => (c.url.includes("openalex") ? { status: 429, body: { error: "Rate limit exceeded" } } : undefined),
+  );
+  const { text, isError } = await runSearch({ query: "q", type: "papers" });
+  assert.equal(isError, false);
+  assert.match(text, /Exa paper/);
+  assert.match(text, /OpenAlex unavailable: OpenAlex rate limit reached/);
+});
+
+test("OpenAlex abstracts are put back in word order", () => {
+  assert.equal(rebuildAbstract({ world: [1], Hello: [0], again: [3], hello: [2] }), "Hello world hello again");
+  assert.equal(rebuildAbstract(null), "");
 });

@@ -26,6 +26,11 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "Adds live adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to jobs searches. About 1 to 5 cents a search.",
     link: "https://console.apify.com/settings/integrations",
   },
+  OPENALEX_API_KEY: {
+    label: "OpenAlex API key (optional)",
+    help: "Adds OpenAlex's index of research papers to papers searches, with citation counts and free full-text links. Free key with $1 of use a day (about 1,000 searches).",
+    link: "https://openalex.org/settings/api",
+  },
 };
 
 export function adminPassword(): string | null {

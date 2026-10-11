@@ -2,6 +2,7 @@ import { apifyJobs, apifyKey, boardName, boardsFor } from "../engines/apify.js";
 import { exaSearch, type ExaType, type Hit } from "../engines/exa.js";
 import { firecrawlKey, firecrawlSearch } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
+import { openalexKey, openalexSearch } from "../engines/openalex.js";
 import { parallelSearch, type ParallelMode } from "../engines/parallel.js";
 import { cleanDomain, keywords, parseDate, today } from "../text.js";
 import { fuse, renderHit, withinDates } from "./merge.js";
@@ -35,6 +36,8 @@ interface Plan {
   // Job boards through Apify (only when its key is set), at standard and
   // thorough depth.
   boards?: boolean;
+  // OpenAlex's index of research papers (only when its key is set).
+  openalex?: boolean;
   exaWeight: number;
   parallelWeight: number;
   firecrawlWeight?: number;
@@ -90,7 +93,9 @@ const PLANS: Record<SearchType, Plan> = {
     parallelWeight: 0.8,
     firecrawlWeight: 1.3,
   },
-  papers: { exa: { category: "publication" }, exaWeight: 1, parallelWeight: 0 },
+  // OpenAlex adds citation counts, venues and free full-text links, and
+  // covers journals Exa's index misses.
+  papers: { exa: { category: "publication" }, openalex: true, exaWeight: 1, parallelWeight: 0 },
   people: { exa: { category: "people" }, exaWeight: 1, parallelWeight: 0 },
   companies: { exa: { category: "company" }, exaWeight: 1, parallelWeight: 0 },
   code: {
@@ -255,6 +260,18 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
       });
   const asSecond = Boolean(fc?.second) && depth !== "fast";
   if (asSecond) jobs.push(firecrawlJob());
+
+  // OpenAlex can't limit results to sites, so a site list leaves it out.
+  if (plan.openalex && !sites.length && (await openalexKey())) {
+    jobs.push(
+      openalexSearch({ query, limit, after, before, maxChars: perResult })
+        .then((hits) => ({ hits, weight: 1 }))
+        .catch((e) => {
+          notes.push(`OpenAlex unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
+          return null;
+        }),
+    );
+  }
 
   // Job boards: each runs its own scraper, so they are slower (up to a
   // minute) but return live adverts with salary and place.
