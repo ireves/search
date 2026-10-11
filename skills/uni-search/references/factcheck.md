@@ -37,7 +37,7 @@ F4 ROUND 1 (all helpers in one message, in the background)
 - More than 60 claims: run F4-F6 one document section (or 60 claims) at a time, each section's helpers in one message, and fill that section's rows in the doc as soon as its claims are judged. Never hold every digest at once.
 
 F5 ROUND 2 (only claims round 1 left unsettled; one message)
-- A or B: "link failed" -> one read job on the next best copy (archive, publisher page, DOI link, PDF) found by one search for its title. "not stated" on a long page or PDF -> one read job with a narrower question naming the exact figure or words; still not stated -> the claim is "not in the cited source".
+- A or B: "link failed" -> one read job on the next best copy (archive, publisher page, DOI link with openalex:true, PDF) found by one search for its title. "not stated" on a long page or PDF -> one read job with a narrower question naming the exact figure or words; still not stated -> the claim is "not in the cited source".
 - B, no match found -> treat as C as well, and record "cited work not found".
 - C with promising verify excerpts -> check job on the 1-2 best urls (primary first), question = the claim. C with nothing -> one search (type papers + openalex:true if scholarly) + read best 1, question = the claim.
 - Up to 2 rounds after round 1. Then stop; what is left goes in "Could not check" with the pages tried.

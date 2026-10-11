@@ -28,7 +28,7 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
   },
   OPENALEX_API_KEY: {
     label: "OpenAlex API key (optional)",
-    help: "Adds OpenAlex's index of research papers to papers searches, with citation counts and free full-text links. Free key with $1 of use a day (about 1,000 searches).",
+    help: "Adds OpenAlex's index of research papers to papers searches, with citation counts and free full-text links, and reads papers from OpenAlex's own full-text copies ($0.01 each). Free key with $1 of use a day (about 1,000 searches or 100 full-text reads).",
     link: "https://openalex.org/settings/api",
   },
 };

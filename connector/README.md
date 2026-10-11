@@ -1,15 +1,16 @@
 # Search connector
 
-A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai), with [Firecrawl](https://docs.firecrawl.dev) as an optional first page reader. It runs as three Vercel Functions with no framework and two runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
+A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai), with [Firecrawl](https://docs.firecrawl.dev) as an optional first page reader. It runs as three Vercel Functions with no framework and three runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`, and [`unpdf`](https://github.com/unjs/unpdf) for OpenAlex's PDF copies). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
 
 ## Tools
 
 | Tool | What Claude gets | Behind it |
 |---|---|---|
 | `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set; Apify job-board scrapers added to `jobs` searches when its token is set; OpenAlex added to `papers` searches that ask for it (uni-search) when its key is set, and ranked first |
-| `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
+| `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read; OpenAlex's own full-text copy for OpenAlex paper links, and for DOI links when asked |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
+| `log_issue` | Saves a skill run's errors and failures to the problem log | One JSON file per report in the private Vercel Blob store |
 
 The server also sends a short `instructions` text when Claude connects, so Claude knows the tools without a skill.
 
@@ -82,6 +83,15 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - **Key.** Required. OpenAlex lets requests without a key share one small daily budget per network address, which a Vercel server soon uses up. A free key at [openalex.org/settings/api](https://openalex.org/settings/api) gives $1 of use a day, resetting at midnight UTC. Asked for without a key, the reply says so and Exa searches alone.
 - **Cost.** $0.001 a search (OpenAlex reports it in each reply), shown as "OpenAlex $0.0010" in the cost line. A used-up daily budget shows as "OpenAlex rate limit reached", and Exa's papers still come back.
 
+**Full text through OpenAlex (optional, same key).** OpenAlex keeps its own copies of about 60 million papers, paywalled ones included: the PDF, and for most of them a version already split into title, abstract, sections and paragraphs by [Grobid](https://github.com/kermitt2/grobid) (TEI XML). See [OpenAlex's full-text guide](https://help.openalex.org/download/full-text-pdfs).
+
+- **In search.** A `papers` result OpenAlex holds a copy of gets a line "Full text from OpenAlex (fetch reads it, $0.01): https://openalex.org/W…".
+- **In fetch.** An `openalex.org/W…` link is always read from OpenAlex's copy. A `doi.org` link is read from it only when the call sets `openalex: true` (uni-search's briefs do); a DOI OpenAlex has no copy of goes to the usual readers, and OpenAlex gets only half the time limit for those so they still have time.
+- **How.** One free lookup of the work shows which copies exist. The TEI XML is preferred: it becomes plain text (abstract, then each section under its heading, without the reference list). Without it, the PDF is turned into text with `unpdf`. Then the usual question or `start` rules apply. The reply says "Full text from OpenAlex's TEI XML copy" (or PDF copy).
+- **Cost.** $0.01 a download, shown in the cost line under OpenAlex. Reading a long paper in parts with `start` downloads it again for each part. The free key's $1 a day covers about 100 downloads.
+
+**Problem log.** The search skills call `log_issue` once at the end of any run where something failed (tool errors, engines unavailable, unreadable pages, workers that stopped early). Each report is saved as one JSON file, `search-connector/issues/<date>/<time>-<id>.json`, in the same private Blob store, with the skill, mode, a one-line summary of the question and each problem's exact error text and call parameters. Nothing is shown to the user and the call is free. To read the log: in Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open the `search-connector/issues` folder.
+
 **Merging.** Results from all engines are combined by rank (reciprocal rank fusion), with duplicates and mirrored copies folded together. Each engine's top result always keeps a place, so one engine's best find isn't crowded out by pages the other two agree on. When two engines return different passages from the same page, the newer copy's passage leads and the other is shown underneath ("Another copy of this page says"), because one engine's stored copy can be out of date.
 
 **Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
@@ -115,13 +125,14 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 api/mcp.ts        /mcp: the MCP endpoint (needs a token)
 api/oauth.ts      /.well-known/*, /register, /authorize, /token
 api/settings.ts   / and /settings
-lib/engines/      Exa, Parallel, Firecrawl, Apify and OpenAlex API calls
+lib/engines/      Exa, Parallel, Firecrawl, Apify and OpenAlex API calls (OpenAlex search and full text)
 lib/tools/        search, fetch, verify, research, and result merging
 lib/mcp.ts        JSON-RPC handling, tool definitions, server instructions
 lib/oauth.ts      authorisation server
 lib/passkeys.ts   passkey registration and sign-in, and the browser script
 lib/settings.ts   settings page
 lib/store.ts      encrypted secret storage
+lib/issues.ts     the problem log (log_issue)
 lib/crypto.ts     key derivation, encryption, signed tokens
 lib/text.ts       text clean-up, address matching, dates
 ```

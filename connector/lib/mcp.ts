@@ -4,6 +4,7 @@
 
 import { SERVER_NAME, SERVER_TITLE, SERVER_VERSION } from "./config.js";
 import { costLine, metered } from "./cost.js";
+import { runLogIssue } from "./issues.js";
 import { runFetch } from "./tools/fetch.js";
 import { EFFORTS, runResearch } from "./tools/research.js";
 import { DEPTHS, runSearch, SEARCH_TYPES } from "./tools/search.js";
@@ -16,6 +17,7 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tool
 - fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
+- log_issue: save errors and failures from a search skill run to the connector's problem log, for later troubleshooting. Free.
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.
 Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W", ", OpenAlex $V" and ", Firecrawl N credits" inside the brackets when any result used them.`;
 
@@ -71,7 +73,7 @@ export const TOOLS = [
     name: "fetch",
     title: "Read web pages",
     description:
-      "Read up to 5 links: web pages, PDFs, YouTube videos (transcript), Reddit threads (with comments), X posts. With a question, returns only the relevant passages from anywhere in the document; without one, returns the page from the top.",
+      "Read up to 5 links: web pages, PDFs, YouTube videos (transcript), Reddit threads (with comments), X posts, research papers held by OpenAlex. With a question, returns only the relevant passages from anywhere in the document; without one, returns the page from the top.",
     inputSchema: {
       type: "object",
       properties: {
@@ -80,6 +82,10 @@ export const TOOLS = [
         max_chars: { type: "integer", minimum: 500, maximum: 60000, description: "Per page. Default 4000 with a question, 6000 without. Up to 60000 reads most whole papers. All pages in one call share 80000 at most." },
         start: { type: "integer", minimum: 0, description: "Without a question: character to start reading from, to read on through a long document. The reply says where the next part starts." },
         fresh: { type: "boolean", description: "Re-download instead of using a stored copy." },
+        openalex: {
+          type: "boolean",
+          description: "Only when a skill's brief sets it: read doi.org links from OpenAlex's full-text copy of the paper when it has one ($0.01 each). openalex.org links always read that copy.",
+        },
       },
       required: ["urls"],
       additionalProperties: false,
@@ -126,6 +132,38 @@ export const TOOLS = [
     },
     annotations: { title: "Deep research", readOnlyHint: true, destructiveHint: false, idempotentHint: false, openWorldHint: true },
   },
+  {
+    name: "log_issue",
+    title: "Log a problem",
+    description:
+      "Save errors and failures from a search skill run (failed or refused tool calls, engines unavailable, pages that couldn't be read, workers that failed or left jobs not run) to the connector's problem log in Vercel Blob, for later troubleshooting. One call per run, listing every issue. Free; nothing is shown to the user.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        skill: { type: "string", description: "The skill that ran, e.g. uni-search." },
+        mode: { type: "string", description: "The mode, e.g. Auto, Deep, Research, Fact Check." },
+        summary: { type: "string", description: "One line on what the user asked for, without personal details." },
+        issues: {
+          type: "array",
+          minItems: 1,
+          maxItems: 20,
+          items: {
+            type: "object",
+            properties: {
+              tool: { type: "string", description: "The tool or step that failed, e.g. fetch, search, worker, Claude Docs." },
+              problem: { type: "string", description: "The error or failure, with the exact error text when there was one." },
+              detail: { type: "string", description: "The call's parameters (query, urls, type) and anything else that helps reproduce it." },
+            },
+            required: ["problem"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["skill", "issues"],
+      additionalProperties: false,
+    },
+    annotations: { title: "Log a problem", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  },
 ];
 
 type Json = Record<string, any>;
@@ -147,7 +185,7 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
 
 export async function callTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {
   const { value, meter } = await metered(() => runTool(name, args));
-  if (!TOOLS.some((t) => t.name === name)) return value;
+  if (!TOOLS.some((t) => t.name === name) || name === "log_issue") return value;
   return { ...value, text: `${value.text}\n\n${costLine(meter)}` };
 }
 
@@ -162,6 +200,8 @@ async function runTool(name: string, args: Json): Promise<{ text: string; isErro
         return await runVerify(args as any);
       case "research":
         return await runResearch(args as any);
+      case "log_issue":
+        return await runLogIssue(args as any);
       default:
         return { text: `Unknown tool: ${name}`, isError: true };
     }

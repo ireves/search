@@ -3,7 +3,8 @@ import { after, beforeEach, test } from "node:test";
 import { calls, exaResult, freshStore, mockNetwork, parallelResult, restoreNetwork } from "./helpers.js";
 import { entityFacts } from "../lib/engines/exa.js";
 import { leadingDate } from "../lib/engines/firecrawl.js";
-import { rebuildAbstract } from "../lib/engines/openalex.js";
+import { doiOf, openalexWorkId, rebuildAbstract, teiToText } from "../lib/engines/openalex.js";
+import { useIssueWriter } from "../lib/issues.js";
 import { jobQuery, runSearch } from "../lib/tools/search.js";
 import { salary } from "../lib/engines/apify.js";
 import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
@@ -751,4 +752,131 @@ test("an OpenAlex failure leaves Exa's papers and adds a note", async () => {
 test("OpenAlex abstracts are put back in word order", () => {
   assert.equal(rebuildAbstract({ world: [1], Hello: [0], again: [3], hello: [2] }), "Hello world hello again");
   assert.equal(rebuildAbstract(null), "");
+});
+
+const TEI = `<?xml version="1.0"?><TEI><teiHeader><fileDesc><titleStmt><title level="a" type="main">Cancellation flows &amp; dark patterns</title></titleStmt></fileDesc>
+<profileDesc><abstract><div><p>We measured 4.9 clicks on average.</p></div></abstract></profileDesc></teiHeader>
+<text><body><div><head n="1">Introduction</head><p>Effects were small (p &lt; 0.05 and n &gt; 300 <ref type="bibr">[3]</ref>).</p></div>
+<div><head n="2">Method</head><p>We used 812 sites.</p></div></body><back><listBibl><biblStruct>Reference list text</biblStruct></listBibl></back></text></TEI>`;
+
+// A one-page PDF saying "Hello full text".
+const PDF = new TextEncoder().encode(`%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 100]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length 44>>stream
+BT /F1 12 Tf 10 50 Td (Hello full text) Tj ET
+endstream endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R>>`);
+
+const oaWorkLookup = (has: { pdf?: boolean; grobid_xml?: boolean }) => (c: { url: string }) =>
+  /^https:\/\/api\.openalex\.org\/works\/(W\d+|doi:)/.test(c.url)
+    ? { body: { id: "https://openalex.org/W42", doi: "https://doi.org/10.1/x", title: "Cancellation flows", publication_date: "2024-05-01", authorships: [{ author: { display_name: "Ada Lovelace" } }], has_content: has } }
+    : undefined;
+
+test("Grobid TEI XML becomes plain text with headings, without the reference list", () => {
+  const { title, text } = teiToText(TEI);
+  assert.equal(title, "Cancellation flows & dark patterns");
+  assert.equal(text, "Abstract\n\nWe measured 4.9 clicks on average.\n\nIntroduction\n\nEffects were small (p < 0.05 and n > 300 [3]).\n\nMethod\n\nWe used 812 sites.");
+});
+
+test("OpenAlex addresses and DOIs are recognised", () => {
+  assert.equal(openalexWorkId("https://openalex.org/W2741809807"), "W2741809807");
+  assert.equal(openalexWorkId("https://api.openalex.org/works/w123"), "W123");
+  assert.equal(openalexWorkId("https://content.openalex.org/works/W123.pdf"), "W123");
+  assert.equal(openalexWorkId("https://example.com/W123"), null);
+  assert.equal(doiOf("https://doi.org/10.1038/s41586-024-1"), "10.1038/s41586-024-1");
+  assert.equal(doiOf("https://example.com/10.1/x"), null);
+});
+
+test("papers OpenAlex holds a copy of get a full-text link in search results", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(exaSearchReply([]), openalexReply([openalexWork("10.1/held", "Held paper", { id: "https://openalex.org/W77", has_content: { pdf: true, grobid_xml: true } })]));
+  const { text } = await runSearch({ query: "q", type: "papers", openalex: true });
+  assert.match(text, /Full text from OpenAlex \(fetch reads it, \$0\.01\): https:\/\/openalex\.org\/W77/);
+  assert.ok(new URL(calls.find((c) => c.url.includes("openalex"))!.url).searchParams.get("select")!.includes("has_content"));
+});
+
+test("fetch reads an OpenAlex work from its TEI XML copy and counts the download", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(oaWorkLookup({ pdf: true, grobid_xml: true }), (c) =>
+    c.url === "https://content.openalex.org/works/W42.grobid-xml" ? { raw: TEI, headers: { "x-ratelimit-cost-usd": "0.01" } } : undefined,
+  );
+  const result = await callTool("fetch", { urls: ["https://openalex.org/W42"] });
+  assert.equal(result.isError, false);
+  assert.match(result.text, /## Cancellation flows\nhttps:\/\/openalex\.org\/W42 · published 2024-05-01 · by Ada Lovelace/);
+  assert.match(result.text, /p < 0\.05 and n > 300/);
+  assert.match(result.text, /\[Full text from OpenAlex's TEI XML copy\.\]/);
+  assert.match(result.text, /OpenAlex \$0\.010\)$/);
+  const download = calls.find((c) => c.url.startsWith("https://content.openalex.org/"))!;
+  assert.equal(download.headers.authorization, "Bearer oa-test-key");
+  // Nothing else was asked to read it.
+  assert.equal(calls.filter((c) => /exa|parallel|firecrawl/.test(c.url)).length, 0);
+});
+
+test("fetch reads the PDF copy when OpenAlex has no TEI XML", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(oaWorkLookup({ pdf: true, grobid_xml: false }), (c) =>
+    c.url === "https://content.openalex.org/works/W42.pdf" ? { raw: PDF, headers: { "content-type": "application/pdf" } } : undefined,
+  );
+  const { text, isError } = await runFetch({ urls: ["https://openalex.org/W42"] });
+  assert.equal(isError, false);
+  assert.match(text, /Hello full text/);
+  assert.match(text, /OpenAlex's PDF copy/);
+});
+
+test("DOI links use OpenAlex's copy only when asked, and fall back to the usual readers", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  const exaContents = (c: { url: string }) =>
+    c.url === "https://api.exa.ai/contents"
+      ? { body: { results: [{ url: "https://doi.org/10.1234/x", title: "Publisher page", highlights: ["The publisher's abstract page. ".repeat(20)] }], statuses: [{ id: "https://doi.org/10.1234/x", status: "success" }] } }
+      : undefined;
+  // Not asked: OpenAlex is never called.
+  mockNetwork(exaContents);
+  await runFetch({ urls: ["https://doi.org/10.1234/x"], question: "how many clicks" });
+  assert.equal(calls.filter((c) => c.url.includes("openalex")).length, 0);
+  // Asked, but OpenAlex has no copy: Exa reads it.
+  mockNetwork(oaWorkLookup({ pdf: false, grobid_xml: false }), exaContents);
+  const { text } = await runFetch({ urls: ["https://doi.org/10.1234/x"], question: "how many clicks", openalex: true });
+  assert.ok(calls.some((c) => c.url.startsWith("https://api.openalex.org/works/doi:10.1234/x?")), calls.map((c) => c.url).join(" "));
+  assert.match(text, /The publisher's abstract page/);
+  assert.equal(calls.filter((c) => c.url.startsWith("https://content.openalex.org/")).length, 0);
+});
+
+test("an OpenAlex link without a key says why it can't be read", async () => {
+  mockNetwork();
+  const { text, isError } = await runFetch({ urls: ["https://openalex.org/W42"] });
+  assert.equal(isError, true);
+  assert.match(text, /OpenAlex has no API key, so its full-text copies can't be read/);
+  assert.equal(calls.length, 0);
+});
+
+test("log_issue saves one JSON file per report under a dated folder, with no cost line", async () => {
+  const saved: { path: string; body: string }[] = [];
+  useIssueWriter(async (path, body) => {
+    saved.push({ path, body });
+  });
+  try {
+    const result = await callTool("log_issue", {
+      skill: "uni-search",
+      mode: "Research",
+      summary: "Evidence on dark patterns",
+      issues: [{ tool: "fetch", problem: "Exa rejected the API key.", detail: "urls: https://a.org" }, { problem: "" }],
+    });
+    assert.equal(result.isError, false);
+    assert.match(result.text, /^Logged 1 issue as /);
+    assert.doesNotMatch(result.text, /Search cost/);
+    assert.equal(saved.length, 1);
+    assert.match(saved[0].path, /^search-connector\/issues\/\d{4}-\d{2}-\d{2}\/\d{4}-\d{2}-\d{2}T[\d-]+Z-[0-9a-f]{8}\.json$/);
+    const record = JSON.parse(saved[0].body);
+    assert.equal(record.skill, "uni-search");
+    assert.deepEqual(record.issues, [{ tool: "fetch", problem: "Exa rejected the API key.", detail: "urls: https://a.org" }]);
+    const empty = await callTool("log_issue", { skill: "uni-search", issues: [] });
+    assert.equal(empty.isError, true);
+  } finally {
+    useIssueWriter(null);
+  }
+  const noStore = await callTool("log_issue", { skill: "better-search", issues: [{ problem: "x" }] });
+  assert.match(noStore.text, /no Vercel Blob store is connected/);
 });

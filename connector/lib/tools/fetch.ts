@@ -1,6 +1,7 @@
 import { exaContents } from "../engines/exa.js";
 import { firecrawlKey, firecrawlScrape } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
+import { doiOf, openalexFullText, openalexKey, openalexWorkId } from "../engines/openalex.js";
 import { parallelExtract } from "../engines/parallel.js";
 import { cleanAuthor, cleanText, hostOf, relevantPassages, truncate } from "../text.js";
 
@@ -10,6 +11,7 @@ export interface FetchInput {
   max_chars?: number;
   start?: number;
   fresh?: boolean;
+  openalex?: boolean;
 }
 
 interface Page {
@@ -121,8 +123,22 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const failures: string[] = [];
   const slow = new Set<string>();
 
+  // OpenAlex's own full-text copy: always for OpenAlex work links (search
+  // results give them for papers it holds), and for DOI links when the brief
+  // asks for OpenAlex. A DOI it has no copy of goes to the usual readers, so
+  // OpenAlex gets only half the time for those.
+  const oaKey = await openalexKey();
+  const oaWork = urls.filter((u) => openalexWorkId(u));
+  const oaDoi = input.openalex ? urls.filter((u) => doiOf(u)) : [];
+  if (oaDoi.length && !oaKey) failures.push("OpenAlex has no API key, so DOI links were read by the usual readers. Add OPENALEX_API_KEY on the connector's settings page.");
+  const oaTargets = oaKey ? [...oaWork, ...oaDoi] : [];
+  if (oaWork.length && !oaKey) {
+    failures.push("OpenAlex has no API key, so its full-text copies can't be read. Add OPENALEX_API_KEY on the connector's settings page.");
+    for (const u of oaWork) pages.set(u, { url: u, content: "", error: "OpenAlex has no API key" });
+  }
+
   // Firecrawl first where it suits; whatever it can't read goes on to the others.
-  let others = urls.filter((u) => !reddit.includes(u));
+  let others = urls.filter((u) => !reddit.includes(u) && !oaWork.includes(u) && !oaTargets.includes(u));
   const firecrawlFirst = (await firecrawlKey()) ? others.filter((u) => !FIRECRAWL_SKIP.test(hostOf(u)) && !looksLikePdf(u)) : [];
   const viaFirecrawl = async () => {
     if (!firecrawlFirst.length) return;
@@ -211,7 +227,43 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     await Promise.all([viaExa(others.filter((u) => !parallelFirst.includes(u))), viaParallel(parallelFirst)]);
   };
 
-  await Promise.all([viaOthers(), ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures, left, minTry))]);
+  const viaOpenAlex = async (u: string) => {
+    const workId = openalexWorkId(u) ?? undefined;
+    try {
+      const full = await openalexFullText(workId ? { workId } : { doi: doiOf(u)! }, Math.max(minTry, workId ? left() : Math.floor(left() / 2)));
+      if ("missing" in full) {
+        pages.set(u, { url: u, content: "", error: full.missing });
+        return;
+      }
+      const view = question ? { content: relevantPassages(full.content, question, maxChars) } : windowOf(full.content, start, maxChars);
+      const from = `Full text from OpenAlex's ${full.format} copy.`;
+      pages.set(u, {
+        url: workId ? full.url : u,
+        title: full.title,
+        date: full.date,
+        author: full.author,
+        content: view.content,
+        note: "next" in view && view.next ? `${from} ${moreNote(view.next)}` : from,
+        error: view.content ? undefined : "nothing past that point",
+      });
+    } catch (e) {
+      const err = e instanceof EngineError ? e : null;
+      failures.push(`OpenAlex full text unavailable: ${err ? err.friendly : (e as Error).message}`);
+      pages.set(u, { url: u, content: "", error: err?.status === -1 ? TOO_SLOW : "not available" });
+    }
+  };
+
+  await Promise.all([
+    viaOthers(),
+    ...oaTargets.map(viaOpenAlex),
+    ...reddit.map((u) => readReddit(u, question, maxChars, fresh, pages, failures, left, minTry)),
+  ]);
+  // DOI links OpenAlex couldn't supply go to the usual readers in the time left.
+  const doiBack = oaDoi.filter((u) => oaTargets.includes(u) && !pages.get(u)?.content);
+  if (doiBack.length) {
+    for (const u of doiBack) pages.delete(u);
+    await viaExa(doiBack);
+  }
 
   const blocks = urls.map((url) => {
     const p = pages.get(url);

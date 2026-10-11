@@ -8,9 +8,11 @@ Both skills use your Search connector, which combines two search engines:
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
 - **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It also gives a second opinion on everyday, discussion and review searches, and steps in when Exa and Parallel find little. It ranks like Google, so it finds forum threads and popular recommendations that Exa can miss.
 - **Apify** (optional) adds live job adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to job searches when its key is added. Each board runs its own scraper, so job searches take up to a minute longer and cost a few cents.
-- **OpenAlex** (optional, uni-search only) adds a free index of about 300 million research papers when its key is added. For questions about studies and research, uni-search's paper searches show OpenAlex's papers first and Exa's after. Each paper comes with its journal, how often it has been cited, and a link to a free copy when one exists.
+- **OpenAlex** (optional, uni-search only) adds a free index of about 300 million research papers when its key is added. For questions about studies and research, uni-search's paper searches show OpenAlex's papers first and Exa's after. Each paper comes with its journal, how often it has been cited, and a link to a free copy when one exists. When OpenAlex keeps its own copy of a paper (about 60 million, including many behind paywalls), Claude can read the whole paper from that copy for $0.01.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
+
+**Problem log.** When something goes wrong during a search (an engine is down, a key is rejected, a page can't be read, a worker stops early), every skill except search-report saves a short note of it to your connector's storage on Vercel, without asking or interrupting the answer. This makes later problems easier to track down. Where to find it: [`connector-setup.md`](connector-setup.md#problems).
 
 A few habits help with answers that aren't clear-cut:
 
