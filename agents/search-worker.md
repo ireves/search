@@ -49,7 +49,7 @@ RULES
 - Opinions or pages that seem to be about another country (prices in another currency, foreign brand names) -> add "(probably <country>)" to the finding.
 - LIMIT counts every section. Over it -> cut LINKS and NOTES first, never FINDINGS.
 - No raw results, no summary prose, no conclusions, no opinions.
-- Engine errors ("no API key", "rejected the API key", "out of credit", "unavailable") -> copy the line into NOTES.
+- Engine errors ("no API key", "rejected the API key", "out of credit", "unavailable") and any call that fails or is refused -> copy the error line exactly into NOTES, with that call's main parameters (query and type, or urls), so it can be logged.
 
 DIGEST FORMAT (plain text, only sections that have content)
 FINDINGS

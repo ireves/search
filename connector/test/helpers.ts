@@ -19,7 +19,8 @@ export interface Call {
 }
 
 export const calls: Call[] = [];
-type Handler = (call: Call) => { status?: number; body: unknown } | undefined;
+// raw replies (XML, PDF) are sent as given, with their own headers.
+type Handler = (call: Call) => { status?: number; body?: unknown; raw?: string | Uint8Array; headers?: Record<string, string> } | undefined;
 let handlers: Handler[] = [];
 
 const realFetch = globalThis.fetch;
@@ -38,6 +39,7 @@ export function mockNetwork(...list: Handler[]): void {
     calls.push(call);
     for (const h of handlers) {
       const reply = h(call);
+      if (reply?.raw !== undefined) return new Response(reply.raw as BodyInit, { status: reply.status ?? 200, headers: reply.headers });
       if (reply) return new Response(JSON.stringify(reply.body), { status: reply.status ?? 200, headers: { "content-type": "application/json" } });
     }
     return new Response(JSON.stringify({ error: "unmocked " + url }), { status: 404 });
