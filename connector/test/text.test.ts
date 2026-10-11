@@ -15,6 +15,8 @@ test("urlKey folds tracking parameters and arXiv variants", () => {
   assert.equal(urlKey("https://www.example.com/a/?utm_source=x&id=2"), urlKey("https://example.com/a?id=2"));
   assert.equal(urlKey("https://arxiv.org/pdf/2309.17145v3.pdf"), urlKey("https://arxiv.org/abs/2309.17145"));
   assert.equal(urlKey("https://old.reddit.com/r/a/comments/1/x/?share=1"), urlKey("https://www.reddit.com/r/a/comments/1/x"));
+  assert.equal(urlKey("https://doi.org/10.48550/arXiv.2005.11401"), urlKey("https://arxiv.org/abs/2005.11401v4"));
+  assert.equal(urlKey("https://doi.org/10.1038/NATURE14539"), urlKey("https://doi.org/10.1038/nature14539"));
 });
 
 test("parseDate understands relative windows", () => {

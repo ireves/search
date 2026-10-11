@@ -56,6 +56,7 @@ export function fuse(lists: { hits: Hit[]; weight: number }[], limit: number): R
       twin.score += hit.score;
       const host = hostOf(hit.url);
       if (!twin.mirrors.includes(host)) twin.mirrors.push(host);
+      twin.facts ??= hit.facts;
       entryFor.set(urlKey(hit.url), twin);
       continue;
     }

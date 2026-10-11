@@ -3,6 +3,7 @@
 // from its price list (see PARALLEL_PRICES in engines/parallel.ts). Firecrawl
 // is counted in credits, since its plans are a monthly credit allowance.
 // Apify's job-board scrapers are estimated from their price per advert.
+// OpenAlex reports its own cost.
 
 import { AsyncLocalStorage } from "node:async_hooks";
 
@@ -10,12 +11,13 @@ export interface Meter {
   exa: number;
   parallel: number;
   apify: number;
+  openalex: number;
   firecrawlCredits: number;
 }
 
 const current = new AsyncLocalStorage<Meter>();
 
-export function addCost(engine: "exa" | "parallel" | "apify", dollars: number | null | undefined): void {
+export function addCost(engine: "exa" | "parallel" | "apify" | "openalex", dollars: number | null | undefined): void {
   const meter = current.getStore();
   if (meter && typeof dollars === "number" && Number.isFinite(dollars) && dollars > 0) meter[engine] += dollars;
 }
@@ -26,7 +28,7 @@ export function addCredits(engine: "firecrawl", credits: number): void {
 }
 
 export async function metered<T>(fn: () => Promise<T>): Promise<{ value: T; meter: Meter }> {
-  const meter: Meter = { exa: 0, parallel: 0, apify: 0, firecrawlCredits: 0 };
+  const meter: Meter = { exa: 0, parallel: 0, apify: 0, openalex: 0, firecrawlCredits: 0 };
   const value = await current.run(meter, fn);
   return { value, meter };
 }
@@ -36,8 +38,9 @@ export function dollars(n: number): string {
 }
 
 export function costLine(meter: Meter): string {
-  const total = meter.exa + meter.parallel + meter.apify;
+  const total = meter.exa + meter.parallel + meter.apify + meter.openalex;
   const apify = meter.apify ? `, Apify ${dollars(meter.apify)}` : "";
+  const openalex = meter.openalex ? `, OpenAlex ${dollars(meter.openalex)}` : "";
   const credits = meter.firecrawlCredits ? `, Firecrawl ${meter.firecrawlCredits} credit${meter.firecrawlCredits === 1 ? "" : "s"}` : "";
-  return `Search cost of this call: ${dollars(total)} (Exa ${dollars(meter.exa)}, Parallel ${dollars(meter.parallel)}${apify}${credits})`;
+  return `Search cost of this call: ${dollars(total)} (Exa ${dollars(meter.exa)}, Parallel ${dollars(meter.parallel)}${apify}${openalex}${credits})`;
 }

@@ -8,6 +8,7 @@ Both skills use your Search connector, which combines two search engines:
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
 - **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It also gives a second opinion on everyday, discussion and review searches, and steps in when Exa and Parallel find little. It ranks like Google, so it finds forum threads and popular recommendations that Exa can miss.
 - **Apify** (optional) adds live job adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to job searches when its key is added. Each board runs its own scraper, so job searches take up to a minute longer and cost a few cents.
+- **OpenAlex** (optional) adds a free index of about 300 million research papers to paper searches when its key is added. Each paper comes with its journal, how often it has been cited, and a link to a free copy when one exists.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 

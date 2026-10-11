@@ -73,7 +73,7 @@ STEP 7 ANSWER
 - Tables: source link (Harvard: citation) in every cell, or one source per row/column.
 - Auto: short as completeness allows (usually <250 words; comparisons longer). Research: references/report.md, <=3 pages (~1,400 words).
 - No raw tool output or digests; quote only proof.
-- Last line of the chat reply: "Search cost: $X (Exa $Y, Parallel $Z)" = sum of every worker COST line and any "Search cost of this call" line since your last reply; add ", Firecrawl N credits" inside the brackets when any line has it. Not in the Doc.
+- Last line of the chat reply: "Search cost: $X (Exa $Y, Parallel $Z)" = sum of every worker COST line and any "Search cost of this call" line since your last reply; add ", Apify $W", ", OpenAlex $V" and ", Firecrawl N credits" inside the brackets when any line has them. Not in the Doc.
 
 WORKERS
 - You plan, judge and write; workers do all the grunt work: every connector call, returning short digests (findings + urls), so raw results never fill your context. Never make connector calls yourself while a sub-agent tool exists.

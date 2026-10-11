@@ -6,7 +6,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 
 | Tool | What Claude gets | Behind it |
 |---|---|---|
-| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set; Apify job-board scrapers added to `jobs` searches when its token is set |
+| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set; Apify job-board scrapers added to `jobs` searches when its token is set; OpenAlex added to `papers` searches when its key is set |
 | `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
@@ -73,6 +73,14 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - **Cost.** Apify doesn't report a run's cost in the reply, so the cost line shows an estimate from the free-plan prices above (an upper bound). A typical search with 8 adverts per board costs about 4 cents.
 - A board that fails or runs out of credit adds a note; the other boards and Exa still answer. These are unofficial scrapers, so a change to a board's site can break one until its maker fixes it.
 
+**Research papers through OpenAlex (optional).** When `OPENALEX_API_KEY` is set, `papers` searches also ask [OpenAlex](https://developers.openalex.org), a free, open index of about 300 million scholarly works, and merge its results with Exa's.
+
+- **Why.** OpenAlex covers journals and conference papers Exa's index can miss, and gives each paper its venue, citation count and a link to a free copy when one exists (so `fetch` can read the full text). In the toolkit comparison a fair research question scored 3 out of 3, but everyday questions scored near zero, so it is used for `papers` only.
+- **How.** Semantic search (`search.semantic`, by meaning, like Exa) on the query. If OpenAlex turns that down, one keyword search on the query's main words instead. Retracted works are left out, and `after` / `before` become publication-date filters. A `sites` list leaves OpenAlex out, as it can't filter by site.
+- **Results.** Title, date, link (the DOI when there is one), then authors (up to 50), venue, citation count and DOI, a "Free full text" link, and the abstract, cut to the usual passage length. The same paper found by Exa on arxiv.org and by OpenAlex as an arXiv DOI is shown once.
+- **Key.** Required. OpenAlex lets requests without a key share one small daily budget per network address, which a Vercel server soon uses up. A free key at [openalex.org/settings/api](https://openalex.org/settings/api) gives $1 of use a day, resetting at midnight UTC.
+- **Cost.** $0.001 a search (OpenAlex reports it in each reply), shown as "OpenAlex $0.0010" in the cost line. A used-up daily budget shows as "OpenAlex rate limit reached", and Exa's papers still come back.
+
 **Merging.** Results from all engines are combined by rank (reciprocal rank fusion), with duplicates and mirrored copies folded together. Each engine's top result always keeps a place, so one engine's best find isn't crowded out by pages the other two agree on. When two engines return different passages from the same page, the newer copy's passage leads and the other is shown underneath ("Another copy of this page says"), because one engine's stored copy can be out of date.
 
 **Research.** Calls wait up to 170 seconds (Claude allows 240 per tool call) and otherwise return a `run_id` to collect later. `deep` runs Exa Agent (`auto`, $1 cap) and Parallel (`pro`) side by side, so Claude gets two independent reports to cross-check.
@@ -95,7 +103,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 |---|---|---|
 | `ADMIN_PASSWORD` | Yes | At least 12 characters |
 | `BLOB_STORE_ID` | Added by Vercel | Set when a Blob store is connected |
-| `EXA_API_KEY`, `PARALLEL_API_KEY`, `FIRECRAWL_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority. Firecrawl is optional |
+| `EXA_API_KEY`, `PARALLEL_API_KEY`, `FIRECRAWL_API_KEY`, `APIFY_API_TOKEN`, `OPENALEX_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority. Firecrawl, Apify and OpenAlex are optional |
 | `PUBLIC_URL` | Recommended | The final address, e.g. `https://search-connector.vercel.app`. Passkeys are tied to its hostname, so set it before adding one |
 | `ALLOW_PASSWORD_SIGN_IN` | No | `true` lets the admin password sign in even when passkeys exist. For recovering from a lost passkey; remove afterwards |
 | `ALLOWED_REDIRECT_URIS` | No | Extra OAuth callback addresses, comma-separated |
@@ -106,7 +114,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 api/mcp.ts        /mcp: the MCP endpoint (needs a token)
 api/oauth.ts      /.well-known/*, /register, /authorize, /token
 api/settings.ts   / and /settings
-lib/engines/      Exa, Parallel and Firecrawl API calls
+lib/engines/      Exa, Parallel, Firecrawl, Apify and OpenAlex API calls
 lib/tools/        search, fetch, verify, research, and result merging
 lib/mcp.ts        JSON-RPC handling, tool definitions, server instructions
 lib/oauth.ts      authorisation server
