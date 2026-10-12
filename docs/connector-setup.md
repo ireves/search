@@ -154,6 +154,6 @@ Vercel's free plan covers personal use of the connector itself.
 | "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa, Parallel, Firecrawl or Apify. If it's Firecrawl, Apify or OpenAlex, Exa and Parallel still search and read pages. |
 | "OpenAlex rate limit reached" | The OpenAlex key has used its free $1 for the day. It resets at midnight UTC; paper searches still work through Exa until then. |
 | "Storage not connected" on the settings page | Connect a private Blob store (step 2, sub-step 5). |
-| You want to see what went wrong in earlier searches | The skills save errors to a problem log. In Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open `search-connector/issues`. There is one folder per day and one file per search that had problems. |
+| You want to see what went wrong in earlier searches | The skills save errors to a problem log. In Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open `search-connector/issues`. There is one folder per day and one file per search that had problems; `/search-report` reports are the `.md` files beside their entries. |
 | Claude asks you to reconnect | Normal after "Sign out all connections" or a password change. Reconnect in Claude's connector settings. |
 | "Setup needed" page | `ADMIN_PASSWORD` is missing or shorter than 12 characters. Add it in Vercel and redeploy. |

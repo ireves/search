@@ -874,6 +874,16 @@ test("log_issue saves one JSON file per report under a dated folder, with no cos
     assert.deepEqual(record.issues, [{ tool: "fetch", problem: "Exa rejected the API key.", detail: "urls: https://a.org" }]);
     const empty = await callTool("log_issue", { skill: "uni-search", issues: [] });
     assert.equal(empty.isError, true);
+    // search-report saves its whole report as a Markdown file beside the entry.
+    saved.length = 0;
+    const withReport = await callTool("log_issue", { skill: "search-report", mode: "uni-search", issues: [], report: "# Search report\n\n1. Summary" });
+    assert.equal(withReport.isError, false);
+    assert.match(withReport.text, /^Logged 0 issues and the report as .+ \(report: search-connector\/issues\/.+\.md\)\.$/);
+    assert.deepEqual(saved.map((f) => f.path.slice(-3)), [".md", "son"]);
+    assert.equal(saved[0].body, "# Search report\n\n1. Summary");
+    assert.equal(JSON.parse(saved[1].body).report, saved[0].path);
+    const tooLong = await callTool("log_issue", { skill: "search-report", report: "x".repeat(200_001) });
+    assert.match(tooLong.text, /longer than 200,000 characters/);
   } finally {
     useIssueWriter(null);
   }

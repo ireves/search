@@ -3,10 +3,10 @@
 Web research for Claude using Exa and Parallel, through one custom connector you host on Vercel ([`connector/`](connector/)).
 
 - **Skills (version 2):** [`skills/better-search`](skills/better-search) (everyday, `/better-search`) and [`skills/uni-search`](skills/uni-search) (sourced research and large fact checks, `/uni-search`). Both run only when you type the command.
-- **Diagnostics:** [`skills/search-report`](skills/search-report) (`/search-report`) writes a step-by-step record of a search run in the conversation, including every tool call and worker output, and lists likely problems.
+- **Diagnostics:** [`skills/search-report`](skills/search-report) (`/search-report`) writes a step-by-step record of a search run, including every tool call and worker output, lists likely problems, and saves the report to the problem log.
 - **Worker:** [`agents/search-worker.md`](agents/search-worker.md), a Haiku worker that runs the searches and returns short fact lists, so the main Claude's memory stays clear.
 - **Version 1 backup:** [`v1/`](v1) (web-search and deep-search, no workers), installable as the `search-v1` plugin.
-- **Problem log:** every skill except search-report saves errors and failures to the connector's private Vercel Blob store (`search-connector/issues/`), for later troubleshooting.
+- **Problem log:** the search skills save errors and failures, and search-report saves its whole report, to the connector's private Vercel Blob store (`search-connector/issues/`), for later troubleshooting.
 - **API keys:** added on the connector's own settings page; write-only.
 - **Setup guide:** [`docs/connector-setup.md`](docs/connector-setup.md).
 
