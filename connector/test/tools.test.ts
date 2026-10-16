@@ -119,6 +119,17 @@ test("fetch reads with Exa and falls back to Parallel for thin pages", async () 
   assert.match(text, /Parallel read the whole answer here/);
 });
 
+test("fetch repairs \"&amp;\" left in addresses copied from page source", async () => {
+  mockNetwork((c) =>
+    c.url === "https://api.exa.ai/contents"
+      ? { body: { results: [{ url: c.body.urls[0], title: "Shop", highlights: ["A long relevant passage. ".repeat(20)] }], statuses: [{ id: c.body.urls[0], status: "success" }] } }
+      : undefined,
+  );
+  await runFetch({ urls: ["https://shop.com/p?amp%3Bbrand=66&amp%3Bcountry=PT&amp;sku=1&language=pt"], question: "what is on the page" });
+  const exa = calls.find((c) => c.url === "https://api.exa.ai/contents");
+  assert.deepEqual(exa?.body.urls, ["https://shop.com/p?brand=66&country=PT&sku=1&language=pt"]);
+});
+
 const firecrawlReply = (pages: Record<string, { status?: number; markdown?: string; title?: string; credits?: number }>) => (c: { url: string; body: any }) => {
   if (c.url !== "https://api.firecrawl.dev/v2/scrape") return undefined;
   const page = pages[c.body.url];

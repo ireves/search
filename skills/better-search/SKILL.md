@@ -4,7 +4,7 @@ description: Everyday web search and page reading via the Search connector (Exa 
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-16b
+Skill version: 2026-10-16c
 
 Purpose: a useful, accurate answer, fast. No formal citations or confidence labels needed. Interpret freely: combine sources, read between the lines, draw conclusions, recommend. Specific facts (numbers, prices, dates, versions, names, current status) must come from results, never memory; general background knowledge is fine for explaining.
 

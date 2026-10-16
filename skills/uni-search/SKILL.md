@@ -4,7 +4,7 @@ description: Sourced web research via the Search connector (Exa + Parallel), for
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-16b
+Skill version: 2026-10-16c
 
 Purpose: the answer must be factual, correct, complete and sourced. Accuracy > speed. Answer every part of the question, then be brief (cut words, never asked-for facts). No claim without a source. Your own reasoning (comparisons, implications) is allowed only when labelled as such and built on cited facts.
 
