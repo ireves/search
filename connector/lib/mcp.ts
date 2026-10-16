@@ -143,6 +143,7 @@ export const TOOLS = [
       type: "object",
       properties: {
         skill: { type: "string", description: "The skill that ran, e.g. uni-search." },
+        skill_version: { type: "string", description: "The \"Skill version\" line at the top of that skill." },
         mode: { type: "string", description: "The mode, e.g. Auto, Deep, Research, Fact Check." },
         app: { type: "string", enum: [...APPS], description: "Where you are running: Claude chat, Cowork or Claude Code." },
         model: { type: "string", description: "Your model, if you know it." },

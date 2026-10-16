@@ -25,6 +25,7 @@ export const OUTCOMES = ["answered", "partial", "not answered"] as const;
 
 export interface IssueInput {
   skill?: string;
+  skill_version?: string;
   mode?: string;
   app?: string;
   model?: string;
@@ -99,6 +100,7 @@ export async function runLogIssue(input: IssueInput): Promise<{ text: string; is
     id,
     at: stamp,
     skill,
+    skill_version: clip(input.skill_version, 30) || undefined,
     mode: clip(input.mode, 60) || undefined,
     app: oneOf(input.app, APPS),
     model: clip(input.model, 60) || undefined,

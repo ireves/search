@@ -58,3 +58,38 @@ select cron.schedule('search-calls-cleanup', '17 3 * * *', $$
   where c.at < now() - interval '30 days'
     and not exists (select 1 from public.search_issues i where i.refs @> array[c.ref])
 $$);
+
+-- Change history, so log entries can be read against what the tool did at
+-- the time (see CLAUDE.md). Written by Claude with the Supabase connector;
+-- the connector's key can't touch it.
+create table public.search_changes (
+  id serial primary key,
+  at timestamptz not null,
+  pr int,
+  commit text,
+  title text not null,
+  areas text[] not null default '{}',
+  summary text,
+  effects text,
+  addresses text[] not null default '{}',
+  outcome text
+);
+comment on column public.search_changes.at is 'When it went live (merge time). Skill changes reach a conversation only once the plugin is updated there.';
+comment on column public.search_changes.effects is 'How it changes search output or the log, and what entries logged before it lack.';
+comment on column public.search_changes.addresses is 'search_issues ids this change was meant to fix.';
+comment on column public.search_changes.outcome is 'Filled in later: did it fix the problem?';
+create index search_changes_at on public.search_changes (at);
+alter table public.search_changes enable row level security;
+revoke all on public.search_changes from anon, authenticated;
+
+alter table public.search_issues add column skill_version text check (length(skill_version) <= 30);
+
+-- Each issue with the calls it names, the change that was live when it was
+-- logged, and the changes made since (fixes_this: meant to fix it).
+create view public.search_issue_context with (security_invoker = true) as
+select i.*,
+  coalesce((select jsonb_agg(to_jsonb(c) order by c.at) from public.search_calls c where c.ref = any(i.refs)), '[]') as calls,
+  (select jsonb_build_object('id', s.id, 'at', s.at, 'pr', s.pr, 'title', s.title) from public.search_changes s where s.at <= i.at order by s.at desc limit 1) as live_change,
+  coalesce((select jsonb_agg(jsonb_build_object('id', s.id, 'at', s.at, 'pr', s.pr, 'title', s.title, 'effects', s.effects, 'fixes_this', i.id = any(s.addresses)) order by s.at) from public.search_changes s where s.at > i.at), '[]') as changes_since
+from public.search_issues i;
+revoke all on public.search_issue_context from anon, authenticated;
