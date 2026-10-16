@@ -4,6 +4,8 @@ description: Diagnostic report of how a search skill run went in this conversati
 disable-model-invocation: true
 ---
 
+Skill version: 2026-10-16b
+
 Purpose: an exact record of what happened, so problems with the search skills, workers or connector can be found. Accuracy > neatness. Report what happened, never what should have happened. Make no new searches (log_issue, which saves the report, is the only connector call).
 
 STEP 1 SCOPE
@@ -44,6 +46,6 @@ RULES
 - Plain English in the Summary and Problems; tool and parameter names as they appear.
 
 OUTPUT
-Save the report to the connector's problem log: call log_issue from the Search connector once, yourself (names may be prefixed, e.g. Search:log_issue; match the suffix). Params: skill "search-report"; mode = the skill that ran (several -> list them, e.g. "uni-search, better-search"); app (chat, cowork or code); question = the run's question, one line, no personal details (several runs -> the first; the rest in earlier_questions); follow_up and earlier_questions as for the run; outcome (answered | partial | not answered); issues = one per Problems entry (max 20, most serious first): tool (the tool or step it happened in), problem (what happened, with "seen" or "guess"), ref (the call's ref from its cost line, when visible), detail (evidence, likely cause, suggested fix); report = the whole report in Markdown, every section. No problems -> issues [] (the report is still saved). API keys, tokens and passwords stay [REDACTED].
+Save the report to the connector's problem log: call log_issue from the Search connector once, yourself (names may be prefixed, e.g. Search:log_issue; match the suffix). Params: skill "search-report"; skill_version (top of this file); mode = the skill that ran (several -> list them, e.g. "uni-search, better-search"); app (chat, cowork or code); question = the run's question, one line, no personal details (several runs -> the first; the rest in earlier_questions); follow_up and earlier_questions as for the run; outcome (answered | partial | not answered); issues = one per Problems entry (max 20, most serious first): tool (the tool or step it happened in), problem (what happened, with "seen" or "guess"), ref (the call's ref from its cost line, when visible), detail (evidence, likely cause, suggested fix); report = the whole report in Markdown, every section. No problems -> issues [] (the report is still saved). API keys, tokens and passwords stay [REDACTED].
 Then in chat: "Saved to the problem log as <the id from the reply>", the Summary, and the Problems list.
 log_issue missing or it fails -> say why in one line, then fall back: file tools available -> save as search-report-<YYYY-MM-DD-HHMM>.md in the outputs folder (Claude apps) or working folder (Claude Code), send it to the user if a send-file tool exists, and in chat give where the file is, the Summary and the Problems list; no file tools -> the whole report in chat.

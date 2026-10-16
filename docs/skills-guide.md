@@ -125,9 +125,10 @@ A few habits help with answers that aren't clear-cut:
 **What it does:**
 
 1. Reads the problem log from Supabase (the last 14 days, unless you name another period), including the record of each search that went wrong.
-2. Groups the problems by cause and counts how often each happens.
-3. Explains the likely cause of each, says whether that's seen in the log or a guess, and suggests a fix.
-4. Asks which fixes you want. It changes nothing until you say so.
+2. Checks each entry against the history of changes to the tool, so it doesn't count something as a fault when it simply didn't exist yet when the entry was logged. Every change is recorded in Supabase, with what it was meant to fix.
+3. Groups the problems by cause and counts how often each happens, and whether earlier fixes worked.
+4. Explains the likely cause of each, says whether that's seen in the log or a guess, and suggests a fix.
+5. Asks which fixes you want. It changes nothing until you say so.
 
 ## search-report: finding problems
 

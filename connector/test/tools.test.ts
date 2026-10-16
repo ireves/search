@@ -927,6 +927,7 @@ test("with a Supabase log, each call is recorded with its engine requests and th
     rows.length = 0;
     const logged = await callTool("log_issue", {
       skill: "better-search",
+      skill_version: "2026-10-16",
       mode: "Auto",
       app: "chat",
       question: "Is the thing any good?",
@@ -942,6 +943,7 @@ test("with a Supabase log, each call is recorded with its engine requests and th
     assert.deepEqual(issue.refs, [ref]);
     assert.deepEqual(issue.earlier_questions, ["What is the thing?"]);
     assert.equal(issue.outcome, "partial");
+    assert.equal(issue.skill_version, "2026-10-16");
     assert.deepEqual(issue.setup.engines_set, ["Exa", "Parallel"]);
   } finally {
     useRowWriter(undefined);
