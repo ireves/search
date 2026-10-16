@@ -13,7 +13,7 @@ Both skills use your Search connector, which combines two search engines:
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
-**Problem log.** When something goes wrong during a search (an engine is down, a key is rejected, a page can't be read, a worker stops early), every search skill saves a short note of it to your connector's storage on Vercel (search-report saves its whole report there too), without asking or interrupting the answer. This makes later problems easier to track down. Where to find it: [`connector-setup.md`](connector-setup.md#problems).
+**Problem log.** When something goes wrong during a search (an engine is down, a key is rejected, a page can't be read, a worker stops early), every search skill saves a short note of it to your connector's problem log (search-report saves its whole report there too), without asking or interrupting the answer. The note says what you asked, whether it followed earlier questions (and what they were), and which call failed. The connector itself records each call's search engines, settings and errors, so the note stays short. With Supabase set up, Claude can read the log back. This makes later problems easier to track down. Where to find it: [`connector-setup.md`](connector-setup.md#problems).
 
 A few habits help with answers that aren't clear-cut:
 
@@ -137,7 +137,7 @@ A few habits help with answers that aren't clear-cut:
    - **Rule check:** each rule, whether it was followed, and the evidence.
    - **Problems:** what went wrong, the evidence, the likely cause and a suggested fix. Each is marked "seen" or "guess".
    - **Final answer** you were given, and anything Claude **couldn't see**.
-4. It's saved to the connector's problem log on Vercel, next to the errors the other skills log, with a short summary in the chat. If the connector can't save it, it's saved as a file when Claude can save files, or else the whole report goes in the chat.
+4. It's saved to the connector's problem log, next to the errors the other skills log, with a short summary in the chat. If the connector can't save it, it's saved as a file when Claude can save files, or else the whole report goes in the chat.
 
 **Tips:**
 

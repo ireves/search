@@ -5,6 +5,7 @@ import { entityFacts } from "../lib/engines/exa.js";
 import { leadingDate } from "../lib/engines/firecrawl.js";
 import { doiOf, openalexWorkId, rebuildAbstract, teiToText } from "../lib/engines/openalex.js";
 import { useIssueWriter } from "../lib/issues.js";
+import { useRowWriter } from "../lib/logstore.js";
 import { jobQuery, runSearch } from "../lib/tools/search.js";
 import { salary } from "../lib/engines/apify.js";
 import { runFetch, formatRedditJson } from "../lib/tools/fetch.js";
@@ -889,7 +890,81 @@ test("log_issue saves one JSON file per report under a dated folder, with no cos
     useIssueWriter(null);
   }
   const noStore = await callTool("log_issue", { skill: "better-search", issues: [{ problem: "x" }] });
-  assert.match(noStore.text, /no Vercel Blob store is connected/);
+  assert.match(noStore.text, /no Supabase log or Vercel Blob store is connected/);
+});
+
+test("with a Supabase log, each call is recorded with its engine requests and the reply gives its ref", async () => {
+  const rows: { table: string; row: any }[] = [];
+  useRowWriter(async (table, row) => {
+    rows.push({ table, row });
+  });
+  try {
+    mockNetwork(
+      exaSearchReply([exaResult("https://a.com/1", "Page one", "Fact one.")]),
+      (c) => (c.url === "https://api.parallel.ai/v1/search" ? { status: 429, body: { error: { message: "Too many requests" } } } : undefined),
+    );
+    const { text } = await callTool("search", { query: "how the thing works", country: "GB" });
+    const ref = text.match(/ · ref ([0-9a-f]{8})$/)?.[1];
+    assert.ok(ref, text.slice(-200));
+    assert.equal(rows.length, 1);
+    const { table, row } = rows[0];
+    assert.equal(table, "search_calls");
+    assert.equal(row.ref, ref);
+    assert.equal(row.tool, "search");
+    assert.deepEqual(row.input, { query: "how the thing works", country: "GB" });
+    const exa = row.steps.find((s: any) => s.engine === "Exa");
+    const parallel = row.steps.find((s: any) => s.engine === "Parallel");
+    assert.equal(exa.purpose, "search");
+    assert.equal(exa.endpoint, "/search");
+    assert.equal(exa.results, 1);
+    assert.equal(typeof exa.settings.query, "string");
+    assert.equal(parallel.status, 429);
+    assert.match(parallel.error, /Too many requests/);
+    // API keys never reach the log.
+    assert.doesNotMatch(JSON.stringify(row), /test-key/);
+    assert.equal(row.outcome.error, false);
+
+    // log_issue goes to search_issues, with the run's context and the refs.
+    rows.length = 0;
+    const logged = await callTool("log_issue", {
+      skill: "better-search",
+      mode: "Auto",
+      app: "chat",
+      question: "Is the thing any good?",
+      follow_up: true,
+      earlier_questions: ["What is the thing?"],
+      outcome: "partial",
+      issues: [{ tool: "search", problem: "Parallel rate limit reached.", ref, recovered: true }],
+    });
+    assert.equal(logged.isError, false);
+    assert.match(logged.text, /^Logged 1 issue as \S+\.$/);
+    const issue = rows[0].row;
+    assert.equal(rows[0].table, "search_issues");
+    assert.deepEqual(issue.refs, [ref]);
+    assert.deepEqual(issue.earlier_questions, ["What is the thing?"]);
+    assert.equal(issue.outcome, "partial");
+    assert.deepEqual(issue.setup.engines_set, ["Exa", "Parallel"]);
+  } finally {
+    useRowWriter(undefined);
+  }
+});
+
+test("log_issue falls back to the Blob store when Supabase refuses the row", async () => {
+  const saved: string[] = [];
+  useRowWriter(async () => {
+    throw new Error("Supabase 401: bad key");
+  });
+  useIssueWriter(async (path) => {
+    saved.push(path);
+  });
+  try {
+    const result = await callTool("log_issue", { skill: "uni-search", question: "q", issues: [{ problem: "x" }] });
+    assert.equal(result.isError, false);
+    assert.equal(saved.length, 1);
+  } finally {
+    useRowWriter(undefined);
+    useIssueWriter(null);
+  }
 });
 
 const tinyfishFetchReply = (pages: Record<string, { text?: string; title?: string; error?: string }>) => (c: { url: string; body: any }) => {

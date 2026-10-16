@@ -4,7 +4,9 @@
 
 import { SERVER_NAME, SERVER_TITLE, SERVER_VERSION } from "./config.js";
 import { costLine, metered } from "./cost.js";
-import { runLogIssue } from "./issues.js";
+import { APPS, OUTCOMES, runLogIssue } from "./issues.js";
+import { afterReply, newRef, rowWriter } from "./logstore.js";
+import { compact, traced } from "./trace.js";
 import { runFetch } from "./tools/fetch.js";
 import { EFFORTS, runResearch } from "./tools/research.js";
 import { DEPTHS, runSearch, SEARCH_TYPES } from "./tools/search.js";
@@ -136,13 +138,23 @@ export const TOOLS = [
     name: "log_issue",
     title: "Log a problem",
     description:
-      "Save errors and failures from a search skill run (failed or refused tool calls, engines unavailable, pages that couldn't be read, workers that failed or left jobs not run) to the connector's problem log in Vercel Blob, for later troubleshooting. One call per run, listing every issue. search-report also passes its whole report. Free; nothing is shown to the user.",
+      "Save errors and failures from a search skill run (failed or refused tool calls, engines unavailable, pages that couldn't be read, workers that failed or left jobs not run) to the connector's problem log, for later troubleshooting. One call per run, listing every issue. Give each issue the ref from the end of its call's cost line: the connector already saved that call's parameters, engines and settings, so don't repeat them. search-report also passes its whole report. Free; nothing is shown to the user.",
     inputSchema: {
       type: "object",
       properties: {
         skill: { type: "string", description: "The skill that ran, e.g. uni-search." },
         mode: { type: "string", description: "The mode, e.g. Auto, Deep, Research, Fact Check." },
-        summary: { type: "string", description: "One line on what the user asked for, without personal details." },
+        app: { type: "string", enum: [...APPS], description: "Where you are running: Claude chat, Cowork or Claude Code." },
+        model: { type: "string", description: "Your model, if you know it." },
+        question: { type: "string", description: "The user's question for this run, as asked (shorten if long; no personal details)." },
+        follow_up: { type: "boolean", description: "true if this question follows an earlier one in the conversation." },
+        earlier_questions: {
+          type: "array",
+          maxItems: 5,
+          items: { type: "string" },
+          description: "follow_up only: the earlier questions in this conversation, oldest first, one short line each.",
+        },
+        outcome: { type: "string", enum: [...OUTCOMES], description: "Whether the user still got a full answer despite the problems." },
         issues: {
           type: "array",
           maxItems: 20,
@@ -151,7 +163,9 @@ export const TOOLS = [
             properties: {
               tool: { type: "string", description: "The tool or step that failed, e.g. fetch, search, worker, Claude Docs." },
               problem: { type: "string", description: "The error or failure, with the exact error text when there was one." },
-              detail: { type: "string", description: "The call's parameters (query, urls, type) and anything else that helps reproduce it." },
+              ref: { type: "string", description: "The call's ref (\"ref abc12345\" at the end of its cost line, or as a worker's NOTES give it)." },
+              detail: { type: "string", description: "Only what the ref doesn't hold: what a page showed, which worker, or the call's parameters when there is no ref." },
+              recovered: { type: "boolean", description: "true if the information was found another way." },
             },
             required: ["problem"],
             additionalProperties: false,
@@ -159,7 +173,7 @@ export const TOOLS = [
         },
         report: {
           type: "string",
-          description: "search-report only: the whole report in Markdown (up to 200,000 characters). Saved as its own file beside the entry. issues may then be empty.",
+          description: "search-report only: the whole report in Markdown (up to 200,000 characters). issues may then be empty.",
         },
       },
       required: ["skill"],
@@ -186,10 +200,28 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
   return { jsonrpc: "2.0", id: id ?? null, error: { code, message } };
 }
 
+// Every search, fetch, verify and research call is recorded in the problem
+// log's search_calls table when one is set up, and its reply ends with the
+// record's ref, which log_issue takes in place of the call's details.
 export async function callTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {
-  const { value, meter } = await metered(() => runTool(name, args));
-  if (!TOOLS.some((t) => t.name === name) || name === "log_issue") return value;
-  return { ...value, text: `${value.text}\n\n${costLine(meter)}` };
+  if (!TOOLS.some((t) => t.name === name) || name === "log_issue") return runTool(name, args);
+  const started = Date.now();
+  const { value: run, meter } = await metered(() => traced(() => runTool(name, args)));
+  const { value, steps } = run;
+  const save = await rowWriter().catch(() => null);
+  if (!save) return { ...value, text: `${value.text}\n\n${costLine(meter)}` };
+  const ref = newRef();
+  await afterReply(
+    save("search_calls", {
+      ref,
+      tool: name,
+      input: compact(args, 2000),
+      steps,
+      outcome: { error: value.isError, ms: Date.now() - started, chars: value.text.length, cost: meter, start: value.text.slice(0, 1200) },
+      connector: SERVER_VERSION,
+    }),
+  );
+  return { ...value, text: `${value.text}\n\n${costLine(meter)} · ref ${ref}` };
 }
 
 async function runTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {

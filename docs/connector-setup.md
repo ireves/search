@@ -135,6 +135,23 @@ The Claude app's own web search is separate. Turn off **Web search** in the chat
    - With Research, it should then ask **Claude Doc** or **Chat**.
    - With Claude Doc, the doc should appear first and fill in as the research progresses.
 
+## 8. Problem log Claude can read (optional)
+
+This lets Claude read back what went wrong in earlier searches, with each search's engines, settings and errors. It uses a free Supabase project.
+
+1. Make the tables:
+   - In Supabase, open your project and go to **SQL Editor**.
+   - Paste the contents of [`connector/supabase/problem-log.sql`](../connector/supabase/problem-log.sql) and select **Run**.
+   - If it complains about `cron`, turn on **pg_cron** under **Database > Extensions** and run it again.
+2. Copy two values from the project's **Settings > API Keys** page:
+   - the project URL (like `https://abcd.supabase.co`)
+   - the **publishable** key (starts `sb_publishable_`). Never use the secret key.
+3. On the connector's settings page, save them as **Supabase project URL** and **Supabase publishable key**.
+4. In Claude, switch on the Supabase connector where you want Claude to read the log.
+5. To check: run a search, then ask Claude to read the newest rows of `search_calls`.
+
+The publishable key can only add rows to these two tables. It can't read them or touch anything else in the project.
+
 ## Costs (approximate, October 2026)
 
 | Action | Cost |
@@ -155,6 +172,6 @@ Vercel's free plan covers personal use of the connector itself.
 | "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa, Parallel, Firecrawl or Apify. If it's TinyFish, Firecrawl, Apify or OpenAlex, Exa and Parallel still search and read pages. For TinyFish, "out of credit" means the free daily allowance is used up; it resets at midnight UTC. |
 | "OpenAlex rate limit reached" | The OpenAlex key has used its free $1 for the day. It resets at midnight UTC; paper searches still work through Exa until then. |
 | "Storage not connected" on the settings page | Connect a private Blob store (step 2, sub-step 5). |
-| You want to see what went wrong in earlier searches | The skills save errors to a problem log. In Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open `search-connector/issues`. There is one folder per day and one file per search that had problems; `/search-report` reports are the `.md` files beside their entries. |
+| You want to see what went wrong in earlier searches | The skills save errors to a problem log. With Supabase set up (step 8), ask Claude to "check the search problem log": it reads it with the Supabase connector. Otherwise, in Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open `search-connector/issues`. There is one folder per day and one file per search that had problems; `/search-report` reports are the `.md` files beside their entries. |
 | Claude asks you to reconnect | Normal after "Sign out all connections" or a password change. Reconnect in Claude's connector settings. |
 | "Setup needed" page | `ADMIN_PASSWORD` is missing or shorter than 12 characters. Add it in Vercel and redeploy. |

@@ -1,4 +1,5 @@
 import { readSecret } from "../store.js";
+import { compact, endpointOf, purposeOf, recordStep, resultCount } from "../trace.js";
 
 export class EngineError extends Error {
   constructor(
@@ -29,6 +30,24 @@ export async function apiKey(engine: "Exa" | "Parallel"): Promise<string> {
 }
 
 export async function callJson<T>(
+  engine: string,
+  url: string,
+  init: { method?: string; headers: Record<string, string>; body?: unknown; timeoutMs?: number },
+): Promise<T> {
+  const started = Date.now();
+  const step = { engine, purpose: purposeOf(url), endpoint: endpointOf(url), settings: init.body === undefined ? undefined : compact(init.body) };
+  try {
+    const data = await sendJson<T>(engine, url, init);
+    recordStep({ ...step, status: 200, ms: Date.now() - started, results: resultCount(data) });
+    return data;
+  } catch (error) {
+    const e = error as EngineError;
+    recordStep({ ...step, status: e.status ?? 0, ms: Date.now() - started, error: String(e.message).slice(0, 500) });
+    throw error;
+  }
+}
+
+async function sendJson<T>(
   engine: string,
   url: string,
   init: { method?: string; headers: Record<string, string>; body?: unknown; timeoutMs?: number },

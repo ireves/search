@@ -13,6 +13,7 @@ import { addCost } from "../cost.js";
 import { cleanText, isoDay, keywords } from "../text.js";
 import type { Hit } from "./exa.js";
 import { callJson, EngineError } from "./http.js";
+import { recordStep } from "../trace.js";
 import { readSecret } from "../store.js";
 
 const BASE = "https://api.openalex.org";
@@ -260,8 +261,11 @@ export async function openalexFullText(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), left());
   let response: Response;
+  const download = `/works/${id}.${format === "PDF" ? "pdf" : "grobid-xml"}`;
+  const step = { engine: "OpenAlex", purpose: "paper full text", endpoint: download };
+  const sent = Date.now();
   try {
-    response = await fetch(`${CONTENT}/works/${id}.${format === "PDF" ? "pdf" : "grobid-xml"}`, {
+    response = await fetch(`${CONTENT}${download}`, {
       headers: { authorization: `Bearer ${key}` },
       signal: controller.signal,
     });
@@ -273,8 +277,10 @@ export async function openalexFullText(
       } catch {
         // keep raw text
       }
+      recordStep({ ...step, status: response.status, ms: Date.now() - sent, error: String(message).slice(0, 500) });
       throw new EngineError("OpenAlex", response.status, String(message));
     }
+    recordStep({ ...step, status: response.status, ms: Date.now() - sent });
     addCost("openalex", Number(response.headers.get("x-ratelimit-cost-usd")) || DOWNLOAD_COST);
     const body = format === "PDF" ? await pdfToText(await response.arrayBuffer()) : null;
     const tei = format === "TEI XML" ? teiToText(await response.text()) : null;
