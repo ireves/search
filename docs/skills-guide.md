@@ -120,6 +120,17 @@ A few habits help with answers that aren't clear-cut:
 - **Auto:** sized to the question. A simple lookup takes one or two searches; a question with several parts gets a search for each part.
 - **Deep:** always searches thoroughly, from several angles at once (official pages, people's experiences, reviews, news). The answer is still only as long as the question needs.
 
+## search-log: reviewing the problem log
+
+**When it's used:** when you type `/search-log`, or ask Claude to check or review the search problem log or earlier search errors. In the Claude app it may show as `/search:search-log`. It needs the Supabase connector switched on.
+
+**What it does:**
+
+1. Reads the problem log from Supabase (the last 14 days, unless you name another period), including the record of each search that went wrong.
+2. Groups the problems by cause and counts how often each happens.
+3. Explains the likely cause of each, says whether that's seen in the log or a guess, and suggests a fix.
+4. Asks which fixes you want. It changes nothing until you say so.
+
 ## search-report: finding problems
 
 **When it's used:** only when you type `/search-report`, in the same conversation as the search you want to look into. In the Claude app it may show as `/search:search-report`.
