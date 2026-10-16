@@ -87,7 +87,8 @@ function looksLikePdf(url: string): boolean {
 }
 
 function normaliseUrl(raw: string): string | null {
-  const s = raw.trim();
+  // Addresses copied from page source can keep "&amp;" (or "amp%3B" once encoded) in place of "&".
+  const s = raw.trim().replace(/([?&])amp(?:;|%3B)/gi, "$1");
   if (!s) return null;
   try {
     const u = new URL(/^[a-z]+:\/\//i.test(s) ? s : `https://${s}`);
