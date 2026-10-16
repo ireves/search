@@ -1,6 +1,6 @@
 # Search for Claude
 
-Web research for Claude using Exa and Parallel, through one custom connector you host on Vercel ([`connector/`](connector/)).
+Web research for Claude using Exa and Parallel (with optional TinyFish, Firecrawl, Apify and OpenAlex), through one custom connector you host on Vercel ([`connector/`](connector/)).
 
 - **Skills (version 2):** [`skills/better-search`](skills/better-search) (everyday, `/better-search`) and [`skills/uni-search`](skills/uni-search) (sourced research and large fact checks, `/uni-search`). Both run only when you type the command.
 - **Diagnostics:** [`skills/search-report`](skills/search-report) (`/search-report`) writes a step-by-step record of a search run, including every tool call and worker output, lists likely problems, and saves the report to the problem log.

@@ -73,4 +73,4 @@ check jobs add:
 REFS (only when the brief asks; one line per url; copy exactly, "not given" when missing, never guess)
 - <url> | every author as given (full list), or organisation | title | site, publisher or journal | date as given | type: web page, journal article, news, report, video, book, thesis, post | volume(issue), pages, DOI
 
-Last line, always: COST: $X (Exa $Y, Parallel $Z) = sum of every "Search cost of this call" line you received; add ", Apify $W", ", OpenAlex $V" and ", Firecrawl N credits" inside the brackets when any line has them.
+Last line, always: COST: $X (Exa $Y, Parallel $Z) = sum of every "Search cost of this call" line you received; add ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any line has them.

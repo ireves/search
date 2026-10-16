@@ -890,3 +890,112 @@ test("log_issue saves one JSON file per report under a dated folder, with no cos
   const noStore = await callTool("log_issue", { skill: "better-search", issues: [{ problem: "x" }] });
   assert.match(noStore.text, /no Vercel Blob store is connected/);
 });
+
+const tinyfishFetchReply = (pages: Record<string, { text?: string; title?: string; error?: string }>) => (c: { url: string; body: any }) => {
+  if (c.url !== "https://api.fetch.tinyfish.ai") return undefined;
+  const results: unknown[] = [];
+  const errors: unknown[] = [];
+  for (const u of c.body.urls as string[]) {
+    const page = pages[u];
+    if (!page || page.error) errors.push({ url: u, error: page?.error ?? "bot_blocked" });
+    else results.push({ url: u, final_url: u, title: page.title ?? null, author: null, published_date: "2026-09-30T10:00:00Z", text: page.text ?? "" });
+  }
+  return { body: { results, errors } };
+};
+
+test("with a TinyFish key, TinyFish reads first (PDFs too), then Firecrawl, then Exa", async () => {
+  await setSecret("TINYFISH_API_KEY", "tf-test-key");
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    tinyfishFetchReply({
+      "https://good.com/a": { title: "Good", text: "TinyFish read this page in full. ".repeat(20) },
+      "https://example.com/paper.pdf": { title: "Paper", text: "TinyFish read the PDF. ".repeat(20) },
+      "https://blocked.com/b": { error: "bot_blocked" },
+      "https://gone.com/c": { error: "page_not_found" },
+    }),
+    firecrawlReply({ "https://blocked.com/b": { title: "Blocked", markdown: "Firecrawl got past the block. ".repeat(20) } }),
+    (c) =>
+      c.url === "https://api.exa.ai/contents"
+        ? { body: { results: c.body.urls.map((u: string) => ({ url: u, title: "Exa", text: `Exa read ${u}. `.repeat(20) })) } }
+        : undefined,
+  );
+  const result = await callTool("fetch", {
+    urls: ["https://good.com/a", "https://example.com/paper.pdf", "https://blocked.com/b", "https://gone.com/c", "https://www.youtube.com/watch?v=1"],
+    fresh: true,
+  });
+  assert.equal(result.isError, false);
+  assert.match(result.text, /TinyFish read this page in full/);
+  assert.match(result.text, /published 2026-09-30/);
+  assert.match(result.text, /TinyFish read the PDF/);
+  assert.match(result.text, /Firecrawl got past the block/);
+  assert.match(result.text, /Exa read https:\/\/gone\.com\/c/);
+  assert.match(result.text, /Exa read https:\/\/www\.youtube\.com/);
+  const tf = calls.find((c) => c.url === "https://api.fetch.tinyfish.ai")!;
+  assert.equal(tf.headers["x-api-key"], "tf-test-key");
+  assert.equal(tf.body.ttl, 0);
+  assert.deepEqual(tf.body.urls.sort(), ["https://blocked.com/b", "https://example.com/paper.pdf", "https://gone.com/c", "https://good.com/a"]);
+  assert.deepEqual(calls.filter((c) => c.url.includes("firecrawl")).map((c) => c.body.url).sort(), ["https://blocked.com/b", "https://gone.com/c"]);
+  assert.match(result.text, /TinyFish free \(2 pages\)\)$/);
+});
+
+test("a used-up TinyFish allowance is reported and the others read instead", async () => {
+  await setSecret("TINYFISH_API_KEY", "tf-test-key");
+  mockNetwork(
+    (c) =>
+      c.url === "https://api.fetch.tinyfish.ai"
+        ? { status: 402, body: { error: { code: "FREE_ALLOWANCE_EXHAUSTED", message: "Daily free allowance used" } } }
+        : undefined,
+    (c) =>
+      c.url === "https://api.exa.ai/contents"
+        ? { body: { results: c.body.urls.map((u: string) => ({ url: u, title: "Exa", text: "Exa read the page. ".repeat(20) })) } }
+        : undefined,
+  );
+  const { text, isError } = await runFetch({ urls: ["https://a.com/1", "https://b.com/2"] });
+  assert.equal(isError, false);
+  assert.match(text, /TinyFish is out of credit\. Exa and Parallel read the pages instead\./);
+  assert.equal(calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.urls.length, 2);
+});
+
+const tinyfishSearchReply = (items: { url: string; title: string; snippet?: string; date?: string }[]) => (c: { url: string }) =>
+  c.url.startsWith("https://api.search.tinyfish.ai") ? { body: { query: "q", results: items, total_results: items.length, page: 0 } } : undefined;
+
+test("with a TinyFish key, searches use TinyFish for the Google-style second opinion instead of Firecrawl", async () => {
+  await setSecret("TINYFISH_API_KEY", "tf-test-key");
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://docs.example.com/answer", "Official answer", "The documented rule.")]),
+    parallelSearchReply([]),
+    tinyfishSearchReply([
+      { url: "https://www.reddit.com/r/thing/comments/1/how", title: "How I fixed it : r/thing", snippet: "30 Sept 2026 — It worked once I changed the setting. Read more" },
+    ]),
+    firecrawlSearchReply([]),
+  );
+  const { text, isError } = await callTool("search", { query: "how do I fix the thing", country: "uk", sites: ["reddit.com"], after: "2026-01-01", goal: "First-hand fixes" });
+  assert.equal(isError, false);
+  const tf = new URL(calls.find((c) => c.url.startsWith("https://api.search.tinyfish.ai"))!.url);
+  assert.equal(tf.searchParams.get("location"), "GB");
+  assert.equal(tf.searchParams.get("include_domains"), "reddit.com");
+  assert.equal(tf.searchParams.get("after_date"), "2026-01-01");
+  assert.equal(tf.searchParams.get("purpose"), "First-hand fixes");
+  assert.match(text, /How I fixed it : r\/thing \(2026-09-30\)/);
+  assert.match(text, /\nIt worked once I changed the setting\.\n/);
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 0);
+  assert.match(text, /TinyFish free \(1 search\)\)$/);
+});
+
+test("a failed TinyFish search falls back to Firecrawl and says so", async () => {
+  await setSecret("TINYFISH_API_KEY", "tf-test-key");
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  mockNetwork(
+    exaSearchReply([exaResult("https://news.example.com/1", "Only story", "One fact.", "2026-10-01")]),
+    parallelSearchReply([]),
+    (c) => (c.url.startsWith("https://api.search.tinyfish.ai") ? { status: 429, body: { error: { code: "RATE_LIMIT_EXCEEDED", message: "Too many" } } } : undefined),
+    firecrawlSearchReply([{ url: "https://paper.example.co.uk/2", title: "Second story", snippet: "Another view.", date: "2026-10-02" } as never], true),
+  );
+  const { text } = await runSearch({ query: "council decision on the bridge", type: "news" });
+  const tf = new URL(calls.find((c) => c.url.startsWith("https://api.search.tinyfish.ai"))!.url);
+  assert.equal(tf.searchParams.get("domain_type"), "news");
+  assert.match(text, /TinyFish unavailable: TinyFish rate limit reached\. Try again shortly\. Firecrawl searched instead\./);
+  assert.match(text, /Firecrawl searched as well/);
+  assert.match(text, /Second story/);
+});

@@ -13,7 +13,7 @@ export interface Hit {
   date?: string;
   author?: string;
   excerpt: string;
-  engine: "exa" | "parallel" | "firecrawl" | "apify" | "openalex";
+  engine: "exa" | "parallel" | "firecrawl" | "tinyfish" | "apify" | "openalex";
   // Structured profile data (people, companies, papers), already compact.
   facts?: string;
 }

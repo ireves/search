@@ -4,6 +4,7 @@ import { firecrawlKey, firecrawlSearch } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
 import { openalexKey, openalexSearch } from "../engines/openalex.js";
 import { parallelSearch, type ParallelMode } from "../engines/parallel.js";
+import { tinyfishKey, tinyfishSearch } from "../engines/tinyfish.js";
 import { cleanDomain, keywords, parseDate, today } from "../text.js";
 import { fuse, renderHit, withinDates } from "./merge.js";
 
@@ -29,43 +30,45 @@ export type Depth = (typeof DEPTHS)[number];
 interface Plan {
   exa?: { category?: string; prefix?: string; fresh?: boolean; defaultAfter?: string };
   parallel?: { include?: string[]; prefix: string; primary?: boolean };
-  // Firecrawl (only when its key is set): "second" runs it alongside the
-  // others at standard and thorough depth; otherwise it is only a fallback
+  // Google-style results from TinyFish, or Firecrawl when TinyFish has no key
+  // or fails (only when one of their keys is set): "second" runs it alongside
+  // the others at standard and thorough depth; otherwise it is only a fallback
   // when Exa and Parallel come back with too little.
-  firecrawl?: { second?: boolean; suffix?: string; include?: string[]; news?: boolean };
+  google?: { second?: boolean; suffix?: string; include?: string[]; news?: boolean };
   // Job boards through Apify (only when its key is set), at standard and
   // thorough depth.
   boards?: boolean;
   exaWeight: number;
   parallelWeight: number;
-  firecrawlWeight?: number;
+  googleWeight?: number;
 }
 
 // Which engine does what. Exa finds pages by meaning and has the better index
 // for articles, papers, people, companies and jobs, but can't reach Reddit or
 // X. Parallel covers those and adds fresher pages to general searches.
-// Firecrawl ranks like Google, so it brings forum threads, mainstream picks
-// and pages that only partly answer a question, which Exa tends to pass over.
+// TinyFish and Firecrawl rank like Google, so they bring forum threads,
+// mainstream picks and pages that only partly answer a question, which Exa
+// tends to pass over. TinyFish is free, so it is asked first.
 const PLANS: Record<SearchType, Plan> = {
-  web: { exa: {}, parallel: { prefix: "" }, firecrawl: { second: true }, exaWeight: 1, parallelWeight: 0.8, firecrawlWeight: 0.9 },
+  web: { exa: {}, parallel: { prefix: "" }, google: { second: true }, exaWeight: 1, parallelWeight: 0.8, googleWeight: 0.9 },
   news: {
     exa: { category: "news" },
     parallel: { prefix: "Recent news reporting: " },
-    firecrawl: { news: true },
+    google: { news: true },
     exaWeight: 1,
     parallelWeight: 0.9,
   },
   discussions: {
     exa: { prefix: "Forum threads and community discussions where people share first-hand experience: " },
     parallel: { include: ["reddit.com"], prefix: "Reddit threads with first-hand experiences, advice and fixes: ", primary: true },
-    firecrawl: { second: true, suffix: " reddit" },
+    google: { second: true, suffix: " reddit" },
     exaWeight: 1,
     parallelWeight: 1,
-    firecrawlWeight: 1,
+    googleWeight: 1,
   },
   x: {
     parallel: { include: ["x.com", "twitter.com"], prefix: "Posts on X (Twitter) by individual people: ", primary: true },
-    firecrawl: { include: ["x.com"] },
+    google: { include: ["x.com"] },
     exaWeight: 0,
     parallelWeight: 1,
   },
@@ -76,20 +79,20 @@ const PLANS: Record<SearchType, Plan> = {
       prefix: "Customer or employee reviews with ratings, pros and cons: ",
       primary: true,
     },
-    firecrawl: { second: true, suffix: " reviews" },
+    google: { second: true, suffix: " reviews" },
     exaWeight: 1,
     parallelWeight: 1,
-    firecrawlWeight: 0.9,
+    googleWeight: 0.9,
   },
-  // Firecrawl's Google-style results find shop listings in the right country
+  // Google-style results find shop listings in the right country
   // far more often than the others, so its ranking counts for more here.
   shopping: {
     exa: { prefix: "Product page on an online shop, with price and specifications: " },
     parallel: { prefix: "Product listings from online shops with price, stock and specifications: " },
-    firecrawl: { second: true },
+    google: { second: true },
     exaWeight: 0.8,
     parallelWeight: 0.8,
-    firecrawlWeight: 1.3,
+    googleWeight: 1.3,
   },
   papers: { exa: { category: "publication" }, exaWeight: 1, parallelWeight: 0 },
   people: { exa: { category: "people" }, exaWeight: 1, parallelWeight: 0 },
@@ -97,14 +100,14 @@ const PLANS: Record<SearchType, Plan> = {
   code: {
     exa: { prefix: "Technical documentation, code or answers about: " },
     parallel: { prefix: "Official documentation, GitHub issues or Stack Overflow answers: " },
-    firecrawl: { second: true },
+    google: { second: true },
     exaWeight: 1,
     parallelWeight: 0.8,
-    firecrawlWeight: 0.8,
+    googleWeight: 0.8,
   },
   jobs: {
     exa: { prefix: "Job posting on a company careers page or applicant tracking site: ", fresh: true, defaultAfter: "30d" },
-    firecrawl: { suffix: " jobs" },
+    google: { suffix: " jobs" },
     boards: true,
     exaWeight: 1,
     parallelWeight: 0,
@@ -140,8 +143,8 @@ export function jobQuery(query: string, location?: string): { role: string; loca
   return { role: keywords(words.join(" "), 6) || query, location: place };
 }
 
-// Fewer merged results than this counts as "too little", and Firecrawl is
-// asked as well before the answer goes back.
+// Fewer merged results than this counts as "too little", and TinyFish or
+// Firecrawl is asked as well before the answer goes back.
 const THIN = 3;
 
 // OpenAlex (papers searches that ask for it) ranks above Exa: it is a
@@ -247,26 +250,47 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     );
   }
 
-  // Firecrawl as a second opinion, run alongside the others.
-  const fc = plan.firecrawl && (await firecrawlKey()) ? plan.firecrawl : undefined;
-  const firecrawlJob = () =>
-    firecrawlSearch({
-      query: `${query}${fc!.suffix && !query.toLowerCase().includes(fc!.suffix.trim()) ? fc!.suffix : ""}`,
+  // Google-style results as a second opinion, run alongside the others:
+  // TinyFish first (free), Firecrawl if TinyFish has no key, fails or finds
+  // nothing.
+  const [hasTinyfish, hasFirecrawl] = plan.google ? [Boolean(await tinyfishKey()), Boolean(await firecrawlKey())] : [false, false];
+  const gs = plan.google && (hasTinyfish || hasFirecrawl) ? plan.google : undefined;
+  let googleEngine = "";
+  const googleJob = async (): Promise<{ hits: Hit[]; weight: number } | null> => {
+    const options = {
+      query: `${query}${gs!.suffix && !query.toLowerCase().includes(gs!.suffix.trim()) ? gs!.suffix : ""}`,
       limit,
-      news: fc!.news,
-      sites: sites.length ? sites : fc!.include,
+      news: gs!.news,
+      sites: sites.length ? sites : gs!.include,
       excludeSites: excluded,
       after,
       before,
       country: input.country,
-    })
-      .then((hits) => ({ hits, weight: plan.firecrawlWeight ?? 1 }))
-      .catch((e) => {
-        notes.push(`Firecrawl unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
-        return null;
-      });
-  const asSecond = Boolean(fc?.second) && depth !== "fast";
-  if (asSecond) jobs.push(firecrawlJob());
+    };
+    const weight = plan.googleWeight ?? 1;
+    if (hasTinyfish) {
+      try {
+        const hits = await tinyfishSearch({ ...options, purpose: goal });
+        if (hits.length || !hasFirecrawl) {
+          googleEngine = "TinyFish";
+          return { hits, weight };
+        }
+      } catch (e) {
+        notes.push(`TinyFish unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}${hasFirecrawl ? " Firecrawl searched instead." : ""}`);
+        if (!hasFirecrawl) return null;
+      }
+    }
+    try {
+      const hits = await firecrawlSearch(options);
+      googleEngine = "Firecrawl";
+      return { hits, weight };
+    } catch (e) {
+      notes.push(`Firecrawl unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
+      return null;
+    }
+  };
+  const asSecond = Boolean(gs?.second) && depth !== "fast";
+  if (asSecond) jobs.push(googleJob());
 
   if (openalexOn) {
     jobs.push(
@@ -306,10 +330,10 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   let filtered = keep(await Promise.all(jobs));
   let results = fuse(filtered, limit);
 
-  // Fallback: too little from Exa and Parallel, so ask Firecrawl too.
+  // Fallback: too little from Exa and Parallel, so ask TinyFish or Firecrawl too.
   let fellBack = false;
-  if (fc && !asSecond && results.length < Math.min(THIN, limit)) {
-    const extra = keep([await firecrawlJob()]);
+  if (gs && !asSecond && results.length < Math.min(THIN, limit)) {
+    const extra = keep([await googleJob()]);
     if (extra.length && extra[0].hits.length) {
       filtered = [...filtered, ...extra];
       results = fuse(filtered, limit);
@@ -324,7 +348,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   if (after || before) header.push(`Published ${after ? `from ${after}` : ""}${after && before ? " " : ""}${before ? `to ${before}` : ""} (undated pages kept).`);
   if (fresh) header.push("Pages re-downloaded for freshness.");
   if (openalexOn) header.push("OpenAlex (scholarly index) ranked first, Exa second.");
-  if (fellBack) header.push("Exa and Parallel found little, so Firecrawl searched as well (short snippets: read a page for detail).");
+  if (fellBack) header.push(`Exa and Parallel found little, so ${googleEngine} searched as well (short snippets: read a page for detail).`);
   if (!results.length) {
     notes.push("No results. Describe the page you want in more words, loosen filters, or try another type.");
   }
