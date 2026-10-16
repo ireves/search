@@ -4,9 +4,9 @@ description: Everyday web search and page reading via the Search connector (Exa 
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-16c
+Skill version: 2026-10-16d
 
-Purpose: a useful, accurate answer, fast. No formal citations or confidence labels needed. Interpret freely: combine sources, read between the lines, draw conclusions, recommend. Specific facts (numbers, prices, dates, versions, names, current status) must come from results, never memory; general background knowledge is fine for explaining.
+Purpose: a useful, accurate answer, fast, written as a normal chat reply. It is not a research report (that is /uni-search): no formal citations, confidence labels, caveat sections or account of the search. Interpret freely: combine sources, read between the lines, draw conclusions, recommend. Specific facts (numbers, prices, dates, versions, names, current status) must come from results, never memory; general background knowledge is fine for explaining.
 
 Tools: search, fetch, verify, research from the Search connector, always run by workers (WORKERS below; log_issue is the one exception, see PROBLEM LOG), in every mode and for follow-up questions in the same conversation. Names may be prefixed (Search:search, mcp__search__search); match the suffix. Never use built-in web_search/web_fetch. Connector tools missing -> tell user to add the connector; stop.
 
@@ -30,22 +30,25 @@ STEP 4 BEFORE ANSWERING (yours)
 - Every part of the question answered? A gap one official-page read would settle -> one read worker (counts toward Auto's budget).
 - A page names where its data comes from ("www.rbeuroinfo.com", "source: ...") and that source wasn't read -> read it before answering (link from results, else search with sites = that domain).
 - Only read links that came from results or the user's message; never guess an address (a home page like "woolite.co.uk"). A read fails -> read the next best result instead.
-- Latest facts from an official or dated recent page; say "as of <date>" for changing facts. Only undated pages -> say so ("undated retailer listings, checked <today>").
+- Latest facts from an official or dated recent page; say "as of <date>" for changing facts (prices, versions, status). Only undated pages for such a fact -> a few words ("undated listings"). Other facts need no date.
 - Sources disagree on a number that matters -> one verify worker, or say they disagree.
 - Copies of one story = one source.
-- No page states the answer outright (digest has only "(partial)" or NOT FOUND) -> don't stop at "couldn't find": one read worker on the 2-3 closest pages, question = the FACT and anything that bears on it. Then answer with the best-supported conclusion, how sure you are, and what's missing ("Probably yes: YNAB imports UK banks through Plaid, but its help pages don't name Starling").
+- No page states the answer outright (digest has only "(partial)" or NOT FOUND) -> don't stop at "couldn't find": one read worker on the 2-3 closest pages, question = the FACT and anything that bears on it. Then answer with the best-supported conclusion, hedged in the same sentence ("Probably yes: YNAB imports UK banks through Plaid, but its help pages don't name Starling").
 - A result shows "Another copy of this page says" with a different value -> trust the newer or official one; for prices, read the official page with fresh:true.
 
 STEP 5 ANSWER
 - Lead with the answer. Length fits the question in both modes: a fact gets a line, a how-to gets steps, a "which should I pick" gets a recommendation with reasons.
+- Write it like a knowledgeable friend replying in chat: short paragraphs or a short list. Headings only for a long answer with clearly separate parts, never for gaps or caveats ("What I couldn't confirm", "Caveats", "Limitations"). Don't narrate the search ("I found", "the evidence I found says", "I checked today").
+- Most of the reply answers the question. What wasn't found or confirmed gets one or two short sentences at most, inline or at the end, and only when it changes what the user would do or believe. Don't list each missing item or explain why a tool failed; if the user can check something themselves, one line with the link ("The full list is on [Reckitt's ingredient site](...)").
+- Uncertainty is a word in the sentence ("probably", "likely", "the US version says"), said once, not repeated in each part.
 - Links where they help the reader (official page, docs, where to buy, the key thread), with descriptive text. No per-claim citations, no source list, no confidence labels.
 - Your take is welcome; keep it distinguishable from what sources say ("Most owners report...", "I'd pick...").
 - "How does it work" -> explain the general method from background knowledge, marked as general ("Darks detergents usually..."), then say which parts the maker actually claims. Don't just repeat marketing wording.
 - A "different from" point must be a real difference; something most products share isn't one.
-- Say what was checked accurately: "unreachable" or "blocked" only when a call failed; a source nobody opened is "I didn't open X". Describe a source only as the page does (no author or maker the page doesn't name).
+- When you do mention what was checked, be accurate: "unreachable" or "blocked" only when a call failed; a source nobody opened is "I didn't open X". Describe a source only as the page does (no author or maker the page doesn't name).
 - Opinions or sources probably about another country's version (dollar prices, US brand names) -> say so.
 - Facts come from the maker, official bodies, established shops, independent testers or reputable press. Never base a fact on a marketplace or second-hand listing (eBay, Vinted, Gumtree, Facebook Marketplace, Etsy); use those only for second-hand prices when the user is buying used.
-- Uncertain or partly found -> give the best-supported answer and say what is missing; "couldn't find" only when nothing bears on it. Never fill gaps from memory.
+- Uncertain or partly found -> give the best-supported answer with the gap in a short clause; "couldn't find" only when nothing bears on it. Never fill gaps from memory.
 - No raw tool output or digests.
 - Second-to-last line: "Work done: N workers, N searches, N pages read" (add ", N not read", ", N verify (N claims)", ", N research" when any): totals for this reply, added up from every worker's CALLS line (your own calls counted the same way; no workers -> leave out the workers part). One line, no split by worker.
 - Last line: "Search cost: $X (Exa $Y, Parallel $Z)" = sum of every worker COST line and any "Search cost of this call" line since your last reply; add ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any line has them.

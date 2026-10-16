@@ -111,7 +111,7 @@ A few habits help with answers that aren't clear-cut:
 
 **When it's used:** only when you type `/better-search` followed by your question.
 
-**What's different from uni-search:** the answer should still be accurate and useful, but Claude doesn't need to cite every point. It can combine sources, read between the lines, give its own view and make recommendations. Links are added where they help, such as the official page or a useful thread. Specific facts like prices, dates and versions still come from the search, never from memory.
+**What's different from uni-search:** the answer should still be accurate and useful, but Claude doesn't need to cite every point. It can combine sources, read between the lines, give its own view and make recommendations. Links are added where they help, such as the official page or a useful thread. Specific facts like prices, dates and versions still come from the search, never from memory. The answer reads like a normal chat reply rather than a report: it gets to the point, and anything it couldn't find or confirm gets a sentence or two at most, only when it matters.
 
 **First, it asks how hard to search** (unless you've already said, for example `/better-search deep: ...`, or you've only given a link to read):
 
