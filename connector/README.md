@@ -1,16 +1,16 @@
 # Search connector
 
-A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai), with [Firecrawl](https://docs.firecrawl.dev) as an optional first page reader. It runs as three Vercel Functions with no framework and three runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`, and [`unpdf`](https://github.com/unjs/unpdf) for OpenAlex's PDF copies). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
+A remote MCP server that gives Claude one set of web tools backed by both [Exa](https://exa.ai/docs) and [Parallel](https://docs.parallel.ai), with [TinyFish](https://docs.tinyfish.ai) (free daily allowance) and [Firecrawl](https://docs.firecrawl.dev) as optional first page readers and Google-style search. It runs as three Vercel Functions with no framework and three runtime dependencies (`@vercel/blob`, `@simplewebauthn/server`, and [`unpdf`](https://github.com/unjs/unpdf) for OpenAlex's PDF copies). Setup steps for people: [`docs/connector-setup.md`](../docs/connector-setup.md).
 
 ## Tools
 
 | Tool | What Claude gets | Behind it |
 |---|---|---|
-| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; Firecrawl `/v2/search` added as a second opinion or fallback when its key is set; Apify job-board scrapers added to `jobs` searches when its token is set; OpenAlex added to `papers` searches that ask for it (uni-search) when its key is set, and ranked first |
-| `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | Firecrawl `/v2/scrape` first when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read; OpenAlex's own full-text copy for OpenAlex paper links, and for DOI links when asked |
+| `search` | Up to 15 ranked results: title, date, author (when given), link, the matching passages (and profile facts for people, companies, papers) | Exa `/search` and Parallel `/v1/search`, run together and merged; TinyFish search (or Firecrawl `/v2/search` when TinyFish has no key or fails) added as a second opinion or fallback when a key is set; Apify job-board scrapers added to `jobs` searches when its token is set; OpenAlex added to `papers` searches that ask for it (uni-search) when its key is set, and ranked first |
+| `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | TinyFish Fetch first when its key is set, then Firecrawl `/v2/scrape` when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read; OpenAlex's own full-text copy for OpenAlex paper links, and for DOI links when asked |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
-| `log_issue` | Saves a skill run's errors and failures to the problem log | One JSON file per report in the private Vercel Blob store |
+| `log_issue` | Saves a skill run's errors and failures, or a search-report report, to the problem log | One JSON file per report in the private Vercel Blob store |
 
 The server also sends a short `instructions` text when Claude connects, so Claude knows the tools without a skill.
 
@@ -42,14 +42,21 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 **Reading.** With a question, Exa returns only the relevant passages from anywhere in the document (better than cutting from the top). If Exa refuses a page or returns something thin or full of gaps, Parallel reads it instead. Pages cut at the limit say so.
 
-**Firecrawl (optional).** When `FIRECRAWL_API_KEY` is set, Firecrawl reads pages first, to save Exa and Parallel usage (its free plan gives 1,000 pages a month). Pages it refuses, returns with an error status or returns thin go on to the usual Exa / Parallel route.
+**TinyFish (optional).** When `TINYFISH_API_KEY` is set, TinyFish reads pages before anyone else and gives the Google-style search results described under Firecrawl below. Both are free within a daily allowance: 1,000 pages and 12,000 searches a day ([search](https://docs.tinyfish.ai/search-api/reference), [fetch](https://docs.tinyfish.ai/fetch-api/reference)).
+
+- **Reading.** One request reads all the pages at once, rendering JavaScript where needed, and reads PDFs (which Firecrawl skips, as it charges per PDF page). Reddit (read through its own `.json` route), X (Parallel) and YouTube (Exa's transcripts) are skipped. TinyFish gets the first half of the fetch time; Firecrawl then tries what TinyFish couldn't read in whatever is left of that half, and Exa and Parallel take the rest as usual. Pages TinyFish timed out on go straight to Parallel. A question picks the matching paragraphs the same way as for Firecrawl (TinyFish's own question feature is a beta that must be switched on per account).
+- **Search.** Takes Firecrawl's place as the second opinion and fallback, with the same rules, weights and query suffixes. Site filters, dates, `country` (as `location`), news and the search `goal` (as TinyFish's `purpose`) are passed on. If TinyFish fails, or finds nothing, Firecrawl searches instead when its key is set.
+- **Limits.** A used-up allowance comes back as 402 ("out of credit") and resets at midnight UTC; a busy reply is 429. Either is reported once and the other engines carry on.
+- **Cost line.** Shows "TinyFish free (2 pages, 1 search)". The settings page checks the key with TinyFish's free wallet lookup.
+
+**Firecrawl (optional).** When `FIRECRAWL_API_KEY` is set, Firecrawl reads pages first (after TinyFish, when that is set up), to save Exa and Parallel usage (its free plan gives 1,000 pages a month). Pages it refuses, returns with an error status or returns thin go on to the usual Exa / Parallel route.
 
 - Skipped for Reddit, NYT, LinkedIn, Yelp, Instagram, Facebook, TikTok, Threads, Pinterest and Craigslist (it refuses them), X (about 30 credits a page), PDFs (a credit per PDF page) and YouTube (Exa returns the transcript).
 - Reads the whole page. With a question, the connector picks the paragraphs that share the most uncommon words with the question, in page order, instead of paying Firecrawl's extra 4 credits a page for its own question format. This matches words, not meaning, so it is a little less precise than Exa.
 - Two pages at a time (the free plan's limit). The free plan also allows only about 10 pages a minute; pages turned away for that go to Exa and Parallel. A rejected key or empty credit is reported once and the remaining pages skip Firecrawl.
 - Results show credits used: "Firecrawl 2 credits" in the cost line.
 
-**Firecrawl in search (optional, same key).** Firecrawl ranks results like Google, so it finds forum threads, mainstream recommendations and pages that only partly answer a question, which Exa's meaning-based search tends to pass over (see [`docs/search-toolkit-comparison.md`](../docs/search-toolkit-comparison.md)).
+**Firecrawl in search (optional, same key; TinyFish does this instead when its key is set).** Firecrawl ranks results like Google, so it finds forum threads, mainstream recommendations and pages that only partly answer a question, which Exa's meaning-based search tends to pass over (see [`docs/search-toolkit-comparison.md`](../docs/search-toolkit-comparison.md)).
 
 - **Second opinion:** for `web`, `discussions` (adds "reddit" to the query), `reviews`, `shopping` (where Firecrawl's ranking counts most, as it finds shops in the right country) and `code` searches at standard or thorough depth, Firecrawl runs alongside Exa and Parallel and its results are merged in.
 - **Fallback:** for `fast` searches and for `news`, `jobs` and `x`, Firecrawl runs only when Exa and Parallel return fewer than 3 results. The reply then says so. Never used for `papers`, `people`, `companies` or `financial`, where Exa's structured index is better.
@@ -90,7 +97,7 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - **How.** One free lookup of the work shows which copies exist. The TEI XML is preferred: it becomes plain text (abstract, then each section under its heading, without the reference list). Without it, the PDF is turned into text with `unpdf`. Then the usual question or `start` rules apply. The reply says "Full text from OpenAlex's TEI XML copy" (or PDF copy).
 - **Cost.** $0.01 a download, shown in the cost line under OpenAlex. Reading a long paper in parts with `start` downloads it again for each part. The free key's $1 a day covers about 100 downloads.
 
-**Problem log.** The search skills call `log_issue` once at the end of any run where something failed (tool errors, engines unavailable, unreadable pages, workers that stopped early). Each report is saved as one JSON file, `search-connector/issues/<date>/<time>-<id>.json`, in the same private Blob store, with the skill, mode, a one-line summary of the question and each problem's exact error text and call parameters. Nothing is shown to the user and the call is free. To read the log: in Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open the `search-connector/issues` folder.
+**Problem log.** The search skills call `log_issue` once at the end of any run where something failed (tool errors, engines unavailable, unreadable pages, workers that stopped early). Each report is saved as one JSON file, `search-connector/issues/<date>/<time>-<id>.json`, in the same private Blob store, with the skill, mode, a one-line summary of the question and each problem's exact error text and call parameters. `/search-report` saves its whole report the same way: its Problems list becomes the entry's issues and the report itself is saved beside it as `<time>-<id>.md` (up to 200,000 characters). Nothing is shown to the user and the call is free. To read the log: in Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open the `search-connector/issues` folder.
 
 **Merging.** Results from all engines are combined by rank (reciprocal rank fusion), with duplicates and mirrored copies folded together. Each engine's top result always keeps a place, so one engine's best find isn't crowded out by pages the other two agree on. When two engines return different passages from the same page, the newer copy's passage leads and the other is shown underneath ("Another copy of this page says"), because one engine's stored copy can be out of date.
 
@@ -114,7 +121,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 |---|---|---|
 | `ADMIN_PASSWORD` | Yes | At least 12 characters |
 | `BLOB_STORE_ID` | Added by Vercel | Set when a Blob store is connected |
-| `EXA_API_KEY`, `PARALLEL_API_KEY`, `FIRECRAWL_API_KEY`, `APIFY_API_TOKEN`, `OPENALEX_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority. Firecrawl, Apify and OpenAlex are optional |
+| `EXA_API_KEY`, `PARALLEL_API_KEY`, `FIRECRAWL_API_KEY`, `TINYFISH_API_KEY`, `APIFY_API_TOKEN`, `OPENALEX_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority. TinyFish, Firecrawl, Apify and OpenAlex are optional |
 | `PUBLIC_URL` | Recommended | The final address, e.g. `https://search-connector.vercel.app`. Passkeys are tied to its hostname, so set it before adding one |
 | `ALLOW_PASSWORD_SIGN_IN` | No | `true` lets the admin password sign in even when passkeys exist. For recovering from a lost passkey; remove afterwards |
 | `ALLOWED_REDIRECT_URIS` | No | Extra OAuth callback addresses, comma-separated |
@@ -125,7 +132,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 api/mcp.ts        /mcp: the MCP endpoint (needs a token)
 api/oauth.ts      /.well-known/*, /register, /authorize, /token
 api/settings.ts   / and /settings
-lib/engines/      Exa, Parallel, Firecrawl, Apify and OpenAlex API calls (OpenAlex search and full text)
+lib/engines/      Exa, Parallel, TinyFish, Firecrawl, Apify and OpenAlex API calls (OpenAlex search and full text)
 lib/tools/        search, fetch, verify, research, and result merging
 lib/mcp.ts        JSON-RPC handling, tool definitions, server instructions
 lib/oauth.ts      authorisation server

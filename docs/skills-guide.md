@@ -6,18 +6,19 @@ Both skills use your Search connector, which combines two search engines:
 
 - **Exa** finds pages by meaning. It's best for articles, research papers, people, companies, job listings and official pages.
 - **Parallel** reaches places Exa can't, such as Reddit, X, Glassdoor and Trustpilot, and is used as a backup reader.
-- **Firecrawl** (optional) reads web pages first when its key is added, so Exa and Parallel are used less. It also gives a second opinion on everyday, discussion and review searches, and steps in when Exa and Parallel find little. It ranks like Google, so it finds forum threads and popular recommendations that Exa can miss.
+- **TinyFish** (optional) is free for 1,000 page reads and 12,000 searches a day. When its key is added, it reads web pages (including PDFs) before anything else, and gives the Google-style second opinion on searches described under Firecrawl below. This keeps the paid engines for what they do best.
+- **Firecrawl** (optional) reads web pages when TinyFish can't, so Exa and Parallel are used less. It also gives a second opinion on everyday, discussion and review searches, and steps in when Exa and Parallel find little, whenever TinyFish isn't set up or fails. It ranks like Google, so it finds forum threads and popular recommendations that Exa can miss.
 - **Apify** (optional) adds live job adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to job searches when its key is added. Each board runs its own scraper, so job searches take up to a minute longer and cost a few cents.
 - **OpenAlex** (optional, uni-search only) adds a free index of about 300 million research papers when its key is added. For questions about studies and research, uni-search's paper searches show OpenAlex's papers first and Exa's after. Each paper comes with its journal, how often it has been cited, and a link to a free copy when one exists. When OpenAlex keeps its own copy of a paper (about 60 million, including many behind paywalls), Claude can read the whole paper from that copy for $0.01.
 
 The connector decides which engine to use, removes duplicates and trims results, so Claude only sees what's relevant.
 
-**Problem log.** When something goes wrong during a search (an engine is down, a key is rejected, a page can't be read, a worker stops early), every skill except search-report saves a short note of it to your connector's storage on Vercel, without asking or interrupting the answer. This makes later problems easier to track down. Where to find it: [`connector-setup.md`](connector-setup.md#problems).
+**Problem log.** When something goes wrong during a search (an engine is down, a key is rejected, a page can't be read, a worker stops early), every search skill saves a short note of it to your connector's storage on Vercel (search-report saves its whole report there too), without asking or interrupting the answer. This makes later problems easier to track down. Where to find it: [`connector-setup.md`](connector-setup.md#problems).
 
 A few habits help with answers that aren't clear-cut:
 
 - Every search is set to the UK, so shops, prices and rules come from UK sites where possible.
-- Questions asking for recommendations ("app like X", "worth it") also search Reddit and forums. Product questions use a shopping search, where Firecrawl's results count most.
+- Questions asking for recommendations ("app like X", "worth it") also search Reddit and forums. Product questions use a shopping search, where the Google-style results (TinyFish or Firecrawl) count most.
 - When no page states the answer outright, Claude reads the two or three closest pages and gives the best-supported answer, saying how sure it is and what's missing, instead of stopping at "couldn't find".
 
 ## What's new in version 2
@@ -134,7 +135,7 @@ A few habits help with answers that aren't clear-cut:
    - **Rule check:** each rule, whether it was followed, and the evidence.
    - **Problems:** what went wrong, the evidence, the likely cause and a suggested fix. Each is marked "seen" or "guess".
    - **Final answer** you were given, and anything Claude **couldn't see**.
-4. It's saved as a file when Claude can save files, with a short summary in the chat. Otherwise the whole report goes in the chat.
+4. It's saved to the connector's problem log on Vercel, next to the errors the other skills log, with a short summary in the chat. If the connector can't save it, it's saved as a file when Claude can save files, or else the whole report goes in the chat.
 
 **Tips:**
 
@@ -143,7 +144,7 @@ A few habits help with answers that aren't clear-cut:
 
 ## Costs
 
-Every answer ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It adds up every search made for that answer, including the workers' searches. It doesn't include Claude's own usage, which comes out of your Claude plan as usual. Workers use Haiku, Anthropic's smallest and cheapest model.
+Every answer ends with a line like "Search cost: $0.031 (Exa $0.021, Parallel $0.010)". It adds up every search made for that answer, including the workers' searches. When TinyFish was used, the line also says how many free pages and searches it handled, such as "TinyFish free (2 pages)". It doesn't include Claude's own usage, which comes out of your Claude plan as usual. Workers use Haiku, Anthropic's smallest and cheapest model.
 
 Each search costs a little under one US cent. A uni-search Research report costs up to about $1.40, mostly for the two research agents. Auto usually costs a few cents. Fact Check costs about $0.002 per claim that has a link and about $0.02 per claim that needs a source found, so a 100-claim document costs between about $0.20 and $2.
 

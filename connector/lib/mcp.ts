@@ -17,9 +17,9 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tool
 - fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
-- log_issue: save errors and failures from a search skill run to the connector's problem log, for later troubleshooting. Free.
+- log_issue: save errors and failures from a search skill run, or a /search-report report, to the connector's problem log, for later troubleshooting. Free.
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.
-Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W", ", OpenAlex $V" and ", Firecrawl N credits" inside the brackets when any result used them.`;
+Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any result used them.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
@@ -28,7 +28,7 @@ export const TOOLS = [
     name: "search",
     title: "Search the web",
     description:
-      "Search the web with Exa and Parallel together (plus Firecrawl, when set up, for a second opinion or when they find little). Returns ranked results with title, date, link and the passages that match. Describe the page you want in plain words rather than keywords.",
+      "Search the web with Exa and Parallel together (plus TinyFish or Firecrawl, when set up, for Google-style results as a second opinion or when they find little). Returns ranked results with title, date, link and the passages that match. Describe the page you want in plain words rather than keywords.",
     inputSchema: {
       type: "object",
       properties: {
@@ -136,7 +136,7 @@ export const TOOLS = [
     name: "log_issue",
     title: "Log a problem",
     description:
-      "Save errors and failures from a search skill run (failed or refused tool calls, engines unavailable, pages that couldn't be read, workers that failed or left jobs not run) to the connector's problem log in Vercel Blob, for later troubleshooting. One call per run, listing every issue. Free; nothing is shown to the user.",
+      "Save errors and failures from a search skill run (failed or refused tool calls, engines unavailable, pages that couldn't be read, workers that failed or left jobs not run) to the connector's problem log in Vercel Blob, for later troubleshooting. One call per run, listing every issue. search-report also passes its whole report. Free; nothing is shown to the user.",
     inputSchema: {
       type: "object",
       properties: {
@@ -145,7 +145,6 @@ export const TOOLS = [
         summary: { type: "string", description: "One line on what the user asked for, without personal details." },
         issues: {
           type: "array",
-          minItems: 1,
           maxItems: 20,
           items: {
             type: "object",
@@ -158,8 +157,12 @@ export const TOOLS = [
             additionalProperties: false,
           },
         },
+        report: {
+          type: "string",
+          description: "search-report only: the whole report in Markdown (up to 200,000 characters). Saved as its own file beside the entry. issues may then be empty.",
+        },
       },
-      required: ["skill", "issues"],
+      required: ["skill"],
       additionalProperties: false,
     },
     annotations: { title: "Log a problem", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },

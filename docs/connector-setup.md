@@ -15,10 +15,11 @@ You'll need: a Vercel account (the free plan works), an Exa account and a Parall
 
 1. Exa: sign in at [dashboard.exa.ai/api-keys](https://dashboard.exa.ai/api-keys) and create a key. Exa gives $10 of free credit each month.
 2. Parallel: sign in at [platform.parallel.ai](https://platform.parallel.ai) and create a key.
-3. Optional, Firecrawl: sign in at [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys) and copy your key. When it's added, Firecrawl reads web pages first, which saves Exa and Parallel usage, and adds a second opinion to searches. Its free plan gives 1,000 credits a month: a page read costs 1 credit and a search 2.
-4. Optional, Apify: sign in at [console.apify.com/settings/integrations](https://console.apify.com/settings/integrations) and copy your personal API token. When it's added, jobs searches also bring back live adverts from LinkedIn, Indeed, Glassdoor and Totaljobs (Totaljobs only for UK searches). Each jobs search costs about 1 to 5 cents and takes up to a minute longer.
-5. Optional, OpenAlex: create a free account at [openalex.org](https://openalex.org), then copy your key from [openalex.org/settings/api](https://openalex.org/settings/api). When it's added, `/uni-search` searches for research papers look in OpenAlex first, a free index of about 300 million papers, and show citation counts and links to free copies. Claude can also read the full text of papers OpenAlex keeps a copy of, including many behind paywalls, for $0.01 each. The free key covers about 1,000 searches, or about 100 full-text reads, a day at no charge.
-6. Keep the keys somewhere safe for step 3. You won't need the Vercel dashboard to add them.
+3. Optional, TinyFish: sign in at [agent.tinyfish.ai/api-keys](https://agent.tinyfish.ai/api-keys) and create a key. When it's added, TinyFish reads web pages (including PDFs) before the others and adds Google-style results to searches. It is free for 1,000 pages and 12,000 searches a day, so it saves Exa, Parallel and Firecrawl usage. When the day's allowance runs out, the others take over until midnight UTC.
+4. Optional, Firecrawl: sign in at [firecrawl.dev/app/api-keys](https://www.firecrawl.dev/app/api-keys) and copy your key. When it's added, Firecrawl reads web pages first, which saves Exa and Parallel usage, and adds a second opinion to searches. Its free plan gives 1,000 credits a month: a page read costs 1 credit and a search 2.
+5. Optional, Apify: sign in at [console.apify.com/settings/integrations](https://console.apify.com/settings/integrations) and copy your personal API token. When it's added, jobs searches also bring back live adverts from LinkedIn, Indeed, Glassdoor and Totaljobs (Totaljobs only for UK searches). Each jobs search costs about 1 to 5 cents and takes up to a minute longer.
+6. Optional, OpenAlex: create a free account at [openalex.org](https://openalex.org), then copy your key from [openalex.org/settings/api](https://openalex.org/settings/api). When it's added, `/uni-search` searches for research papers look in OpenAlex first, a free index of about 300 million papers, and show citation counts and links to free copies. Claude can also read the full text of papers OpenAlex keeps a copy of, including many behind paywalls, for $0.01 each. The free key covers about 1,000 searches, or about 100 full-text reads, a day at no charge.
+7. Keep the keys somewhere safe for step 3. You won't need the Vercel dashboard to add them.
 
 ## 2. Put the connector on Vercel (one time)
 
@@ -48,7 +49,7 @@ This is the only time you need the Vercel dashboard. If you ever change `ADMIN_P
 ## 3. Add your keys (no dashboard needed)
 
 1. Open `https://<your-address>/settings` and sign in with your admin password.
-2. Paste the Exa key into **Exa API key** and select **Save**. Do the same for Parallel, and for Firecrawl, Apify and OpenAlex if you have keys.
+2. Paste the Exa key into **Exa API key** and select **Save**. Do the same for Parallel, and for TinyFish, Firecrawl, Apify and OpenAlex if you have keys.
 3. Select **Check keys work**. Each key you added should show **works**.
 
 Then add a passkey, so you can sign in with Face ID, Touch ID or a security key:
@@ -151,9 +152,9 @@ Vercel's free plan covers personal use of the connector itself.
 | What you see | What to do |
 |---|---|
 | "has no API key" | Add the key on the settings page. |
-| "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa, Parallel, Firecrawl or Apify. If it's Firecrawl, Apify or OpenAlex, Exa and Parallel still search and read pages. |
+| "rejected the API key" or "out of credit" | Replace the key, or top up the account with Exa, Parallel, Firecrawl or Apify. If it's TinyFish, Firecrawl, Apify or OpenAlex, Exa and Parallel still search and read pages. For TinyFish, "out of credit" means the free daily allowance is used up; it resets at midnight UTC. |
 | "OpenAlex rate limit reached" | The OpenAlex key has used its free $1 for the day. It resets at midnight UTC; paper searches still work through Exa until then. |
 | "Storage not connected" on the settings page | Connect a private Blob store (step 2, sub-step 5). |
-| You want to see what went wrong in earlier searches | The skills save errors to a problem log. In Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open `search-connector/issues`. There is one folder per day and one file per search that had problems. |
+| You want to see what went wrong in earlier searches | The skills save errors to a problem log. In Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open `search-connector/issues`. There is one folder per day and one file per search that had problems; `/search-report` reports are the `.md` files beside their entries. |
 | Claude asks you to reconnect | Normal after "Sign out all connections" or a password change. Reconnect in Claude's connector settings. |
 | "Setup needed" page | `ADMIN_PASSWORD` is missing or shorter than 12 characters. Add it in Vercel and redeploy. |

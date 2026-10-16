@@ -7,6 +7,7 @@ import { getKeys, nowSeconds, randomId, safeEqual, signToken, verifyToken, type 
 import { exaCheck } from "./engines/exa.js";
 import { apifyCheck } from "./engines/apify.js";
 import { firecrawlCheck } from "./engines/firecrawl.js";
+import { tinyfishCheck } from "./engines/tinyfish.js";
 import { openalexCheck } from "./engines/openalex.js";
 import { parallelCheck } from "./engines/parallel.js";
 import { esc, json, page, passkeyFields, redirect, setupNeededPage } from "./html.js";
@@ -132,14 +133,15 @@ export async function handleSettings(request: Request): Promise<Response> {
         return redirect(`${base}/settings?m=signedout`, { "set-cookie": sessionCookie(request, "", 0) });
       }
       if (action === "check") {
-        const [exa, parallel, firecrawl, apify, openalex] = await Promise.all([
+        const [exa, parallel, firecrawl, tinyfish, apify, openalex] = await Promise.all([
           checkKey("EXA_API_KEY", exaCheck),
           checkKey("PARALLEL_API_KEY", parallelCheck),
           checkKey("FIRECRAWL_API_KEY", firecrawlCheck),
+          checkKey("TINYFISH_API_KEY", tinyfishCheck),
           checkKey("APIFY_API_TOKEN", apifyCheck),
           checkKey("OPENALEX_API_KEY", openalexCheck),
         ]);
-        return redirect(`${base}/settings?exa=${exa}&parallel=${parallel}&firecrawl=${firecrawl}&apify=${apify}&openalex=${openalex}`);
+        return redirect(`${base}/settings?exa=${exa}&parallel=${parallel}&firecrawl=${firecrawl}&tinyfish=${tinyfish}&apify=${apify}&openalex=${openalex}`);
       }
     } catch {
       return redirect(`${base}/settings?m=failed`);
@@ -200,6 +202,7 @@ async function dashboard(base: string, csrf: string, params: URLSearchParams): P
     EXA_API_KEY: params.get("exa"),
     PARALLEL_API_KEY: params.get("parallel"),
     FIRECRAWL_API_KEY: params.get("firecrawl"),
+    TINYFISH_API_KEY: params.get("tinyfish"),
     APIFY_API_TOKEN: params.get("apify"),
     OPENALEX_API_KEY: params.get("openalex"),
   };

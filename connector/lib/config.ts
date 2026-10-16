@@ -21,6 +21,11 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "Reads pages first when set, to save Exa and Parallel usage. Also reads some sites they can't, such as Quora. The free plan gives 1,000 pages a month.",
     link: "https://www.firecrawl.dev/app/api-keys",
   },
+  TINYFISH_API_KEY: {
+    label: "TinyFish API key (optional)",
+    help: "Reads pages (including PDFs) and adds Google-style results to searches, before Firecrawl, Exa and Parallel are asked. Free for 1,000 pages and 12,000 searches a day.",
+    link: "https://agent.tinyfish.ai/api-keys",
+  },
   APIFY_API_TOKEN: {
     label: "Apify API token (optional)",
     help: "Adds live adverts from LinkedIn, Indeed, Glassdoor and Totaljobs to jobs searches. About 1 to 5 cents a search.",

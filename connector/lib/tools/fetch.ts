@@ -3,6 +3,7 @@ import { firecrawlKey, firecrawlScrape } from "../engines/firecrawl.js";
 import { EngineError } from "../engines/http.js";
 import { doiOf, openalexFullText, openalexKey, openalexWorkId } from "../engines/openalex.js";
 import { parallelExtract } from "../engines/parallel.js";
+import { tinyfishKey, tinyfishRead } from "../engines/tinyfish.js";
 import { cleanAuthor, cleanText, hostOf, relevantPassages, truncate } from "../text.js";
 
 export interface FetchInput {
@@ -34,9 +35,16 @@ const PARALLEL_FIRST = /(^|\.)(x\.com|twitter\.com|glassdoor\.[a-z.]+|trustpilot
 const FIRECRAWL_SKIP =
   /(^|\.)(reddit\.com|redd\.it|nytimes\.com|linkedin\.com|yelp\.[a-z.]+|instagram\.com|facebook\.com|tiktok\.com|threads\.(net|com)|pinterest\.[a-z.]+|craigslist\.org|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
 
-// A whole fetch call gets this long (fresh reads a little longer). Firecrawl
-// gets the first half; a page it times out on gets one last try with Parallel
-// in the time left, instead of waiting on every reader in turn.
+// When a TinyFish key is set, TinyFish reads pages before anyone else: it is
+// free for 1,000 pages a day and reads PDFs. Reddit has its own route (the
+// thread's .json address, with comments), X needs Parallel, and Exa returns
+// YouTube transcripts.
+const TINYFISH_SKIP = /(^|\.)(reddit\.com|redd\.it|x\.com|twitter\.com|youtube\.com|youtu\.be)$/;
+
+// A whole fetch call gets this long (fresh reads a little longer). TinyFish
+// and then Firecrawl share the first half; a page either times out on gets one
+// last try with Parallel in the time left, instead of waiting on every reader
+// in turn.
 const BUDGET_MS = 30_000;
 const FRESH_BUDGET_MS = 45_000;
 // A reader isn't started with less time than this left.
@@ -137,26 +145,47 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     for (const u of oaWork) pages.set(u, { url: u, content: "", error: "OpenAlex has no API key" });
   }
 
-  // Firecrawl first where it suits; whatever it can't read goes on to the others.
+  // TinyFish, then Firecrawl, where they suit; whatever they can't read goes
+  // on to the others.
   let others = urls.filter((u) => !reddit.includes(u) && !oaWork.includes(u) && !oaTargets.includes(u));
-  const firecrawlFirst = (await firecrawlKey()) ? others.filter((u) => !FIRECRAWL_SKIP.test(hostOf(u)) && !looksLikePdf(u)) : [];
+  const hasFirecrawl = Boolean(await firecrawlKey());
+  const firstHalf = began + budget / 2;
+
+  // Whole pages from TinyFish or Firecrawl: a question gets the matching
+  // paragraphs, otherwise the part from start.
+  const keepWhole = (r: { url: string; ok: boolean; title?: string; date?: string; author?: string; content: string }) => {
+    if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) return;
+    const view = question ? { content: relevantPassages(r.content, question, maxChars) } : windowOf(r.content, start, maxChars);
+    if (!view.content) return;
+    pages.set(r.url, {
+      url: r.url,
+      title: r.title,
+      date: r.date,
+      author: r.author,
+      content: view.content,
+      note: view.next ? moreNote(view.next) : undefined,
+    });
+  };
+
+  const viaTinyfish = async () => {
+    const targets = (await tinyfishKey()) ? others.filter((u) => !TINYFISH_SKIP.test(hostOf(u))) : [];
+    if (!targets.length || firstHalf - Date.now() < minTry) return;
+    const { pages: read, problem } = await tinyfishRead(targets, fresh, firstHalf - Date.now());
+    if (problem) failures.push(`${problem.friendly} ${hasFirecrawl ? "Firecrawl, " : ""}Exa and Parallel read the pages instead.`);
+    for (const r of read) {
+      if (r.error === TOO_SLOW) slow.add(r.url);
+      keepWhole(r);
+    }
+  };
+
   const viaFirecrawl = async () => {
-    if (!firecrawlFirst.length) return;
-    const { pages: read, problem } = await firecrawlScrape(firecrawlFirst, fresh, began + budget / 2, minTry);
+    const targets = hasFirecrawl ? others.filter((u) => !pages.get(u)?.content && !slow.has(u) && !FIRECRAWL_SKIP.test(hostOf(u)) && !looksLikePdf(u)) : [];
+    if (!targets.length) return;
+    const { pages: read, problem } = await firecrawlScrape(targets, fresh, firstHalf, minTry);
     if (problem) failures.push(`${problem.friendly} Exa and Parallel read the pages instead.`);
     for (const r of read) {
       if (r.error === TOO_SLOW) slow.add(r.url);
-      if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) continue;
-      const view = question ? { content: relevantPassages(r.content, question, maxChars) } : windowOf(r.content, start, maxChars);
-      if (!view.content) continue;
-      pages.set(r.url, {
-        url: r.url,
-        title: r.title,
-        date: r.date,
-        author: r.author,
-        content: view.content,
-        note: view.next ? moreNote(view.next) : undefined,
-      });
+      keepWhole(r);
     }
   };
 
@@ -219,10 +248,11 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   };
 
   const viaOthers = async () => {
+    await viaTinyfish();
     await viaFirecrawl();
     others = others.filter((u) => !pages.get(u)?.content);
-    // Pages Firecrawl timed out on are probably slow sites: one last try with
-    // Parallel, skipping Exa.
+    // Pages TinyFish or Firecrawl timed out on are probably slow sites: one
+    // last try with Parallel, skipping Exa.
     const parallelFirst = others.filter((u) => PARALLEL_FIRST.test(hostOf(u)) || slow.has(u));
     await Promise.all([viaExa(others.filter((u) => !parallelFirst.includes(u))), viaParallel(parallelFirst)]);
   };
