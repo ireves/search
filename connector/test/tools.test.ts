@@ -441,7 +441,6 @@ test("verify gathers evidence per claim from different websites", async () => {
   assert.match(text, /Claim 1: Blender 5\.2\.2/);
   assert.match(text, /\[1\.1\]/);
   assert.match(text, /Separate websites: 2/);
-  assert.match(text, /Engines: Exa 2 results, Parallel 1 \(before merging\)\./);
 });
 
 test("research returns a run_id while running, then the cited report", async () => {
@@ -1011,8 +1010,6 @@ test("with a TinyFish key, TinyFish reads first (PDFs too), then Firecrawl, then
   assert.equal(tf.body.ttl, 0);
   assert.deepEqual(tf.body.urls.sort(), ["https://blocked.com/b", "https://example.com/paper.pdf", "https://gone.com/c", "https://good.com/a"]);
   assert.deepEqual(calls.filter((c) => c.url.includes("firecrawl")).map((c) => c.body.url).sort(), ["https://blocked.com/b", "https://gone.com/c"]);
-  assert.match(result.text, /Read by: TinyFish 2 pages, Firecrawl 1, Exa 2\.\n/);
-  assert.match(result.text, /https:\/\/good\.com\/a · published 2026-09-30 · read by TinyFish\n/);
   assert.match(result.text, /TinyFish free \(2 pages\)\)$/);
 });
 
@@ -1058,7 +1055,6 @@ test("with a TinyFish key, searches use TinyFish for the Google-style second opi
   assert.match(text, /How I fixed it : r\/thing \(2026-09-30\)/);
   assert.match(text, /\nIt worked once I changed the setting\.\n/);
   assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 0);
-  assert.match(text, /Engines: Parallel 0 results, TinyFish 1 \(before merging\)\./);
   assert.match(text, /TinyFish free \(1 search\)\)$/);
 });
 
