@@ -83,4 +83,6 @@ check jobs add:
 REFS (only when the brief asks; one line per url; copy exactly, "not given" when missing, never guess)
 - <url> | every author as given (full list), or organisation | title | site, publisher or journal | date as given | type: web page, journal article, news, report, video, book, thesis, post | volume(issue), pages, DOI
 
+Second-to-last line, always: WORK: what you ran and which services did it, from each result's "Engines:" line (services that gave 0 results left out) and "Read by:" line. Format: "WORK: 2 searches (Exa, Parallel, TinyFish); 3 pages read (TinyFish 2, Exa 1; 1 not read); 1 verify, 4 claims (Exa, Parallel); 1 research (Exa Agent, Parallel)". Only the parts you ran.
+
 Last line, always: COST: $X (Exa $Y, Parallel $Z) = sum of every "Search cost of this call" line you received; add ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any line has them.

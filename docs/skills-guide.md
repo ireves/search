@@ -32,6 +32,8 @@ A few habits help with answers that aren't clear-cut:
    - The long search results stay with the worker, so the main Claude's memory isn't filled with them.
 4. The main Claude decides what's true, fills gaps and writes the answer.
 
+**You can see what each worker is doing.** In the progress log, each worker is labelled with its number, its tools and its task, such as "W1 · Search + Read · espresso machine prices UK". Before the workers start, Claude writes one line saying what each will do. When they finish, Claude writes what each one did and which services did the work, such as "W1 done: 2 searches (Exa, Parallel, TinyFish); 3 pages read (TinyFish 2, Exa 1)". The same summary appears just above the cost line at the end of the answer, starting "Work done:". The app doesn't show a worker's steps live while it runs.
+
 **Workers never run out of room.** Each worker's memory must stay well under 100,000 tokens (roughly 75,000 words). Before handing out jobs, Claude estimates how much text each search and page read will bring back. If one worker's share would be too large, Claude splits the jobs across more workers that run at the same time, so nothing is dropped. If a worker still sees it is running short, it hands back the jobs it hasn't done and Claude gives them to a fresh worker.
 
 **Facts come from proper sources.** Auction and second-hand listings (eBay, Vinted, Gumtree, Facebook Marketplace, Etsy) are left out of searches and never used as evidence, except for second-hand prices when you're buying used.
