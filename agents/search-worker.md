@@ -49,7 +49,7 @@ RULES
 - Opinions or pages that seem to be about another country (prices in another currency, foreign brand names) -> add "(probably <country>)" to the finding.
 - LIMIT counts every section. Over it -> cut LINKS and NOTES first, never FINDINGS.
 - No raw results, no summary prose, no conclusions, no opinions.
-- Engine errors ("no API key", "rejected the API key", "out of credit", "unavailable") and any call that fails or is refused -> copy the error line exactly into NOTES, with that call's main parameters (query and type, or urls), so it can be logged.
+- Engine errors ("no API key", "rejected the API key", "out of credit", "unavailable") and any call that fails or is refused -> copy the error line exactly into NOTES, with that call's ref ("ref ..." at the end of its cost line; no ref -> its main parameters: query and type, or urls), so it can be logged.
 
 DIGEST FORMAT (plain text, only sections that have content)
 FINDINGS
@@ -63,7 +63,7 @@ LINKS
 NOT RUN
 - <job exactly as briefed> | context budget
 NOTES
-- blocked or login-walled pages (only pages you tried), failed engines, old pages for a "latest" fact, how you read an unclear brief
+- blocked, login-walled or empty pages (only pages you tried, each with its call's ref), failed engines, old pages for a "latest" fact, how you read an unclear brief
 
 verify jobs add, per claim:
 CLAIM <n>: <claim>

@@ -10,7 +10,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 | `fetch` | Up to 5 pages as clean text (with title, date and author when given), or only the passages answering a question | TinyFish Fetch first when its key is set, then Firecrawl `/v2/scrape` when its key is set; then Exa `/contents`; Parallel `/v1/extract` as the backup and for sites Exa can't read; OpenAlex's own full-text copy for OpenAlex paper links, and for DOI links when asked |
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
-| `log_issue` | Saves a skill run's errors and failures, or a search-report report, to the problem log | One JSON file per report in the private Vercel Blob store |
+| `log_issue` | Saves a skill run's errors and failures, or a search-report report, to the problem log | A row in Supabase's `search_issues` table, or one JSON file in the private Vercel Blob store |
 
 The server also sends a short `instructions` text when Claude connects, so Claude knows the tools without a skill.
 
@@ -99,7 +99,7 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 
 **Which services did the work.** Every `search` and `verify` result has a line such as "Engines: Exa 5 results, Parallel 3, TinyFish 4 (before merging)." Every `fetch` result ends with "Read by: TinyFish 2 pages, Exa 1. Not read: 1.", and each page's address line says which service read it ("read by TinyFish"). Workers copy this into a WORK line in their digest, and the skills turn it into progress lines in the chat.
 
-**Problem log.** The search skills call `log_issue` once at the end of any run where something failed (tool errors, engines unavailable, unreadable pages, workers that stopped early). Each report is saved as one JSON file, `search-connector/issues/<date>/<time>-<id>.json`, in the same private Blob store, with the skill, mode, a one-line summary of the question and each problem's exact error text and call parameters. `/search-report` saves its whole report the same way: its Problems list becomes the entry's issues and the report itself is saved beside it as `<time>-<id>.md` (up to 200,000 characters). Nothing is shown to the user and the call is free. To read the log: in Vercel, open the project's **Storage** tab, select the Blob store and, in its list of files, open the `search-connector/issues` folder.
+**Problem log.** With Supabase set up (`SUPABASE_URL` and `SUPABASE_LOG_KEY`; tables from [`supabase/problem-log.sql`](supabase/problem-log.sql)), every `search`, `fetch`, `verify` and `research` call is saved as a row in `search_calls`: the parameters Claude passed, each engine request (engine, purpose such as "search" or "read pages", the settings sent, status, time taken, number of results, error text), the cost and the start of the reply. The reply's cost line ends with the row's ref (`· ref 1a2b3c4d`). The write happens after the reply is sent, so calls aren't slowed. The search skills call `log_issue` once at the end of any run where something failed (tool errors, engines unavailable, unreadable pages, workers that stopped early), giving the run's context (app, question, whether it's a follow-up and the earlier questions, outcome) and, per problem, the tool, the exact error and the failing call's ref, so they don't spend tokens restating parameters the connector already holds. The connector adds its own version, commit, region and which engines have keys. Entries go to `search_issues`; `/search-report` passes its whole report too (up to 200,000 characters). Claude reads the log with the Supabase connector, e.g. `select * from search_issue_details order by at desc limit 5`, which joins each entry to the calls it names. The connector's key can only add rows, never read or change them. Call rows are deleted after 30 days unless an entry names them. Without Supabase, or if Supabase refuses the row, entries go to the private Blob store as `search-connector/issues/<date>/<time>-<id>.json` (reports as `.md` beside them), and calls aren't recorded. Nothing is shown to the user and the call is free.
 
 **Merging.** Results from all engines are combined by rank (reciprocal rank fusion), with duplicates and mirrored copies folded together. Each engine's top result always keeps a place, so one engine's best find isn't crowded out by pages the other two agree on. When two engines return different passages from the same page, the newer copy's passage leads and the other is shown underneath ("Another copy of this page says"), because one engine's stored copy can be out of date.
 
@@ -113,7 +113,7 @@ The aim is that Claude never needs to know how Exa or Parallel work. The rules b
 - **Sign-in.** OAuth 2.1 with dynamic client registration and PKCE (S256), as Claude requires. Codes go only to `https://claude.ai/api/mcp/auth_callback` or a local address (Claude Code); extra exact addresses can be allowed with `ALLOWED_REDIRECT_URIS`. Access tokens last 1 hour, refresh tokens 90 days.
 - **Sign out everything.** The settings page can invalidate every token and session at once.
 - **Pages.** One script (`/passkey.js`, same origin, no inline code); strict content security policy; no framing; CSRF tokens and `SameSite=Strict` cookies; wrong passwords are slowed and limited per address.
-- **Stateless.** No database beyond the one encrypted Blob file, so nothing else to secure or pay for.
+- **Stateless.** No database beyond the one encrypted Blob file, so nothing else to secure or pay for. The optional Supabase problem log is write-only from the connector's side.
 
 Known limits: codes and refresh tokens aren't single-use (that would need a database); PKCE, short code lifetimes and the sign-out-all switch cover the realistic risks for a one-person server.
 
@@ -124,6 +124,7 @@ Known limits: codes and refresh tokens aren't single-use (that would need a data
 | `ADMIN_PASSWORD` | Yes | At least 12 characters |
 | `BLOB_STORE_ID` | Added by Vercel | Set when a Blob store is connected |
 | `EXA_API_KEY`, `PARALLEL_API_KEY`, `FIRECRAWL_API_KEY`, `TINYFISH_API_KEY`, `APIFY_API_TOKEN`, `OPENALEX_API_KEY` | No | Fallbacks if you prefer Vercel variables; keys saved on the settings page take priority. TinyFish, Firecrawl, Apify and OpenAlex are optional |
+| `SUPABASE_URL`, `SUPABASE_LOG_KEY` | No | The problem log in Supabase: project address and publishable (or legacy anon) key. Can also be saved on the settings page |
 | `PUBLIC_URL` | Recommended | The final address, e.g. `https://search-connector.vercel.app`. Passkeys are tied to its hostname, so set it before adding one |
 | `ALLOW_PASSWORD_SIGN_IN` | No | `true` lets the admin password sign in even when passkeys exist. For recovering from a lost passkey; remove afterwards |
 | `ALLOWED_REDIRECT_URIS` | No | Extra OAuth callback addresses, comma-separated |
@@ -142,6 +143,9 @@ lib/passkeys.ts   passkey registration and sign-in, and the browser script
 lib/settings.ts   settings page
 lib/store.ts      encrypted secret storage
 lib/issues.ts     the problem log (log_issue)
+lib/trace.ts      records each engine request during a tool call
+lib/logstore.ts   writes call records and log entries to Supabase
+supabase/         the problem log's tables, to run once in Supabase
 lib/crypto.ts     key derivation, encryption, signed tokens
 lib/text.ts       text clean-up, address matching, dates
 ```

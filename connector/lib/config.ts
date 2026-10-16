@@ -36,6 +36,16 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "Adds OpenAlex's index of research papers to papers searches, with citation counts and free full-text links, and reads papers from OpenAlex's own full-text copies ($0.01 each). Free key with $1 of use a day (about 1,000 searches or 100 full-text reads).",
     link: "https://openalex.org/settings/api",
   },
+  SUPABASE_URL: {
+    label: "Supabase project URL (optional)",
+    help: "Problem log that Claude can read back: the project's address, like https://abcd.supabase.co. Set-up: docs/connector-setup.md.",
+    link: "https://supabase.com/dashboard/project/_/settings/api",
+  },
+  SUPABASE_LOG_KEY: {
+    label: "Supabase publishable key (optional)",
+    help: "The project's publishable (or legacy anon) key. The problem log tables only let it add rows.",
+    link: "https://supabase.com/dashboard/project/_/settings/api-keys",
+  },
 };
 
 export function adminPassword(): string | null {
