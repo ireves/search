@@ -99,3 +99,10 @@ export function renderHit(hit: Ranked, n: number | string): string {
   if (hit.mirrors.length) lines.push(`Same document also on: ${hit.mirrors.join(", ")}`);
   return lines.join("\n");
 }
+
+// One line naming the services that answered and how many results each gave
+// before merging, so the progress log shows which engines did the work.
+export function engineLine(counts: [string, number][]): string {
+  const parts = counts.map(([name, n], i) => `${name} ${n}${i === 0 ? ` result${n === 1 ? "" : "s"}` : ""}`);
+  return `Engines: ${parts.join(", ") || "none"} (before merging).`;
+}

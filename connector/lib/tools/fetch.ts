@@ -23,6 +23,8 @@ interface Page {
   content: string;
   note?: string;
   error?: string;
+  // The service that read the page, shown in the reply.
+  via?: string;
 }
 
 // Sites Exa can't read (or reads badly) go straight to Parallel.
@@ -153,7 +155,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
 
   // Whole pages from TinyFish or Firecrawl: a question gets the matching
   // paragraphs, otherwise the part from start.
-  const keepWhole = (r: { url: string; ok: boolean; title?: string; date?: string; author?: string; content: string }) => {
+  const keepWhole = (via: string, r: { url: string; ok: boolean; title?: string; date?: string; author?: string; content: string }) => {
     if (!r.ok || looksThin(r.content, false) || looksBlocked(r.content)) return;
     const view = question ? { content: relevantPassages(r.content, question, maxChars) } : windowOf(r.content, start, maxChars);
     if (!view.content) return;
@@ -164,6 +166,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
       author: r.author,
       content: view.content,
       note: view.next ? moreNote(view.next) : undefined,
+      via,
     });
   };
 
@@ -174,7 +177,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     if (problem) failures.push(`${problem.friendly} ${hasFirecrawl ? "Firecrawl, " : ""}Exa and Parallel read the pages instead.`);
     for (const r of read) {
       if (r.error === TOO_SLOW) slow.add(r.url);
-      keepWhole(r);
+      keepWhole("TinyFish", r);
     }
   };
 
@@ -185,7 +188,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     if (problem) failures.push(`${problem.friendly} Exa and Parallel read the pages instead.`);
     for (const r of read) {
       if (r.error === TOO_SLOW) slow.add(r.url);
-      keepWhole(r);
+      keepWhole("Firecrawl", r);
     }
   };
 
@@ -208,7 +211,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
       for (const r of results) {
         const view = whole && r.full ? windowOf(cleanText(r.full), start, maxChars) : { content: r.ok ? r.excerpts : "" };
         if (r.ok && view.content) {
-          pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: view.content, note: "next" in view && view.next ? moreNote(view.next) : undefined });
+          pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: view.content, note: "next" in view && view.next ? moreNote(view.next) : undefined, via: "Parallel" });
         } else pages.set(r.url, { url: r.url, content: "", error: r.ok ? "nothing past that point" : r.error });
       }
     } catch (e) {
@@ -234,6 +237,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
             author: r.author,
             content: view.content,
             note: "next" in view && view.next ? moreNote(view.next) : undefined,
+            via: "Exa",
           });
         } else {
           retry.push(r.url);
@@ -275,6 +279,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
         content: view.content,
         note: "next" in view && view.next ? `${from} ${moreNote(view.next)}` : from,
         error: view.content ? undefined : "nothing past that point",
+        via: "OpenAlex",
       });
     } catch (e) {
       const err = e instanceof EngineError ? e : null;
@@ -301,12 +306,28 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
       return `## ${url}\nCouldn't read this page${p?.error ? ` (${p.error})` : ""}. It may need a login, block automated readers, or no longer exist.`;
     }
     const by = cleanAuthor(p.author);
-    const meta = [p.url, p.date ? `published ${p.date}` : "", by ? `by ${by}` : ""].filter(Boolean).join(" · ");
+    const meta = [p.url, p.date ? `published ${p.date}` : "", by ? `by ${by}` : "", p.via ? `read by ${p.via}` : ""].filter(Boolean).join(" · ");
     return [`## ${p.title ?? hostOf(url)}`, meta, truncate(p.content, maxChars + 2), p.note ? `[${p.note}]` : ""].filter(Boolean).join("\n");
   });
   const anyOk = urls.some((u) => pages.get(u)?.content);
   const notes = [...new Set(failures)];
-  return { text: [...blocks, ...(notes.length ? [notes.join("\n")] : [])].join("\n\n---\n\n"), isError: !anyOk };
+  return { text: [...blocks, [...notes, readByLine(urls.map((u) => pages.get(u)))].join("\n")].join("\n\n---\n\n"), isError: !anyOk };
+}
+
+// One line naming the services that read the pages, so the progress log shows
+// which engines did the work: "Read by: TinyFish 2 pages, Exa 1. Not read: 1."
+function readByLine(read: (Page | undefined)[]): string {
+  const counts = new Map<string, number>();
+  let missed = 0;
+  for (const p of read) {
+    if (!p?.content) missed++;
+    else {
+      const via = (p.via ?? "unknown").replace(/ \(.*\)$/, "");
+      counts.set(via, (counts.get(via) ?? 0) + 1);
+    }
+  }
+  const parts = [...counts].map(([via, n], i) => `${via} ${n}${i === 0 ? ` page${n === 1 ? "" : "s"}` : ""}`);
+  return `Read by: ${parts.join(", ") || "none"}.${missed ? ` Not read: ${missed}.` : ""}`;
 }
 
 // Reddit threads often come back without comments. The thread's .json address
@@ -329,7 +350,7 @@ async function readReddit(
     const [result] = await parallelExtract([jsonUrl], question ?? "All comments in this thread", maxChars, { full: true, fresh, timeoutMs: left() });
     const thread = result?.full ? formatRedditJson(result.full, maxChars) : null;
     if (thread) {
-      pages.set(url, { url, title: thread.title, date: thread.date, content: thread.text });
+      pages.set(url, { url, title: thread.title, date: thread.date, content: thread.text, via: "Parallel (Reddit thread with comments)" });
       return;
     }
     if (left() < minTry) {
@@ -337,8 +358,8 @@ async function readReddit(
       return;
     }
     const [plain] = await parallelExtract([url], question ?? "The post and all the replies", maxChars, { fresh, timeoutMs: left() });
-    if (plain?.ok) pages.set(url, { url, title: plain.title, date: plain.date, content: plain.excerpts });
-    else if (result?.excerpts) pages.set(url, { url, title: result.title, content: result.excerpts });
+    if (plain?.ok) pages.set(url, { url, title: plain.title, date: plain.date, content: plain.excerpts, via: "Parallel" });
+    else if (result?.excerpts) pages.set(url, { url, title: result.title, content: result.excerpts, via: "Parallel" });
     else pages.set(url, { url, content: "", error: plain?.error });
   } catch (e) {
     failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
