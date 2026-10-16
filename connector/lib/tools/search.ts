@@ -6,7 +6,7 @@ import { openalexKey, openalexSearch } from "../engines/openalex.js";
 import { parallelSearch, type ParallelMode } from "../engines/parallel.js";
 import { tinyfishKey, tinyfishSearch } from "../engines/tinyfish.js";
 import { cleanDomain, keywords, parseDate, today } from "../text.js";
-import { engineLine, fuse, renderHit, withinDates } from "./merge.js";
+import { fuse, renderHit, withinDates } from "./merge.js";
 
 export const SEARCH_TYPES = [
   "web",
@@ -200,7 +200,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     onlyExaBlind || (Boolean(plan.parallel) && (depth !== "fast" || Boolean(plan.parallel!.primary) || !exaActive));
 
   const notes: string[] = [];
-  const jobs: Promise<{ hits: Hit[]; weight: number; name: string } | null>[] = [];
+  const jobs: Promise<{ hits: Hit[]; weight: number } | null>[] = [];
 
   if (exaActive) {
     jobs.push(
@@ -219,7 +219,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
         fresh,
         maxChars: perResult,
       })
-        .then((hits) => ({ hits, weight: openalexOn ? EXA_WEIGHT_WITH_OPENALEX : plan.exaWeight || 1, name: "Exa" }))
+        .then((hits) => ({ hits, weight: openalexOn ? EXA_WEIGHT_WITH_OPENALEX : plan.exaWeight || 1 }))
         .catch((e) => {
           notes.push(`Exa unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
           return null;
@@ -242,7 +242,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
         location: input.country,
         fresh,
       })
-        .then((hits) => ({ hits, weight: plan.parallelWeight || 1, name: "Parallel" }))
+        .then((hits) => ({ hits, weight: plan.parallelWeight || 1 }))
         .catch((e) => {
           notes.push(`Parallel unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
           return null;
@@ -256,7 +256,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   const [hasTinyfish, hasFirecrawl] = plan.google ? [Boolean(await tinyfishKey()), Boolean(await firecrawlKey())] : [false, false];
   const gs = plan.google && (hasTinyfish || hasFirecrawl) ? plan.google : undefined;
   let googleEngine = "";
-  const googleJob = async (): Promise<{ hits: Hit[]; weight: number; name: string } | null> => {
+  const googleJob = async (): Promise<{ hits: Hit[]; weight: number } | null> => {
     const options = {
       query: `${query}${gs!.suffix && !query.toLowerCase().includes(gs!.suffix.trim()) ? gs!.suffix : ""}`,
       limit,
@@ -273,7 +273,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
         const hits = await tinyfishSearch({ ...options, purpose: goal });
         if (hits.length || !hasFirecrawl) {
           googleEngine = "TinyFish";
-          return { hits, weight, name: googleEngine };
+          return { hits, weight };
         }
       } catch (e) {
         notes.push(`TinyFish unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}${hasFirecrawl ? " Firecrawl searched instead." : ""}`);
@@ -283,7 +283,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     try {
       const hits = await firecrawlSearch(options);
       googleEngine = "Firecrawl";
-      return { hits, weight, name: googleEngine };
+      return { hits, weight };
     } catch (e) {
       notes.push(`Firecrawl unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
       return null;
@@ -295,7 +295,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
   if (openalexOn) {
     jobs.push(
       openalexSearch({ query, limit, after, before, maxChars: perResult })
-        .then((hits) => ({ hits, weight: OPENALEX_WEIGHT, name: "OpenAlex" }))
+        .then((hits) => ({ hits, weight: OPENALEX_WEIGHT }))
         .catch((e) => {
           notes.push(`OpenAlex unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
           return null;
@@ -315,7 +315,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     for (const board of boardsFor(country, sites, excluded)) {
       jobs.push(
         apifyJobs(board, { role, location, country, days, limit, maxChars: perResult })
-          .then((hits) => ({ hits, weight: 1, name: `${boardName(board)} (Apify)` }))
+          .then((hits) => ({ hits, weight: 1 }))
           .catch((e) => {
             notes.push(`${boardName(board)} jobs unavailable: ${e instanceof EngineError ? e.friendly : (e as Error).message}`);
             return null;
@@ -324,7 +324,7 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     }
   }
 
-  type List = { hits: Hit[]; weight: number; name: string };
+  type List = { hits: Hit[]; weight: number };
   const keep = (lists: (List | null)[]) =>
     lists.filter((x): x is List => x !== null).map((l) => ({ ...l, hits: l.hits.filter((h) => withinDates(h, after, before)) }));
   let filtered = keep(await Promise.all(jobs));
@@ -346,7 +346,6 @@ export async function runSearch(input: SearchInput): Promise<{ text: string; isE
     `Search: "${query}" · ${type}${depth !== "standard" ? ` · ${depth}` : ""} · ${results.length} result${results.length === 1 ? "" : "s"} · today is ${today()}`,
   ];
   if (after || before) header.push(`Published ${after ? `from ${after}` : ""}${after && before ? " " : ""}${before ? `to ${before}` : ""} (undated pages kept).`);
-  header.push(engineLine(filtered.map((l) => [l.name, l.hits.length])));
   if (fresh) header.push("Pages re-downloaded for freshness.");
   if (openalexOn) header.push("OpenAlex (scholarly index) ranked first, Exa second.");
   if (fellBack) header.push(`Exa and Parallel found little, so ${googleEngine} searched as well (short snippets: read a page for detail).`);
