@@ -133,13 +133,14 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
   const slow = new Set<string>();
 
   // OpenAlex's own full-text copy: always for OpenAlex work links (search
-  // results give them for papers it holds), and for DOI links when the brief
-  // asks for OpenAlex. A DOI it has no copy of goes to the usual readers, so
+  // results give them for papers it holds), and for DOI links unless the brief
+  // sets openalex to false (workers often left it out, and publisher pages
+  // seldom read well). A DOI it has no copy of goes to the usual readers, so
   // OpenAlex gets only half the time for those.
   const oaKey = await openalexKey();
   const oaWork = urls.filter((u) => openalexWorkId(u));
-  const oaDoi = input.openalex ? urls.filter((u) => doiOf(u)) : [];
-  if (oaDoi.length && !oaKey) failures.push("OpenAlex has no API key, so DOI links were read by the usual readers. Add OPENALEX_API_KEY on the connector's settings page.");
+  const oaDoi = input.openalex !== false ? urls.filter((u) => doiOf(u)) : [];
+  if (oaDoi.length && !oaKey && input.openalex) failures.push("OpenAlex has no API key, so DOI links were read by the usual readers. Add OPENALEX_API_KEY on the connector's settings page.");
   const oaTargets = oaKey ? [...oaWork, ...oaDoi] : [];
   if (oaWork.length && !oaKey) {
     failures.push("OpenAlex has no API key, so its full-text copies can't be read. Add OPENALEX_API_KEY on the connector's settings page.");
@@ -210,7 +211,7 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
         const view = whole && r.full ? windowOf(cleanText(r.full), start, maxChars) : { content: r.ok ? r.excerpts : "" };
         if (r.ok && view.content) {
           pages.set(r.url, { url: r.url, title: r.title, date: r.date, content: view.content, note: "next" in view && view.next ? moreNote(view.next) : undefined });
-        } else pages.set(r.url, { url: r.url, content: "", error: r.ok ? "nothing past that point" : r.error });
+        } else if (!pages.get(r.url)?.content) pages.set(r.url, { url: r.url, content: "", error: r.ok ? "nothing past that point" : r.error });
       }
     } catch (e) {
       const timedOut = e instanceof EngineError && e.status === -1;
@@ -219,12 +220,14 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
     }
   };
 
-  const viaExa = async (targets: string[]) => {
+  // With backup, pages Exa can't read go on to Parallel afterwards; without
+  // it, Parallel is already reading them at the same time.
+  const viaExa = async (targets: string[], backup = true) => {
     if (!targets.length || tooLate(targets)) return;
     let retry: string[] = [];
     try {
       // Leave Parallel a share of the time as the backup reader.
-      const results = await exaContents(targets, question, question ? maxChars : want, fresh, Math.max(minTry, Math.floor(left() * 0.6)));
+      const results = await exaContents(targets, question, question ? maxChars : want, fresh, Math.max(minTry, backup ? Math.floor(left() * 0.6) : left()));
       for (const r of results) {
         const view = question ? { content: r.content } : windowOf(r.content, start, maxChars);
         if (r.ok && view.content && (start > 0 || !looksThin(view.content, Boolean(question)))) {
@@ -245,17 +248,24 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
       retry = targets;
     }
     // Backup reader for pages Exa refused or returned thin.
-    await viaParallel(retry);
+    if (backup) await viaParallel(retry);
+    else for (const u of retry) if (!pages.get(u)) pages.set(u, { url: u, content: "", error: TOO_SLOW });
   };
 
   const viaOthers = async () => {
     await viaTinyfish();
     await viaFirecrawl();
     others = others.filter((u) => !pages.get(u)?.content);
-    // Pages TinyFish or Firecrawl timed out on are probably slow sites: one
-    // last try with Parallel, skipping Exa.
+    // Pages TinyFish or Firecrawl timed out on are probably slow sites: Exa
+    // and Parallel both try them at once in the time left, instead of one
+    // after the other (Parallel alone often ran out of time on papers).
+    const slowPages = others.filter((u) => slow.has(u) && !PARALLEL_FIRST.test(hostOf(u)));
     const parallelFirst = others.filter((u) => PARALLEL_FIRST.test(hostOf(u)) || slow.has(u));
-    await Promise.all([viaExa(others.filter((u) => !parallelFirst.includes(u))), viaParallel(parallelFirst)]);
+    await Promise.all([
+      viaExa(others.filter((u) => !parallelFirst.includes(u))),
+      viaExa(slowPages, false),
+      viaParallel(parallelFirst),
+    ]);
   };
 
   const viaOpenAlex = async (u: string) => {

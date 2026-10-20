@@ -48,6 +48,25 @@ function text(value: unknown): string | undefined {
   return typeof v === "string" && v.trim() ? v : undefined;
 }
 
+// The free plan allows 15 page reads a minute. After a "rate limit" reply,
+// pages skip Firecrawl until the wait it names is over (30 seconds if it
+// names none), instead of each one being refused in turn.
+let busyUntil = 0;
+
+export function firecrawlBusy(): boolean {
+  return Date.now() < busyUntil;
+}
+
+function noteBusy(message: string): void {
+  const wait = Number(/retry after (\d+)\s*s/i.exec(message)?.[1] ?? 30);
+  busyUntil = Math.max(busyUntil, Date.now() + Math.min(Math.max(wait, 1), 60) * 1000);
+}
+
+// For tests.
+export function resetFirecrawlBusy(): void {
+  busyUntil = 0;
+}
+
 async function scrapeOne(key: string, url: string, fresh: boolean, timeoutMs: number): Promise<FirecrawlPage> {
   const data = await callJson<ScrapeReply>("Firecrawl", `${BASE}/v2/scrape`, {
     headers: { authorization: `Bearer ${key}` },
@@ -96,7 +115,7 @@ export async function firecrawlScrape(
   const worker = async () => {
     while (next < urls.length) {
       const i = next++;
-      if (accountProblem) {
+      if (accountProblem || firecrawlBusy()) {
         pages[i] = { url: urls[i], ok: false, content: "", error: "skipped" };
         continue;
       }
@@ -112,6 +131,7 @@ export async function firecrawlScrape(
         const err = e instanceof EngineError ? e : new EngineError("Firecrawl", 0, (e as Error).message);
         // 403 also means "we do not support this site", so only 401 and 402 are about the account.
         if (err.status === 401 || err.status === 402) accountProblem = err;
+        if (err.status === 429) noteBusy(err.message);
         const slow = err.status === -1 || err.status === 408 || err.status === 504;
         pages[i] = { url: urls[i], ok: false, content: "", error: err.status === 403 ? "site not supported" : slow ? "took too long" : "not available" };
       }
