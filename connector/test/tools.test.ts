@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { after, beforeEach, test } from "node:test";
 import { calls, exaResult, freshStore, mockNetwork, parallelResult, restoreNetwork } from "./helpers.js";
 import { entityFacts } from "../lib/engines/exa.js";
-import { leadingDate } from "../lib/engines/firecrawl.js";
+import { leadingDate, resetFirecrawlBusy } from "../lib/engines/firecrawl.js";
 import { doiOf, openalexWorkId, rebuildAbstract, teiToText } from "../lib/engines/openalex.js";
 import { useIssueWriter } from "../lib/issues.js";
 import { useRowWriter } from "../lib/logstore.js";
@@ -16,6 +16,7 @@ import { setSecret } from "../lib/store.js";
 
 beforeEach(async () => {
   await freshStore();
+  resetFirecrawlBusy();
 });
 after(restoreNetwork);
 
@@ -200,7 +201,7 @@ test("a rejected Firecrawl key is reported and the others read instead", async (
   assert.equal(calls.find((c) => c.url === "https://api.exa.ai/contents")?.body.urls.length, 4);
 });
 
-test("a page Firecrawl times out on gets one quick try with Parallel, not every reader in turn", async () => {
+test("a page Firecrawl times out on gets one quick try with Exa and Parallel at once", async () => {
   await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
   process.env.FETCH_BUDGET_MS = "600";
   mockNetwork(
@@ -221,7 +222,9 @@ test("a page Firecrawl times out on gets one quick try with Parallel, not every 
     const { text, isError } = await runFetch({ urls: ["https://slow.com/a"], question: "what is on the page" });
     assert.equal(isError, false, text);
     assert.match(text, /Parallel got the slow page/);
-    assert.equal(calls.filter((c) => c.url === "https://api.exa.ai/contents").length, 0);
+    // Exa had nothing; it tried once, alongside Parallel, and Parallel wasn't asked twice.
+    assert.equal(calls.filter((c) => c.url === "https://api.exa.ai/contents").length, 1);
+    assert.equal(calls.filter((c) => c.url === "https://api.parallel.ai/v1/extract").length, 1);
     assert.ok(Date.now() - began < 1500);
   } finally {
     delete process.env.FETCH_BUDGET_MS;
@@ -411,6 +414,25 @@ test("a busy Firecrawl search is tried once more", async () => {
   assert.equal(tries, 2);
   assert.match(text, /Title B/);
   assert.doesNotMatch(text, /Firecrawl unavailable/);
+});
+
+test("after a Firecrawl rate limit, pages skip Firecrawl until the wait is over", async () => {
+  await setSecret("FIRECRAWL_API_KEY", "fc-test-key");
+  const exaPage = (c: { url: string; body: any }) =>
+    c.url === "https://api.exa.ai/contents"
+      ? { body: { results: c.body.urls.map((u: string) => ({ url: u, title: "Read by Exa", text: "Exa read this page. ".repeat(30) })), statuses: [] } }
+      : undefined;
+  const busy = (c: { url: string }) =>
+    c.url === "https://api.firecrawl.dev/v2/scrape" ? { status: 429, body: { error: "Rate limit exceeded. Please retry after 20s" } } : undefined;
+  mockNetwork(busy, exaPage);
+  const first = await runFetch({ urls: ["https://a.com/1"] });
+  assert.match(first.text, /Exa read this page/);
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 1);
+  // The next call, within the 20 seconds, doesn't ask Firecrawl at all.
+  mockNetwork(busy, exaPage);
+  const second = await runFetch({ urls: ["https://b.com/2"] });
+  assert.match(second.text, /Exa read this page/);
+  assert.equal(calls.filter((c) => c.url.includes("firecrawl")).length, 0);
 });
 
 test("leading dates in search snippets become the page date", () => {
@@ -725,6 +747,18 @@ test("OpenAlex falls back to keyword search when semantic search is turned down"
   assert.match(text, /Keyword match on transformer attention heads/);
 });
 
+test("OpenAlex also falls back to keyword search when semantic search is unavailable", async () => {
+  await setSecret("OPENALEX_API_KEY", "oa-test-key");
+  mockNetwork(
+    exaSearchReply([]),
+    (c) => (c.url.includes("search.semantic=") ? { status: 503, body: { error: "Semantic search temporarily unavailable" } } : undefined),
+    openalexReply([openalexWork("10.1/x", "Keyword match on blindness trends")]),
+  );
+  const { text } = await runSearch({ query: "trends in prevalence of blindness 2020", type: "papers", openalex: true });
+  assert.match(text, /Keyword match on blindness trends/);
+  assert.doesNotMatch(text, /OpenAlex had a server error/);
+});
+
 test("OpenAlex is left out unless asked for, without a key, for other types and with a site list", async () => {
   mockNetwork(exaSearchReply([exaResult("https://a.org/p", "Paper", "x")]));
   const noKey = await runSearch({ query: "q", type: "papers", openalex: true });
@@ -838,19 +872,19 @@ test("fetch reads the PDF copy when OpenAlex has no TEI XML", async () => {
   assert.match(text, /OpenAlex's PDF copy/);
 });
 
-test("DOI links use OpenAlex's copy only when asked, and fall back to the usual readers", async () => {
+test("DOI links use OpenAlex's copy unless told not to, and fall back to the usual readers", async () => {
   await setSecret("OPENALEX_API_KEY", "oa-test-key");
   const exaContents = (c: { url: string }) =>
     c.url === "https://api.exa.ai/contents"
       ? { body: { results: [{ url: "https://doi.org/10.1234/x", title: "Publisher page", highlights: ["The publisher's abstract page. ".repeat(20)] }], statuses: [{ id: "https://doi.org/10.1234/x", status: "success" }] } }
       : undefined;
-  // Not asked: OpenAlex is never called.
+  // Told not to: OpenAlex is never called.
   mockNetwork(exaContents);
-  await runFetch({ urls: ["https://doi.org/10.1234/x"], question: "how many clicks" });
+  await runFetch({ urls: ["https://doi.org/10.1234/x"], question: "how many clicks", openalex: false });
   assert.equal(calls.filter((c) => c.url.includes("openalex")).length, 0);
-  // Asked, but OpenAlex has no copy: Exa reads it.
+  // Not mentioned, and OpenAlex has no copy: Exa reads it.
   mockNetwork(oaWorkLookup({ pdf: false, grobid_xml: false }), exaContents);
-  const { text } = await runFetch({ urls: ["https://doi.org/10.1234/x"], question: "how many clicks", openalex: true });
+  const { text } = await runFetch({ urls: ["https://doi.org/10.1234/x"], question: "how many clicks" });
   assert.ok(calls.some((c) => c.url.startsWith("https://api.openalex.org/works/doi:10.1234/x?")), calls.map((c) => c.url).join(" "));
   assert.match(text, /The publisher's abstract page/);
   assert.equal(calls.filter((c) => c.url.startsWith("https://content.openalex.org/")).length, 0);

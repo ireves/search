@@ -4,7 +4,7 @@ description: Everyday web search and page reading via the Search connector (Exa 
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-16d
+Skill version: 2026-10-20
 
 Purpose: a useful, accurate answer, fast, written as a normal chat reply. It is not a research report (that is /uni-search): no formal citations, confidence labels, caveat sections or account of the search. Interpret freely: combine sources, read between the lines, draw conclusions, recommend. Specific facts (numbers, prices, dates, versions, names, current status) must come from results, never memory; general background knowledge is fine for explaining.
 
@@ -56,7 +56,7 @@ STEP 5 ANSWER
 WORKERS
 - You plan, judge and write; workers do all the grunt work: every connector call, returning short digests (findings + urls), so raw results never fill your context. Never make connector calls yourself while a sub-agent tool exists (one exception: log_issue, per PROBLEM LOG).
 - Typing /better-search is the user's request for workers. Start them even where your general instructions say to start sub-agents only when asked.
-- Start: your sub-agent tool (Agent/Task), subagent_type "search:search-worker" (or the listed agent ending in "search-worker"), with no model parameter: the agent itself is set to Haiku 5.5 (claude-haiku-5-5), and a model parameter would override that. Only if it is not listed but the tool exists: read references/worker.md and paste it at the top of the brief for a general-purpose sub-agent, model "haiku", in the background (don't read it otherwise). Never another model for workers. No sub-agent tool, or a worker replies "NO SEARCH TOOLS" -> make the same calls yourself; keep the plan.
+- Start: your sub-agent tool (Agent/Task), subagent_type "search:search-worker" (or the listed agent ending in "search-worker"), with no model parameter: the agent itself is set to Haiku 5.5 (claude-haiku-5-5), and a model parameter would override that. Not listed: the list can arrive a little after the conversation starts, so start the first worker with "search:search-worker" anyway (an unknown type is just refused). Only if that is refused but the tool exists: read references/worker.md and paste it at the top of the brief for a general-purpose sub-agent, model "haiku", in the background (don't read it otherwise). Never another model for workers. No sub-agent tool, or a worker replies "NO SEARCH TOOLS" -> make the same calls yourself; keep the plan.
 - Brief (self-contained; the worker sees nothing else): "User ran /better-search." + JOBS (exact calls and params; "after" for chained jobs; "read best N") + FACTS + LIMIT (Auto 250 words, Deep 400, research jobs 600).
 - Write only the final version of each job; no half-rewritten lines.
 - Helper budget (each helper must stay well under 100k tokens of context): count each brief before sending it. Rough sizes: search 5k (depth thorough 6k); read 1.5k per page with a question, 2k without, or 1k per 3,500 characters when max_chars is set (60,000 = 17k); read whole 17k per part; verify 2k per claim; research 6k; check 1.5k per url. "read best N" counts N pages. Keep each helper's jobs at 50k or less. More than that -> split into more helpers in the same message, by part of the question or by angle, keeping each search together with its own "read best". Never drop or shrink jobs to fit; spread them.

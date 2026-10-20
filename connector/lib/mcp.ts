@@ -86,7 +86,7 @@ export const TOOLS = [
         fresh: { type: "boolean", description: "Re-download instead of using a stored copy." },
         openalex: {
           type: "boolean",
-          description: "Only when a skill's brief sets it: read doi.org links from OpenAlex's full-text copy of the paper when it has one ($0.01 each). openalex.org links always read that copy.",
+          description: "doi.org links are read from OpenAlex's full-text copy of the paper when it has one ($0.01 each), unless this is false. openalex.org links always read that copy.",
         },
       },
       required: ["urls"],

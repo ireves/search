@@ -113,8 +113,9 @@ export function workToHit(w: Work, maxChars: number): Hit | null {
   };
 }
 
-// Semantic search (by meaning, like Exa) first. If OpenAlex turns that down,
-// one keyword search on the query's main words instead. Retracted works are
+// Semantic search (by meaning, like Exa) first. If OpenAlex turns that down
+// or says it is unavailable (503), one keyword search on the query's main
+// words instead. Retracted works are
 // left out.
 export async function openalexSearch(o: OpenAlexSearchOptions): Promise<Hit[]> {
   const key = await openalexKey();
@@ -138,7 +139,7 @@ export async function openalexSearch(o: OpenAlexSearchOptions): Promise<Hit[]> {
   try {
     data = await call(["search.semantic", o.query]);
   } catch (e) {
-    if (!(e instanceof EngineError) || e.status !== 400) throw e;
+    if (!(e instanceof EngineError) || (e.status !== 400 && e.status !== 503)) throw e;
     data = await call(["search", keywords(o.query, 6) || o.query]);
   }
   addCost("openalex", data.meta?.cost_usd ?? 0.001);
