@@ -74,8 +74,41 @@ export interface PageOptions {
   mainOnly: boolean;
 }
 
+// One job search call: which tool, its settings, and how to read its reply.
+export interface SearchRequest {
+  id: string;
+  kind: "jobs" | "linkedin_jobs" | "posts";
+  tool: string;
+  args: Record<string, unknown>;
+}
+
+// A job or post, cut down to what the server uses.
+export interface SearchItem {
+  title: string;
+  company: string;
+  location: string;
+  link: string;
+  direct?: string;
+  site?: string;
+  posted?: string;
+  pay?: string;
+  text?: string;
+  author?: string;
+}
+
+export interface SearchResult {
+  id: string;
+  ok: boolean;
+  error?: string;
+  // Items the tool returned before the keyword filter.
+  raw: number;
+  items: SearchItem[];
+  charge: number;
+}
+
 export interface Composio {
   readPages(pages: PageRequest[], options: PageOptions): Promise<PageResult[]>;
+  search(calls: SearchRequest[], options: { keywords: string[]; textChars: number }): Promise<SearchResult[]>;
   toolSettings(tool: string): Promise<string[]>;
 }
 
@@ -110,6 +143,58 @@ def one(p):
     return {"id": p["id"], "ok": True, "status": meta.get("statusCode"), "final": meta.get("url") or meta.get("sourceURL"), "title": meta.get("title"), "chars": len(md), "head": md[: job["head"]], "matches": matches[:80], "services": services, "charge": charge}
 with ThreadPoolExecutor(8) as ex:
     out = list(ex.map(one, job["pages"]))
+print("${COMPOSIO.marker}" + json.dumps(out))
+`;
+}
+
+// The Python for job searches: runs each call and keeps only items whose
+// title (or, for posts, text) holds one of the keywords, with their text
+// trimmed, so the reply stays small.
+export function searchScript(calls: SearchRequest[], options: { keywords: string[]; textChars: number }): string {
+  const payload = Buffer.from(JSON.stringify({ calls, keywords: options.keywords.map((k) => k.toLowerCase()), text: options.textChars })).toString("base64");
+  return `import json, base64
+from concurrent.futures import ThreadPoolExecutor
+job = json.loads(base64.b64decode("${payload}").decode())
+KW = job["keywords"]; N = job["text"]
+def wanted(s):
+    s = (s or "").lower()
+    return not KW or any(k in s for k in KW)
+def s_(v):
+    return "" if v is None or str(v) in ("nan", "None") else str(v)
+def pay(j):
+    lo, hi, cur, per = s_(j.get("min_amount")), s_(j.get("max_amount")), s_(j.get("currency")), s_(j.get("interval"))
+    if not lo and not hi: return ""
+    sym = {"GBP": "£", "USD": "$", "EUR": "€"}.get(cur, cur + " " if cur else "")
+    per = {"yearly": "a year", "monthly": "a month", "weekly": "a week", "daily": "a day", "hourly": "an hour"}.get(per, per)
+    nums = [x[:-2] if x.endswith(".0") else x for x in (lo, hi) if x]
+    return (sym + "-".join(nums) + (" " + per if per else "")).strip()
+def one(c):
+    r, e = run_composio_tool(c["tool"], c["args"])
+    if e:
+        return {"id": c["id"], "ok": False, "error": str(e)[:500], "raw": 0, "items": [], "charge": 0}
+    d = (r or {}).get("data") or {}
+    charge = float(((r or {}).get("instant_charge") or {}).get("amount") or 0)
+    items = []
+    if c["kind"] == "jobs":
+        raw = ((d.get("result") or {}).get("jobs")) or []
+        for j in raw:
+            if wanted(j.get("title")):
+                items.append({"title": s_(j.get("title")), "company": s_(j.get("company")), "location": s_(j.get("location")), "link": s_(j.get("job_url")), "direct": s_(j.get("job_url_direct")), "site": s_(j.get("site")), "posted": s_(j.get("date_posted")), "pay": pay(j), "text": s_(j.get("description"))[:N]})
+    elif c["kind"] == "linkedin_jobs":
+        raw = ((d.get("result") or {}).get("data")) or []
+        for j in raw:
+            if wanted(j.get("title")):
+                items.append({"title": s_(j.get("title")), "company": s_(j.get("companyName")), "location": s_(j.get("location")), "link": s_(j.get("linkedinUrl")), "site": "linkedin", "posted": s_(j.get("datePosted"))})
+    else:
+        raw = d.get("items") or []
+        for p in raw:
+            text = s_(p.get("description"))
+            if wanted(text):
+                a = p.get("author") or {}
+                items.append({"title": text.strip().split("\\n")[0][:150], "company": s_(a.get("name")), "author": s_(a.get("url")), "location": "", "link": s_(p.get("url")), "site": "linkedin_post", "posted": s_(p.get("date_published"))[:10], "text": text[:N]})
+    return {"id": c["id"], "ok": True, "raw": len(raw), "items": items, "charge": charge}
+with ThreadPoolExecutor(8) as ex:
+    out = list(ex.map(one, job["calls"]))
 print("${COMPOSIO.marker}" + json.dumps(out))
 `;
 }
@@ -190,6 +275,21 @@ export async function composio(): Promise<Composio> {
             if (error instanceof ComposioError && ["key", "balance", "tool"].includes(error.kind)) throw error;
             return runScript(client, code);
           })) as PageResult[];
+          out.push(...results);
+        }
+        return out;
+      });
+    },
+    async search(calls, options) {
+      if (!calls.length) return [];
+      return withClient(async (client) => {
+        const out: SearchResult[] = [];
+        for (let i = 0; i < calls.length; i += COMPOSIO.batchSize) {
+          const code = searchScript(calls.slice(i, i + COMPOSIO.batchSize), options);
+          const results = (await runScript(client, code).catch((error) => {
+            if (error instanceof ComposioError && ["key", "balance", "tool"].includes(error.kind)) throw error;
+            return runScript(client, code);
+          })) as SearchResult[];
           out.push(...results);
         }
         return out;

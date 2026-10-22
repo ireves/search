@@ -27,7 +27,9 @@ The server reads careers pages, and adverts it can't open itself (such as Indeed
    - It checks every found role's advert and shows what it would change. Nothing is written to Notion.
 3. Then open [search-connector.vercel.app/jobs?stage=companies](https://search-connector.vercel.app/jobs?stage=companies).
    - It reads the job lists of the 12 companies checked longest ago and shows the roles it would add to the Inbox.
-4. Each stage can take a minute or two. If a report looks right, **Run for real** writes it to Notion.
+4. Then [job sites](https://search-connector.vercel.app/jobs?stage=job_sites) and [LinkedIn posts](https://search-connector.vercel.app/jobs?stage=linkedin_posts).
+   - Job sites searches Indeed, LinkedIn and Glassdoor for each role and location you've set; LinkedIn posts looks for recent hiring posts.
+5. Each stage can take a minute or two. If a report looks right, **Run for real** writes it to Notion.
 
 ## 4. Add the Job search connector to Claude
 

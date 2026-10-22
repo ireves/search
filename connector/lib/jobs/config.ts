@@ -83,6 +83,40 @@ export const COMPANIES = {
   budgetMs: 200_000,
 };
 
+// Stage 3: job sites (LinkedIn, Indeed and Glassdoor through Composio's Job
+// Search toolkit) and hiring posts on LinkedIn.
+export const SEARCHES = {
+  jobs: {
+    tool: "JOB_SEARCH_JOBS_SEARCH_API_SEARCH_JOBS",
+    sites: ["indeed", "linkedin", "glassdoor"],
+    countryIndeed: "UK",
+    // Adverts posted in the last three days: daily runs overlap, so a
+    // missed day or a weekend loses nothing. Duplicates are left out.
+    hoursOld: 72,
+    resultsWanted: 25,
+    expects: ["search_term", "location", "site_name", "hours_old", "results_wanted", "country_indeed", "is_remote"],
+  },
+  linkedin: {
+    tool: "JOB_SEARCH_JOBS_API_LINKEDIN_SEARCH_JOBS",
+    datePosted: "week",
+    expects: ["query", "location", "date_posted", "workplace_types"],
+  },
+  posts: {
+    tool: "SCRAPECREATORS_SEARCH_LINKEDIN_POSTS",
+    datePosted: "last-week",
+    // Wording that marks a post as a job post rather than a design post.
+    hiring: /\b(hiring|we'?re looking for|looking for an?|join (our|the) team|open role|vacanc(y|ies)|apply)\b/i,
+    expects: ["query", "date_posted"],
+  },
+  textChars: 4000,
+  // A search that usually finds about 20 adverts coming back with none at all
+  // counts as a failure.
+  budgetMs: 200_000,
+};
+
+export const SOURCE_SITES: Record<string, string> = { indeed: "Indeed", linkedin: "LinkedIn", glassdoor: "Glassdoor" };
+export const SOURCE_POST = "LinkedIn post";
+
 // Wording on an advert page that means it has closed. Matched against the
 // page's visible text in lower case.
 export const CLOSED_PHRASES = [
@@ -174,5 +208,5 @@ export const RUN_LOG = {
   stages: "job_search_stages",
 };
 
-export const STAGES = ["recheck", "companies"] as const;
+export const STAGES = ["recheck", "companies", "job_sites", "linkedin_posts"] as const;
 export type StageName = (typeof STAGES)[number];
