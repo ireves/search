@@ -46,6 +46,11 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "The project's publishable (or legacy anon) key. The problem log tables only let it add rows.",
     link: "https://supabase.com/dashboard/project/_/settings/api-keys",
   },
+  NOTION_TOKEN: {
+    label: "Notion integration token (job search, optional)",
+    help: "Lets the daily job search read and update Job Applications and Search Preferences. Not used by the search tools.",
+    link: "https://www.notion.so/profile/integrations",
+  },
 };
 
 export function adminPassword(): string | null {

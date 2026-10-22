@@ -48,6 +48,14 @@ async function currentSession(request: Request, key: CryptoKey): Promise<Session
   return session.ep === state.epoch ? session : null;
 }
 
+// For the job search page (api/jobs.ts): the signed-in owner's session id, or null.
+export async function signedInOwner(request: Request): Promise<string | null> {
+  const password = adminPassword();
+  if (!password) return null;
+  const { signing } = await getKeys(password);
+  return (await currentSession(request, signing))?.sid ?? null;
+}
+
 async function csrfFor(key: CryptoKey, session: Session): Promise<string> {
   return signToken(key, { typ: "csrf", exp: session.exp, sid: session.sid });
 }
