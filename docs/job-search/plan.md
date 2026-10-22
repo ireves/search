@@ -197,7 +197,7 @@ Composio Connect is designed for chat assistants, so it could change without not
 
 ## 8. Things to check while building
 
-- **Vercel limits** on the user's plan: how often crons may run, how long a function may run, and whether timing is exact. Check the current Vercel docs; don't rely on memory. Split the run into stages if needed.
+- **Vercel limits:** checked 22 Oct 2026 (see setup.md). The Hobby plan allows one scheduled run a day per schedule, up to 59 minutes late, and 300 seconds per call. Build for that; give later stages their own daily schedule if needed.
 - **Composio Connect terms:** whether automated use from a server is allowed. If unclear, tell the user before relying on it.
 - **Workable** job list endpoint, tested from Vercel.
 - **Tell rows apart by Entry type**, never by Status.
@@ -235,7 +235,7 @@ Test results that this plan relies on (22 Oct 2026, `composio-test` project): th
 ## 11. Build order
 
 0. **Read and propose.** Done on 22 October 2026: Notion set up as in section 4.
-1. **Server foundation.** Notion client, secrets, run log tables, dry-run mode, the recheck step (section 5, step 2), with tests. Deploy, dry-run, show the user the report.
+1. **Server foundation.** Notion client, secrets, run log tables, dry-run mode, the recheck step (section 5, step 2), with tests. Deploy, dry-run, show the user the report. Built 22 Oct 2026: `lib/jobs/`, `api/jobs.ts` (`/jobs` page for the owner, `/jobs/run` for the schedule), run log tables created in Supabase. The schedule is added once the user approves a dry run.
 2. **Company job lists.** Hiring-service lists and Firecrawl through Composio Connect, with the reliability measures in section 7.
 3. **Job sites and LinkedIn posts.** Searches, filters, duplicates, advert text, writing new Role rows.
 4. **Daily Claude prompt.** Write `docs/job-search/scheduled-task.md`. Run it alongside the old task for a few days, compare the results with the user, then switch over.

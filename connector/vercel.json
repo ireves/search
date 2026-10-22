@@ -13,11 +13,14 @@
     { "source": "/.well-known/openid-configuration", "destination": "/api/oauth?route=authorization-server" },
     { "source": "/register", "destination": "/api/oauth?route=register" },
     { "source": "/authorize", "destination": "/api/oauth?route=authorize" },
-    { "source": "/token", "destination": "/api/oauth?route=token" }
+    { "source": "/token", "destination": "/api/oauth?route=token" },
+    { "source": "/jobs", "destination": "/api/jobs?route=page" },
+    { "source": "/jobs/run", "destination": "/api/jobs?route=run" }
   ],
   "functions": {
     "api/mcp.ts": { "maxDuration": 230 },
     "api/oauth.ts": { "maxDuration": 15 },
-    "api/settings.ts": { "maxDuration": 30 }
+    "api/settings.ts": { "maxDuration": 30 },
+    "api/jobs.ts": { "maxDuration": 300 }
   }
 }
