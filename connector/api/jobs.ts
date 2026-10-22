@@ -15,7 +15,7 @@ import { signedInOwner } from "../lib/settings.js";
 //   POST /jobs                Signed-in owner: the real run, from that button.
 
 const CSRF_TTL = 3600;
-const STAGE_TITLES: Record<StageName, string> = { recheck: "Recheck found roles", companies: "Company job lists" };
+const STAGE_TITLES: Record<StageName, string> = { recheck: "Recheck found roles", companies: "Company job lists", job_sites: "Job sites", linkedin_posts: "LinkedIn posts" };
 
 function signingKey(): Promise<CryptoKey> | null {
   const password = adminPassword();
@@ -57,12 +57,26 @@ function companiesSection(s: StageReport, dry: boolean): string {
   return `<div class="card"><p>${c.companies ?? 0} companies checked: ${c.listed ?? 0} jobs listed, ${c.kept ?? 0} could suit, ${c.duplicates ?? 0} already in Notion, ${c.added ?? 0} ${dry ? "would be added" : "added"} to the Inbox. ${c.needs_claude ?? 0} ${dry ? "would be" : ""} passed to Claude. ${c.firecrawl_pages ?? 0} pages read through Firecrawl.</p></div><ul>${rows}</ul>`;
 }
 
+function searchesSection(s: StageReport, dry: boolean): string {
+  const d = (s.details ?? {}) as any;
+  const c = s.counts ?? {};
+  const rows = (d.searches ?? [])
+    .map((se: any) => {
+      const added = se.added?.length ? `<br>${dry ? "Would add" : "Added"}: ${se.added.map((t: string) => esc(t)).join("; ")}` : "";
+      const dropped = se.dropped?.length ? `<br><span class="muted">Left out: ${se.dropped.slice(0, 5).map((x: any) => `${esc(x.title)} (${esc(x.why)})`).join("; ")}${se.dropped.length > 5 ? ` and ${se.dropped.length - 5} more` : ""}</span>` : "";
+      const error = se.error ? `<br><span class="bad">${esc(se.error)}</span>` : "";
+      return `<li><strong>${esc(se.search)}</strong>: ${se.raw} results, ${se.matched} could suit.${added}${dropped}${error}</li>`;
+    })
+    .join("");
+  return `<div class="card"><p>${c.searches ?? 0} searches: ${c.raw ?? 0} results, ${c.matched ?? 0} could suit, ${c.duplicates ?? 0} already in Notion or found twice, ${c.added ?? 0} ${dry ? "would be added" : "added"} to the Inbox. Advert text: ${c.advert_from_list ?? 0} from the search, ${c.advert_from_page ?? 0} from the page, ${c.advert_from_firecrawl ?? 0} through Firecrawl, ${c.advert_missing ?? 0} without.</p></div><ul>${rows}</ul>`;
+}
+
 function reportPage(report: RunReport, base: string, csrf: string | null): Response {
   const stages = report.stages
     .map((s) => {
       const head = `<h2>${esc(STAGE_TITLES[s.stage])} ${s.ok ? "" : '<span class="tag bad">problem</span>'}</h2>`;
       if (s.error) return `${head}<div class="card bad">${esc(s.error)}</div>`;
-      const body = s.stage === "recheck" ? recheckSection(s, report.dry_run) : companiesSection(s, report.dry_run);
+      const body = s.stage === "recheck" ? recheckSection(s, report.dry_run) : s.stage === "companies" ? companiesSection(s, report.dry_run) : searchesSection(s, report.dry_run);
       const failures = s.failures?.length ? `<h3>Failures</h3><ul>${s.failures.map((f) => `<li>${esc(f.where)}: ${esc(f.error)}</li>`).join("")}</ul>` : "";
       const cost = s.charge_usd ? `<p class="muted">Composio charges: $${s.charge_usd.toFixed(4)}.</p>` : "";
       return `${head}${body}${failures}${cost}`;

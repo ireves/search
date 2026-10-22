@@ -6,7 +6,8 @@ import { calls, freshStore, mockNetwork, req, restoreNetwork } from "./helpers.j
 import jobs from "../api/jobs.js";
 import oauth from "../api/oauth.js";
 import settings from "../api/settings.js";
-import { classify, pageScript, parseWorkbench, useComposio, type Composio, type PageResult } from "../lib/jobs/composio.js";
+import { classify, pageScript, parseWorkbench, searchScript, useComposio, type Composio, type PageResult, type SearchItem, type SearchRequest } from "../lib/jobs/composio.js";
+import { bestLink, jobSearchCalls } from "../lib/jobs/searches.js";
 import { jobsFromPage, runCompanies, serviceOf } from "../lib/jobs/companies.js";
 import { checkLink, closedPhrase, decide, ukToday } from "../lib/jobs/recheck.js";
 import { notion, useNotion, type Notion, type NotionPage } from "../lib/jobs/notion.js";
@@ -83,8 +84,9 @@ function fakeNotion(pages: NotionPage[]) {
   return Object.assign(client, { updates, created });
 }
 
-function fakeComposio(pages: Record<string, Partial<PageResult>>) {
+function fakeComposio(pages: Record<string, Partial<PageResult>>, searches: (call: SearchRequest) => SearchItem[] = () => []) {
   const asked: string[] = [];
+  const searched: SearchRequest[] = [];
   const client: Composio = {
     async readPages(list) {
       return list.map((p) => {
@@ -95,11 +97,18 @@ function fakeComposio(pages: Record<string, Partial<PageResult>>) {
           : { id: p.id, ok: false, error: "not mocked", chars: 0, head: "", matches: [], services: [], charge: 0 };
       });
     },
+    async search(calls) {
+      return calls.map((c) => {
+        searched.push(c);
+        const items = searches(c);
+        return { id: c.id, ok: true, raw: items.length + 3, items, charge: 0.00025 };
+      });
+    },
     async toolSettings() {
       return ["url", "formats", "waitFor", "timeout", "onlyMainContent", "location"];
     },
   };
-  return Object.assign(client, { asked });
+  return Object.assign(client, { asked, searched });
 }
 
 let logged: { table: string; row: any }[] = [];
@@ -544,4 +553,120 @@ test("the Job search connector has its own sign-in and its one tool", async () =
   const searchMcp = (await import("../api/mcp.js")).default;
   const crossed = await searchMcp.fetch(req("/mcp", { method: "POST", headers: { authorization: `Bearer ${token}` }, json: { jsonrpc: "2.0", id: 4, method: "tools/list" } }));
   assert.equal(crossed.status, 401, "a Job search token doesn't open the Search connector");
+});
+
+// ---- Job sites and LinkedIn posts ----
+
+const searchPrefs = () => [
+  row("p-role", { name: "Product Designer", entry: "Preference", type: "Role", priority: "High" }),
+  row("p-ui", { name: "UI Designer", entry: "Preference", type: "Role", priority: "High" }),
+  row("p-lon", { name: "London, UK", entry: "Preference", type: "Location", priority: "High" }),
+  row("p-rem", { name: "Remote", entry: "Preference", type: "Location", priority: "Low" }),
+  row("p-senior", { name: "Senior", entry: "Preference", type: "Level", priority: "Exclude" }),
+  row("old", { name: "Wise", role: "Product Designer, Card", link: "https://uk.linkedin.com/jobs/view/999", entry: "Role", review: "Rejected" }),
+];
+
+test("each Role and Location pair gets a job site search and a LinkedIn search", () => {
+  const p: Preferences = {
+    all: [],
+    roles: [{ name: "Product Designer" } as any],
+    locations: [{ name: "London, UK" } as any, { name: "Remote" } as any],
+    excludes: [],
+    sources: [],
+  };
+  const { calls } = jobSearchCalls(p);
+  assert.equal(calls.length, 4);
+  assert.deepEqual(calls[0].args, { search_term: "Product Designer", location: "London, UK", country_indeed: "UK", site_name: ["indeed", "linkedin", "glassdoor"], hours_old: 72, results_wanted: 25 });
+  assert.deepEqual(calls[1].args, { query: "Product Designer", location: "London, United Kingdom", date_posted: "week" });
+  assert.equal(calls[2].args.is_remote, true);
+  assert.equal(calls[3].args.workplace_types, "remote");
+});
+
+test("the employer's own advert link is preferred, but not a bare careers page", () => {
+  const item = { title: "x", company: "y", location: "", link: "https://uk.indeed.com/viewjob?jk=1" };
+  assert.equal(bestLink({ ...item, direct: "https://acme.com/careers/product-designer-123" }), "https://acme.com/careers/product-designer-123");
+  assert.equal(bestLink({ ...item, direct: "https://www.weareopal.digital/jobs#" }), item.link);
+  assert.equal(bestLink({ ...item, direct: "https://acme.com/careers/" }), item.link);
+});
+
+test("the search script keeps only matching items, with tidy pay", () => {
+  const script = searchScript([{ id: "0", kind: "jobs", tool: "T", args: {} }], { keywords: ["Designer"], textChars: 100 });
+  assert.match(script, /"yearly": "a year"/);
+  assert.match(script, /if wanted\(j.get\("title"\)\)/);
+});
+
+test("job site results become Inbox rows, once each, with advert text", async () => {
+  const fake = fakeNotion(searchPrefs());
+  useNotion(fake);
+  mockNetwork((c) => (c.url === "https://uk.linkedin.com/jobs/view/2" ? html(`<main><h1>UI Designer</h1><p>${"Design the UI for our banking app with the team. ".repeat(6)}</p></main>`) : undefined));
+  const fc = fakeComposio({}, (c) => {
+    if (c.kind === "jobs" && c.args.search_term === "Product Designer" && c.args.location === "London, UK")
+      return [
+        { title: "Product Designer", company: "Monzo", location: "London, ENG, UK", link: "https://uk.indeed.com/viewjob?jk=1", direct: "https://monzo.com/careers/product-designer-1", site: "indeed", pay: "£50000-60000 a year", text: "Design money tools. ".repeat(20) },
+        { title: "Senior Product Designer", company: "Wise", location: "London", link: "https://uk.indeed.com/viewjob?jk=2", site: "indeed" },
+        { title: "Product Designer", company: "Acme", location: "New York, NY", link: "https://uk.indeed.com/viewjob?jk=3", site: "indeed" },
+        { title: "Product Designer, Card", company: "Wise", location: "London", link: "https://uk.linkedin.com/jobs/view/999", site: "linkedin" },
+      ];
+    if (c.kind === "linkedin_jobs" && c.args.query === "Product Designer" && c.args.location === "London, United Kingdom")
+      return [{ title: "Product Designer", company: "Monzo", location: "London", link: "https://uk.linkedin.com/jobs/view/1", site: "linkedin" }];
+    if (c.kind === "linkedin_jobs" && c.args.query === "UI Designer" && c.args.location === "London, United Kingdom")
+      return [{ title: "UI Designer", company: "Starling", location: "London", link: "https://uk.linkedin.com/jobs/view/2", site: "linkedin" }];
+    return [];
+  });
+  useComposio(fc);
+  const dry = await runJobs({ dry: true, trigger: "manual", stages: ["job_sites"] });
+  assert.equal(fc.searched.length, 8, "2 roles x 2 locations x 2 tools");
+  assert.equal(fake.created.length, 0);
+  assert.equal(dry.stages[0].counts!.added, 2);
+  assert.equal(dry.stages[0].counts!.duplicates, 2, "Monzo on LinkedIn too, and a role already in Notion");
+
+  await runJobs({ dry: false, trigger: "claude", stages: ["job_sites"] });
+  const rows = fake.created.map((c) => [c.properties.Name.title[0].text.content, c.properties.Role.rich_text[0].text.content, c.properties.Source.select.name, c.properties.Links.url]);
+  assert.deepEqual(rows.sort(), [
+    ["Monzo", "Product Designer", "Indeed", "https://monzo.com/careers/product-designer-1"],
+    ["Starling", "UI Designer", "LinkedIn", "https://uk.linkedin.com/jobs/view/2"],
+  ]);
+  const monzo = fake.created.find((c) => c.properties.Name.title[0].text.content === "Monzo")!;
+  assert.equal(monzo.properties.Pay.rich_text[0].text.content, "£50000-60000 a year");
+  assert.match(monzo.children![0].toggle.children[0].paragraph.rich_text[0].text.content, /Design money tools/);
+  const starling = fake.created.find((c) => c.properties.Name.title[0].text.content === "Starling")!;
+  assert.match(starling.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join(" "), /banking app/, "LinkedIn adverts are read from the page");
+});
+
+test("only posts that read like hiring posts go to the Inbox, for Claude to judge", async () => {
+  const fake = fakeNotion(searchPrefs());
+  useNotion(fake);
+  const fc = fakeComposio({}, (c) =>
+    c.kind === "posts" && String(c.args.query).includes("Product Designer")
+      ? [
+          { title: "We're hiring a Product Designer", company: "Projects by IF", location: "", link: "https://www.linkedin.com/posts/if_1", site: "linkedin_post", text: "We're hiring a Product Designer. London, hybrid. Send us your portfolio." },
+          { title: "My favourite product designer tools", company: "Someone", location: "", link: "https://www.linkedin.com/posts/x_2", site: "linkedin_post", text: "My favourite product designer tools this year." },
+        ]
+      : [],
+  );
+  useComposio(fc);
+  await runJobs({ dry: false, trigger: "claude", stages: ["linkedin_posts"] });
+  assert.deepEqual(fc.searched.map((c) => c.args), [
+    { query: "hiring Product Designer London", date_posted: "last-week" },
+    { query: "hiring UI Designer London", date_posted: "last-week" },
+  ]);
+  assert.equal(fake.created.length, 1);
+  const post = fake.created[0];
+  assert.equal(post.properties.Source.select.name, "LinkedIn post");
+  assert.equal(post.properties.Links.url, "https://www.linkedin.com/posts/if_1");
+  assert.match(post.children![0].toggle.children[0].paragraph.rich_text[0].text.content, /Send us your portfolio/, "a post is its own advert, however short");
+});
+
+test("a search tool that returns nothing at all is reported as a failure", async () => {
+  useNotion(fakeNotion(searchPrefs()));
+  const empty: Composio = {
+    ...fakeComposio({}),
+    async search(calls) {
+      return calls.map((c) => ({ id: c.id, ok: true, raw: 0, items: [], charge: 0 }));
+    },
+  };
+  useComposio(empty);
+  const report = await runJobs({ dry: true, trigger: "manual", stages: ["job_sites"] });
+  assert.equal(report.ok, false);
+  assert.match(report.stages[0].failures!.at(-1)!.error, /Every search came back empty/);
 });

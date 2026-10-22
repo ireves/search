@@ -10,21 +10,13 @@
 // Each company's Last checked, Last result, Hiring service and Board ID are
 // updated. Nothing here applies for a job or signs in anywhere.
 
-import { COL, COMPANIES, COMPOSIO, ENTRY, HIRING_SERVICES, NOTION, RECHECK, RESULT, REVIEW, SOURCE_CAREERS } from "./config.js";
+import { COL, COMPANIES, COMPOSIO, ENTRY, HIRING_SERVICES, RESULT, REVIEW, SEARCHES, SOURCE_CAREERS } from "./config.js";
 import { composio, ComposioError, type PageResult } from "./composio.js";
-import { dateValue, notion, select, selectValue, text, textValue, titleValue, toggleBlock, url, urlValue, type Notion } from "./notion.js";
-import { excludedBy, linkKey, locationWanted, readPreferences, roleKey, roleWords, titleWanted, type Preference, type Preferences } from "./prefs.js";
+import { claim, createRow, fillAdverts, getJson, loadExisting, plain, writeRoles, type Job, type Pending, type Service } from "./inbox.js";
+import { dateValue, notion, selectValue, textValue, titleValue, urlValue } from "./notion.js";
+import { excludedBy, linkKey, locationWanted, readPreferences, roleWords, titleWanted, type Preference } from "./prefs.js";
 import { ukToday } from "./recheck.js";
 
-export interface Job {
-  title: string;
-  link: string;
-  location: string;
-  pay: string;
-  advert: string;
-}
-
-type Service = "Greenhouse" | "Lever" | "Ashby" | "Workable" | "Own site";
 
 export interface CompanyReport {
   name: string;
@@ -66,32 +58,6 @@ export function serviceOf(link: string | null): { service: Service; board: strin
     if (m && !["embed", "v1", "jobs"].includes(m[1].toLowerCase())) return { service: HIRING_SERVICES[key].name as Service, board: m[1] };
   }
   return null;
-}
-
-const plain = (html: string) =>
-  html
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, "&")
-    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<\/(p|div|li|h\d|br)>|<br\s*\/?>/gi, "\n\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;|&#160;/g, " ")
-    .replace(/&#39;|&rsquo;/g, "'")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n\s*\n\s*/g, "\n\n")
-    .trim();
-
-const clip = (s: string) => (s.length > COMPANIES.advertChars ? `${s.slice(0, COMPANIES.advertChars).replace(/\s+\S*$/, "")} …` : s);
-
-async function getJson<T>(target: string): Promise<{ status: number; body: T | null }> {
-  const response = await fetch(target, { headers: { accept: "application/json", "user-agent": RECHECK.userAgent }, signal: AbortSignal.timeout(RECHECK.pageTimeoutMs) });
-  if (!response.ok) {
-    await response.body?.cancel();
-    return { status: response.status, body: null };
-  }
-  return { status: response.status, body: (await response.json()) as T };
 }
 
 // A hiring service's free job list. null means it couldn't be read.
@@ -149,32 +115,6 @@ export async function serviceJobs(service: Service, board: string): Promise<{ jo
   return null;
 }
 
-// Advert text for a kept Greenhouse job, or an own-site advert opened
-// directly (free). Left empty when the page won't open; Claude reads it then.
-async function advertText(service: Service, board: string, job: Job): Promise<string> {
-  try {
-    if (service === "Greenhouse") {
-      const id = /\/jobs\/(\d+)/.exec(job.link)?.[1] ?? /gh_jid=(\d+)/.exec(job.link)?.[1];
-      if (!id) return "";
-      const r = await getJson<{ content?: string }>(`${HIRING_SERVICES.greenhouse.list(board)}/${id}`);
-      return r.body?.content ? plain(r.body.content) : "";
-    }
-    if (service === "Own site" || service === "Workable") {
-      const response = await fetch(job.link, { headers: { "user-agent": RECHECK.userAgent, accept: "text/html" }, signal: AbortSignal.timeout(RECHECK.pageTimeoutMs) });
-      if (!response.ok) {
-        await response.body?.cancel();
-        return "";
-      }
-      const html = await response.text();
-      const main = /<main[\s\S]*?<\/main>/i.exec(html)?.[0] ?? /<body[\s\S]*<\/body>/i.exec(html)?.[0] ?? html;
-      return plain(main);
-    }
-  } catch {
-    // leave empty
-  }
-  return "";
-}
-
 // Own-site links that look like job adverts: on the same site (or a hiring
 // service), not the careers page itself, and named after a wanted role.
 export function jobsFromPage(page: PageResult, careersPage: string): Job[] {
@@ -220,19 +160,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
   result.counts.companies = chosen.length;
 
   // What's already in Job Applications, to leave out duplicates.
-  const existing = await client.query(NOTION.applications, { property: COL.entryType, select: { equals: ENTRY.role } });
-  const applications = await client.query(NOTION.applications, { property: COL.entryType, select: { equals: ENTRY.application } });
-  const seenLinks = new Set<string>();
-  const seenRoles = new Set<string>();
-  const needsClaude = new Set<string>();
-  for (const page of [...existing, ...applications]) {
-    const p = page.properties;
-    const name = text(p[COL.name]);
-    seenLinks.add(linkKey(url(p[COL.links])));
-    if (text(p[COL.role])) seenRoles.add(roleKey(name, text(p[COL.role])));
-    if (select(p[COL.reviewStatus]) === REVIEW.needsClaude) needsClaude.add(name.toLowerCase());
-  }
-  seenLinks.delete("");
+  const existing = await loadExisting(client);
 
   // Own-site pages go to Firecrawl together, in one workbench call.
   const plan = chosen.map((company) => {
@@ -302,7 +230,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
     }
   }
 
-  const pending: { company: string; service: Service; board: string; job: Job }[] = [];
+  const pending: Pending[] = [];
   for (const { company } of plan) {
     const entry = listed.get(company.id);
     const report: CompanyReport = { name: company.name, how: entry?.how ?? "no careers page link", result: entry?.result ?? RESULT.needsClaude, listed: 0, kept: 0, added: [], dropped: [] };
@@ -310,10 +238,10 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
 
     if (!entry || entry.result === RESULT.needsClaude) {
       report.error = entry?.error ?? "no careers page link";
-      if (!needsClaude.has(company.name.toLowerCase())) {
+      if (!existing.needsClaude.has(company.name.toLowerCase())) {
         result.counts.needs_claude++;
         if (!options.dry) {
-          await createRow(client, {
+          const failed = await createRow(client, {
             [COL.name]: titleValue(company.name),
             [COL.entryType]: selectValue(ENTRY.role),
             [COL.reviewStatus]: selectValue(REVIEW.needsClaude),
@@ -321,7 +249,8 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
             [COL.links]: urlValue(company.link),
             [COL.dateFound]: dateValue(today),
             [COL.reason]: textValue(company.link ? `The server couldn't read the careers page (${report.error}). Check it for open roles.` : "No careers page link. Find their jobs page and check it for open roles."),
-          }, undefined, result, company.name);
+          }, undefined, company.name);
+          if (failed) result.failures.push(failed);
         }
       }
     } else {
@@ -341,15 +270,13 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
         }
         report.kept++;
         result.counts.kept++;
-        if (seenLinks.has(linkKey(job.link)) || seenRoles.has(roleKey(company.name, job.title))) {
+        if (!claim(existing, company.name, job)) {
           result.counts.duplicates++;
           continue;
         }
-        seenLinks.add(linkKey(job.link));
-        seenRoles.add(roleKey(company.name, job.title));
         report.added.push(job.title);
         result.counts.added++;
-        pending.push({ company: company.name, service: entry.service, board: entry.board, job });
+        pending.push({ company: company.name, service: entry.service, board: entry.board, source: SOURCE_CAREERS, job, trusted: entry.service === "Lever" || entry.service === "Ashby" });
       }
     }
 
@@ -364,93 +291,15 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
       }
     }
   }
-  // Advert text for each new role: from the job list when it gives it, else
-  // the advert page opened directly, else the page through Firecrawl (for
-  // pages that block the server or only load in a browser).
-  await Promise.all(
-    pending.map(async (p) => {
-      if (Date.now() > deadlineAt) return;
-      if (p.job.advert) {
-        p.job.advert = clip(plain(p.job.advert));
-        result.counts.advert_from_list++;
-        return;
-      }
-      const text = clip(await advertText(p.service, p.board, p.job));
-      // A page that doesn't name the role is a shell or a cookie notice.
-      const fromService = p.service === "Greenhouse" && text.length > 0;
-      if (fromService || (text.length >= COMPANIES.minAdvertChars && namesRole(text, p.job.title))) {
-        p.job.advert = text;
-        result.counts.advert_from_page++;
-      }
-    }),
-  );
-  const unread = pending.filter((p) => !p.job.advert).slice(0, COMPANIES.maxFirecrawlAdverts);
-  if (unread.length && Date.now() < deadlineAt) {
-    try {
-      const pages = await (await composio()).readPages(
-        unread.map((p, i) => ({ id: String(i), url: p.job.link })),
-        { keywords: [], headChars: COMPANIES.advertChars * 2, mainOnly: true },
-      );
-      for (const page of pages) {
-        result.charge += page.charge ?? 0;
-        result.counts.firecrawl_pages++;
-        const text = page.ok ? clip(markdownText(page.head)) : "";
-        if (text.length >= COMPANIES.minAdvertChars) {
-          unread[Number(page.id)].job.advert = text;
-          result.counts.advert_from_firecrawl++;
-        }
-      }
-    } catch (error) {
-      result.failures.push({ where: "Firecrawl through Composio (advert text)", error: (error as ComposioError).friendly ?? (error as Error).message });
-    }
-  }
-  result.counts.advert_missing = pending.filter((p) => !p.job.advert).length;
+  const counts = await fillAdverts(pending, deadlineAt);
+  Object.assign(result.counts, counts.counts);
+  result.charge += counts.charge;
+  result.failures.push(...counts.failures);
   for (const report of result.companies) {
     report.adverts = Object.fromEntries(pending.filter((p) => p.company === report.name).map((p) => [p.job.title, p.job.advert.length]));
   }
-
-  if (!options.dry) {
-    for (const p of pending) {
-      if (Date.now() > deadlineAt) break;
-      await createRow(
-        client,
-        {
-          [COL.name]: titleValue(p.company),
-          [COL.role]: textValue(p.job.title),
-          [COL.entryType]: selectValue(ENTRY.role),
-          [COL.reviewStatus]: selectValue(REVIEW.new),
-          [COL.source]: selectValue(SOURCE_CAREERS),
-          [COL.links]: urlValue(p.job.link),
-          [COL.roleLocation]: textValue(p.job.location),
-          [COL.pay]: textValue(p.job.pay),
-          [COL.dateFound]: dateValue(today),
-        },
-        p.job.advert ? [toggleBlock("Advert", p.job.advert)] : undefined,
-        result,
-        `${p.company} ${p.job.title}`,
-      );
-    }
-  }
+  if (!options.dry) result.failures.push(...(await writeRoles(client, pending, today, deadlineAt)));
   return result;
-}
-
-export function namesRole(text: string, title: string): boolean {
-  const words = title.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2).slice(0, 3);
-  const body = text.toLowerCase();
-  return words.every((w) => body.includes(w));
-}
-
-// Firecrawl's Markdown as plain reading text: images dropped, links kept as
-// their words.
-export function markdownText(md: string): string {
-  return md
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/^#{1,6}\s*/gm, "")
-    .replace(/\*\*|__/g, "")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
 }
 
 function hostOf(link: string): string {
@@ -461,19 +310,25 @@ function hostOf(link: string): string {
   }
 }
 
-async function createRow(client: Notion, properties: Record<string, unknown>, children: unknown[] | undefined, result: CompaniesResult, what: string): Promise<void> {
-  try {
-    await client.create(NOTION.applications, properties, children);
-  } catch (error) {
-    result.failures.push({ where: `add ${what}`, error: (error as any).friendly ?? (error as Error).message });
-  }
-}
-
-// Weekly: does Composio's Firecrawl tool still take the settings we send?
+// Weekly: do Composio's tools still exist and take the settings we send?
 export async function checkComposioTools(): Promise<{ ok: boolean; missing: string[]; error?: string }> {
+  const tools: [string, string[]][] = [
+    [COMPOSIO.scrape.tool, COMPOSIO.scrape.expects],
+    [SEARCHES.jobs.tool, SEARCHES.jobs.expects],
+    [SEARCHES.linkedin.tool, SEARCHES.linkedin.expects],
+    [SEARCHES.posts.tool, SEARCHES.posts.expects],
+  ];
   try {
-    const settings = await (await composio()).toolSettings(COMPOSIO.scrape.tool);
-    const missing = COMPOSIO.scrape.expects.filter((s) => !settings.includes(s));
+    const client = await composio();
+    const missing: string[] = [];
+    for (const [tool, expects] of tools) {
+      try {
+        const settings = await client.toolSettings(tool);
+        missing.push(...expects.filter((s) => !settings.includes(s)).map((s) => `${tool}.${s}`));
+      } catch (error) {
+        missing.push(`${tool} (${(error as ComposioError).friendly ?? (error as Error).message})`);
+      }
+    }
     return { ok: missing.length === 0, missing };
   } catch (error) {
     return { ok: false, missing: [], error: (error as ComposioError).friendly ?? (error as Error).message };

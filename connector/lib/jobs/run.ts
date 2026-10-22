@@ -5,6 +5,7 @@
 import { RUN_LOG, STAGES, type StageName } from "./config.js";
 import { checkComposioTools, runCompanies } from "./companies.js";
 import { runRecheck } from "./recheck.js";
+import { runJobSites, runLinkedInPosts } from "./searches.js";
 import { runLog } from "./runlog.js";
 
 export interface StageReport {
@@ -43,9 +44,17 @@ const STAGE_RUNNERS: Record<StageName, (dry: boolean) => Promise<Omit<StageRepor
     if (new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "short" }).format(new Date()) === "Mon") {
       const check = await checkComposioTools();
       details.tool_check = check;
-      if (!check.ok) r.failures.push({ where: "weekly Composio tool check", error: check.error ?? `FIRECRAWL_SCRAPE no longer takes: ${check.missing.join(", ")}` });
+      if (!check.ok) r.failures.push({ where: "weekly Composio tool check", error: check.error ?? `Composio tools changed: ${check.missing.join(", ")}` });
     }
     return { counts: r.counts, failures: r.failures, charge_usd: r.charge, details };
+  },
+  async job_sites(dry) {
+    const r = await runJobSites({ dry });
+    return { counts: r.counts, failures: r.failures, charge_usd: r.charge, details: { searches: r.searches } };
+  },
+  async linkedin_posts(dry) {
+    const r = await runLinkedInPosts({ dry });
+    return { counts: r.counts, failures: r.failures, charge_usd: r.charge, details: { searches: r.searches } };
   },
 };
 

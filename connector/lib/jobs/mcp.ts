@@ -9,18 +9,18 @@ import { runJobs, type RunReport } from "./run.js";
 
 const PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
-export const INSTRUCTIONS = `Runs the server side of the user's daily job search. Use it only from the job search scheduled task (docs/job-search/scheduled-task.md) or when the user asks for a job search run. Call run_job_search once per stage, in order: recheck, then companies. Each call can take up to about four minutes.`;
+export const INSTRUCTIONS = `Runs the server side of the user's daily job search. Use it only from the job search scheduled task (docs/job-search/scheduled-task.md) or when the user asks for a job search run. Call run_job_search once per stage, in order: recheck, companies, job_sites, linkedin_posts. Each call can take up to about four minutes.`;
 
 export const TOOLS = [
   {
     name: "run_job_search",
     title: "Run a job search stage",
     description:
-      "Runs one stage of the daily job search and returns its report as JSON. recheck: checks found roles' adverts and sets Advert status in Job Applications (never changes Application rows; lists watched roles that closed). companies: reads the job lists of the 12 companies checked longest ago and adds new roles to the Inbox (Review status New), or a Needs Claude row when a page couldn't be read. dry_run reports without writing to Notion.",
+      "Runs one stage of the daily job search and returns its report as JSON. recheck: checks found roles' adverts and sets Advert status in Job Applications (never changes Application rows; lists watched roles that closed). companies: reads the job lists of the 12 companies checked longest ago and adds new roles to the Inbox (Review status New), or a Needs Claude row when a page couldn't be read. job_sites: searches LinkedIn, Indeed and Glassdoor for each Role and Location preference and adds new roles to the Inbox. linkedin_posts: finds recent public LinkedIn hiring posts for each Role preference and adds them to the Inbox for Claude to judge. dry_run reports without writing to Notion.",
     inputSchema: {
       type: "object",
       properties: {
-        stage: { type: "string", enum: [...STAGES], description: "recheck, then companies." },
+        stage: { type: "string", enum: [...STAGES], description: "recheck, companies, job_sites, then linkedin_posts." },
         dry_run: { type: "boolean", description: "Report what would change without writing to Notion. Default false." },
       },
       required: ["stage"],
@@ -38,12 +38,13 @@ export function compactReport(report: RunReport): Json {
     ...report,
     stages: report.stages.map((s) => {
       const details = s.details as Json | undefined;
-      if (!details?.companies) return s;
+      if (!details?.companies && !details?.searches) return s;
       return {
         ...s,
         details: {
           ...details,
-          companies: details.companies.map((c: Json) => ({ ...c, dropped: c.dropped?.slice(0, 8), dropped_total: c.dropped?.length ?? 0 })),
+          ...(details.companies ? { companies: details.companies.map((c: Json) => ({ ...c, dropped: c.dropped?.slice(0, 8), dropped_total: c.dropped?.length ?? 0 })) } : {}),
+          ...(details.searches ? { searches: details.searches.map((c: Json) => ({ ...c, dropped: c.dropped?.slice(0, 8), dropped_total: c.dropped?.length ?? 0 })) } : {}),
         },
       };
     }),

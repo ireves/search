@@ -1,6 +1,6 @@
 # Job search automation: build plan
 
-Status: agreed plan (22 October 2026). Phase 0 (Notion changes) is done; the code is not built yet. Written for a fresh Claude conversation that will build it. Read the whole file before doing anything.
+Status: agreed plan (22 October 2026), being built. Phases 0 to 3 are done; see section 11 for progress. Written for a fresh Claude conversation that will build it. Read the whole file before doing anything.
 
 **Changes since the first draft:**
 - One database. Found roles, the inbox, applications, search preferences and Claude's memory all live in Job Applications, separated by an "Entry type" column and shown in different views. There is no Found Roles, Job Inbox or separate Search Preferences database. Section 4 describes the setup as built.
@@ -62,7 +62,7 @@ The existing `search` tool's `type: jobs` stays as it is. The server's job searc
 - **Feedback comes two ways:** comments on a role's Notion page, and what the user says in Claude conversations. Both become Memory rows (Memory source "Comment" or "Chat").
 - **CV:** the Notion page is a full record of the user's experience, deliberately unfiltered. Claude uses it as background and never treats it as a finished CV.
 - **Job Pick** runs only when the user starts it by hand. Claude must never run it on its own, and the daily run must never run it.
-- **Job Pick status change:** it changes the same row's Entry type from Role to Application and sets Status to "Watch", so the row moves from the Found Roles view to the Job Applications view. The user changes Status to "Applied" by hand.
+- **Job Pick status change:** it changes the same row's Entry type from Role to Application and sets Status to "Watch", so the row moves from the Open Roles view to the Job Applications view. The user changes Status to "Applied" by hand.
 - **The daily run never changes an Application row.** If a watched role's advert has closed, the run report lists it and Claude mentions it in the summary (confirmed by the user).
 - **Missing choices:** when Job Position or Location in Job Applications has no fitting choice, Job Pick adds a new one.
 - **Job Listing Websites rows:** skip indeed.com (the job site search covers Indeed); read startup.jobs with Firecrawl like a company's own site.
@@ -71,7 +71,7 @@ The existing `search` tool's `type: jobs` stays as it is. The server's job searc
 
 | Database or page | Link | Data source |
 |---|---|---|
-| Open Roles page (holds the CV page, and Found Roles and Search Preferences views of Job Applications) | https://app.notion.com/p/3e94d7c1f3b9803195b7c38df745adc9 | |
+| Open Roles page (holds the CV page, and Open Roles and Search Preferences views of Job Applications) | https://app.notion.com/p/3e94d7c1f3b9803195b7c38df745adc9 | |
 | Job Applications (roles, inbox, applications, preferences, memory) | https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd | `collection://ddd195a9-676b-4b7a-95d8-a784d1c378d9` |
 | CV page (titled "Experience", on Open Roles) | https://app.notion.com/p/4014d7c1f3b98042b717f056951cb71e | |
 | Found Roles (old), kept for reference only, not used | https://app.notion.com/p/a4d1690f61d849cba23251f111def6fe | `collection://2b2cf01f-9124-415a-8b38-38990f5475f2` |
@@ -114,7 +114,7 @@ Every row has an **Entry type**: Application (the user's own applications), Role
 Views (each shows only its own columns):
 
 1. **Job Applications**: Entry type = Application. Same columns as before the change.
-2. **Found Roles**: Entry type = Role and Review status = Added, newest first. Also shown on the Open Roles page.
+2. **Open Roles** (called Found Roles in the first draft): Entry type = Role and Review status = Added, newest first. Also shown on the Open Roles page.
 3. **Inbox**: Entry type = Role and Review status = New or Needs Claude.
 4. **Claude Memory**: Entry type = Memory, newest first.
 5. **Search Preferences**: Entry type = Preference, by Preference type. Also shown on the Open Roles page.
@@ -129,7 +129,7 @@ The server works out Hiring service and Board ID from the careers page link (or 
 
 ## 5. The daily server run (Vercel, no Claude)
 
-Runs when the daily Claude scheduled task calls `run_job_search`, one stage per call: `recheck`, then `companies` (Phase 3 adds the job site and LinkedIn post stages). Each call stays inside Vercel's 300-second limit.
+Runs when the daily Claude scheduled task calls `run_job_search`, one stage per call: `recheck`, `companies`, `job_sites`, then `linkedin_posts`. Each call stays inside Vercel's 300-second limit.
 
 1. **Read Notion.** Active Preference rows and the Role and Application rows of Job Applications. The server ignores Memory rows.
 2. **Recheck found roles.** Only Role rows with Review status "Added", Advert status not Closed, and Tag not "Not for me":
@@ -146,8 +146,8 @@ Runs when the daily Claude scheduled task calls `run_job_search`, one stage per 
    - Own site: `FIRECRAWL_SCRAPE` through Composio, as plain Markdown (waiting 3 seconds for the page to load). Links whose text names a wanted role, on the company's own site or a hiring service, become jobs. A hiring-service link found on the page is used straight away and saved for next time.
    - Nothing worked (no careers link, or the page came back nearly empty): add a Role row with Review status "Needs Claude", Source "Careers page", the company as Name, the careers page link in Links, and the Reason. Not added again while one is still waiting.
    - Update the company's "Last checked" and "Last result" ("Read OK", "Used Firecrawl", "Needs Claude"). Fill in "Hiring service" and "Board ID" when first worked out.
-5. **Search job sites.** For each Role and Location preference pair: `JOB_SEARCH_JOBS_SEARCH_API_SEARCH_JOBS` with UK settings and postings since the last run (with some overlap). Optionally `JOB_SEARCH_JOBS_API_LINKEDIN_SEARCH_JOBS`.
-6. **Search LinkedIn posts.** For each Role preference: `SCRAPECREATORS_SEARCH_LINKEDIN_POSTS` with hiring phrases and the location, posted in the last week. Optionally per Company row. Posts become Role rows with Review status "New" and Source "LinkedIn post"; Claude decides if each is a real job.
+5. **Search job sites** (stage `job_sites`). For each Role and Location preference pair: `JOB_SEARCH_JOBS_SEARCH_API_SEARCH_JOBS` (Indeed, LinkedIn and Glassdoor, UK settings, the last 72 hours, 25 results) and `JOB_SEARCH_JOBS_API_LINKEDIN_SEARCH_JOBS` (the last week). A "Remote" location searches the whole UK with the remote setting. The employer's own advert link is kept when the job site gives one. Tested 22 Oct 2026: about 20 and 10 results a search, at about $0.00025 and $0.0005.
+6. **Search LinkedIn posts** (stage `linkedin_posts`). For each Role preference: `SCRAPECREATORS_SEARCH_LINKEDIN_POSTS` for "hiring {role} {first location}", posted in the last week (about $0.001 a search). Only posts whose text reads like a hiring post are kept; the post text is the advert. Posts become Role rows with Review status "New" and Source "LinkedIn post"; Claude decides if each is a real job.
 7. **Filter.** Use only Preference rows here, never Memory notes:
    - Drop roles that match an "Exclude" preference.
    - Drop roles whose title has no link to any Role preference. Keep this loose: a missed good role is worse than an extra one for Claude to reject. Built as: the title names a Role preference or its last word ("Designer").
@@ -163,7 +163,7 @@ Rules for the server: never apply for a job, fill in a form, sign in or create a
 
 Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style as the user's current prompt (numbered steps, plain words, helpers as haiku sub-agents with full briefs and the 400-word report limit). It starts the server itself (step 1). Claude uses the Job search connector for step 1, the Notion connector throughout, and the Search connector only for step 6.
 
-1. **Run the server.** Call the Job search connector's `run_job_search` with `stage: "recheck"`, then with `stage: "companies"`. Keep both reports for the summary. If a call fails, say so in the summary and carry on.
+1. **Run the server.** Call the Job search connector's `run_job_search` with `stage: "recheck"`, then `"companies"`, `"job_sites"` and `"linkedin_posts"`. Keep the reports for the summary. If a call fails, say so in the summary and carry on.
 2. **Read context.** Active Memory rows (Claude Memory view), the user's active Preference rows (Search Preferences view), and the CV page.
 3. **Process feedback.** Read new comments on Role rows since the last run, and any feedback the user has given in Claude conversations (for example "remember I don't want agency roles").
    - Turn each into a Memory row (Entry type Memory, the note as Name, Active ticked, Memory source "Comment" with Source role linked, or "Chat" for feedback from a conversation) or an update to an existing one. In any conversation, when the user gives job search feedback, Claude saves it the same way straight away.
@@ -180,7 +180,7 @@ Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style a
      - Why it matches: one short sentence naming the preferences it meets, plus the parts of the CV that suit it.
      - Page, above the folded "Advert" section, under a "Positives" heading: 1 to 3 points on what is good about the role or company, one per line, each based on the advert or on known facts about the company.
      - Page, under a "Negatives" heading: 1 to 3 points, one per line. Look for red flags such as pay not listed, short contracts, unclear duties, unrealistic requirements for the level, or recent layoffs. Base each on facts and on Memory notes about what matters to the user. If nothing worrying stands out, give the weakest point of the advert. Never invent a problem.
-   - Set Review status to "Added", which moves the row from the Inbox view to the Found Roles view.
+   - Set Review status to "Added", which moves the row from the Inbox view to the Open Roles view.
    - Save each role as soon as it's done.
 5. **Notice patterns.** If several roles tagged "Not for me" share a trait, add a Memory row with Active unticked and Memory source "Pattern", as a suggestion, and mention it in the summary.
 6. **Pages the server couldn't read** (Role rows with Review status "Needs Claude"). Turn each advert found into its own Role row and review it as in step 4; set the original row to "Rejected" with Reason "Checked by Claude". Use the current prompt's Round C: Search connector `search` (type "jobs", limited to the company's site with `sites`) and `fetch` to confirm adverts are open, through haiku helpers, 3 companies per helper.
@@ -229,7 +229,7 @@ Test results that this plan relies on (22 Oct 2026, `composio-test` project): th
 
 `skills/job-pick/SKILL.md`, front matter with `disable-model-invocation: true` so it runs only when the user types `/job-pick` or explicitly asks to run Job Pick. Follow the structure of the existing skills (uni-search is the closest model) and the repo's `Skill version:` rule in `CLAUDE.md`.
 
-1. **Confirm the role.** The user names a row in the Found Roles view or gives a link. Reopen the advert with `fetch` (fresh) and confirm it's still open. If it has closed, say so and stop unless the user wants to continue.
+1. **Confirm the role.** The user names a row in the Open Roles view or gives a link. Reopen the advert with `fetch` (fresh) and confirm it's still open. If it has closed, say so and stop unless the user wants to continue.
 2. **Research**, through `agents/job-pick-worker.md` haiku workers using the Search connector (`search`, `fetch`, `verify`):
    - The hiring process and interview stages: the advert, the company's careers pages, Glassdoor UK interview reviews (`type: reviews`, `glassdoor.co.uk`).
    - Candidate and employee experience: Glassdoor, Reddit (`type: discussions`), LinkedIn posts.
@@ -251,7 +251,7 @@ Test results that this plan relies on (22 Oct 2026, `composio-test` project): th
 0. **Read and propose.** Done on 22 October 2026: Notion set up as in section 4.
 1. **Server foundation.** Notion client, secrets, run log tables, dry-run mode, the recheck step (section 5, step 2), with tests. Deploy, dry-run, show the user the report. Built and merged 22 Oct 2026 (ireves/search#36): `lib/jobs/`, `api/jobs.ts`, run log tables created in Supabase. The user's dry run matched expectations.
 2. **Company job lists.** Hiring-service lists and Firecrawl through Composio Connect, with the reliability measures in section 7. Built 22 Oct 2026, with: the Job search connector (`/jobs/mcp`) in place of a Vercel schedule, preferences moved into Job Applications, and Firecrawl for adverts the recheck can't open (Indeed). Filter, duplicate and advert-text steps (section 5, steps 7 to 10) are built for company jobs; Phase 3 adds the job site and LinkedIn post sources to them.
-3. **Job sites and LinkedIn posts.** Searches, filters, duplicates, advert text, writing new Role rows.
+3. **Job sites and LinkedIn posts.** Searches, filters, duplicates, advert text, writing new Role rows. Built 22 Oct 2026 as two more stages, `job_sites` and `linkedin_posts`, sharing the company stage's duplicate, advert-text and writing steps. An empty reply from every search is reported as a failure, so the Claude run can search those pairs itself.
 4. **Daily Claude prompt.** Write `docs/job-search/scheduled-task.md`. Run it alongside the old task for a few days, compare the results with the user, then switch over.
 5. **Job Pick.** Skill and worker. Test on one real role the user chooses.
 6. **Wrap up.** Docs, README line, plugin description, `search_changes` rows in Supabase for each merged change (as `CLAUDE.md` requires, probably with a new area such as "jobs"), and the clean-up in section 9.
