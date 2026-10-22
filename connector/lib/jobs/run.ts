@@ -3,6 +3,7 @@
 // Notion; its report shows what a real run would have changed.
 
 import { RUN_LOG, STAGES, type StageName } from "./config.js";
+import { checkComposioTools, runCompanies } from "./companies.js";
 import { runRecheck } from "./recheck.js";
 import { runLog } from "./runlog.js";
 
@@ -21,7 +22,7 @@ export interface StageReport {
 export interface RunReport {
   id: string;
   at: string;
-  trigger: "cron" | "manual";
+  trigger: "claude" | "manual";
   dry_run: boolean;
   ok: boolean;
   ms: number;
@@ -32,11 +33,23 @@ export interface RunReport {
 const STAGE_RUNNERS: Record<StageName, (dry: boolean) => Promise<Omit<StageReport, "stage" | "ok" | "ms">>> = {
   async recheck(dry) {
     const r = await runRecheck({ dry });
-    return { counts: r.counts, failures: r.failures, details: { changes: r.changes, could_not_tell: r.unknown, watched_closed: r.watchedClosed } };
+    return { counts: r.counts, failures: r.failures, charge_usd: r.charge, details: { changes: r.changes, could_not_tell: r.unknown, watched_closed: r.watchedClosed } };
+  },
+  async companies(dry) {
+    const r = await runCompanies({ dry });
+    const details: Record<string, unknown> = { companies: r.companies };
+    // Weekly (Mondays, UK time): check Composio's Firecrawl tool still takes
+    // the settings sent to it.
+    if (new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "short" }).format(new Date()) === "Mon") {
+      const check = await checkComposioTools();
+      details.tool_check = check;
+      if (!check.ok) r.failures.push({ where: "weekly Composio tool check", error: check.error ?? `FIRECRAWL_SCRAPE no longer takes: ${check.missing.join(", ")}` });
+    }
+    return { counts: r.counts, failures: r.failures, charge_usd: r.charge, details };
   },
 };
 
-export async function runJobs(options: { dry: boolean; trigger: "cron" | "manual"; stages?: StageName[] }): Promise<RunReport> {
+export async function runJobs(options: { dry: boolean; trigger: "claude" | "manual"; stages?: StageName[] }): Promise<RunReport> {
   const started = Date.now();
   const report: RunReport = { id: crypto.randomUUID().replace(/-/g, "").slice(0, 10), at: new Date().toISOString(), trigger: options.trigger, dry_run: options.dry, ok: true, ms: 0, stages: [] };
   const writer = await runLog().catch(() => null);

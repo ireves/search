@@ -46,9 +46,14 @@ export const KNOWN_SECRETS: Record<string, { label: string; help: string; link: 
     help: "The project's publishable (or legacy anon) key. The problem log tables only let it add rows.",
     link: "https://supabase.com/dashboard/project/_/settings/api-keys",
   },
+  COMPOSIO_CONSUMER_KEY: {
+    label: "Composio Connect consumer key (job search, optional)",
+    help: "Lets the daily job search read careers pages and blocked adverts (such as Indeed) through Firecrawl on Composio. Starts with ck_. Not used by the search tools.",
+    link: "https://connect.composio.dev",
+  },
   NOTION_TOKEN: {
     label: "Notion integration token (job search, optional)",
-    help: "Lets the daily job search read and update Job Applications and Search Preferences. Not used by the search tools.",
+    help: "Lets the daily job search read and update Job Applications. Not used by the search tools.",
     link: "https://www.notion.so/profile/integrations",
   },
 };

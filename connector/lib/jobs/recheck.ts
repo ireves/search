@@ -4,7 +4,8 @@
 // checked too but never changed: a closed one is listed in the report so the
 // Claude run can mention it.
 
-import { ADVERT, CLOSED_PHRASES, COL, ENTRY, HIRING_SERVICES, NOTION, RECHECK, REVIEW_ADDED, TAG_NOT_FOR_ME, WATCHED_STATUSES } from "./config.js";
+import { ADVERT, CLOSED_PHRASES, COL, COMPANIES, ENTRY, HIRING_SERVICES, NOTION, RECHECK, REVIEW, TAG_NOT_FOR_ME, WATCHED_STATUSES } from "./config.js";
+import { composio, type ComposioError } from "./composio.js";
 import { dateStart, notion, select, selectValue, text, url, type NotionPage } from "./notion.js";
 
 export interface Role {
@@ -33,11 +34,12 @@ export interface RecheckItem {
 }
 
 export interface RecheckResult {
-  counts: { roles: number; checked: number; open: number; closed: number; unknown: number; changed: number; watched: number; watched_closed: number; skipped_for_time: number };
+  counts: { roles: number; checked: number; open: number; closed: number; unknown: number; changed: number; watched: number; watched_closed: number; skipped_for_time: number; firecrawl: number };
   changes: RecheckItem[];
   unknown: RecheckItem[];
   watchedClosed: RecheckItem[];
   failures: { where: string; error: string }[];
+  charge: number;
 }
 
 export function toRole(page: NotionPage): Role {
@@ -191,60 +193,95 @@ async function inBatches<T>(items: T[], size: number, deadlineAt: number, work: 
   return skipped;
 }
 
+// Adverts the server couldn't open itself (a site that blocks it, such as
+// Indeed, or one that timed out) are read through Firecrawl instead.
+const retryable = (check: LinkCheck) => check.state === "unknown" && /blocked|couldn't be reached|took too long|answered 5\d\d/.test(check.how);
+
+async function viaFirecrawl(items: { key: string; link: string }[], result: RecheckResult): Promise<Map<string, LinkCheck>> {
+  const out = new Map<string, LinkCheck>();
+  const batch = items.slice(0, RECHECK.maxFirecrawl);
+  if (!batch.length) return out;
+  try {
+    const pages = await (await composio()).readPages(
+      batch.map((b) => ({ id: b.key, url: b.link })),
+      { keywords: [], headChars: 6000, mainOnly: true },
+    );
+    for (const page of pages) {
+      result.charge += page.charge ?? 0;
+      result.counts.firecrawl++;
+      if (!page.ok) continue;
+      if (page.status === 404 || page.status === 410) out.set(page.id, { state: "closed", how: `advert page is gone (${page.status}, read through Firecrawl)` });
+      else if (closedPhrase(page.head)) out.set(page.id, { state: "closed", how: `page says "${closedPhrase(page.head)}" (read through Firecrawl)` });
+      else if (page.status === 200 && page.chars >= COMPANIES.minPageChars) out.set(page.id, { state: "open", how: "advert page is up (read through Firecrawl)" });
+    }
+  } catch (error) {
+    result.failures.push({ where: "Firecrawl through Composio", error: (error as ComposioError).friendly ?? (error as Error).message });
+  }
+  return out;
+}
+
 export async function runRecheck(options: { dry: boolean; now?: Date; budgetMs?: number }): Promise<RecheckResult> {
   const today = ukToday(options.now);
   const deadlineAt = Date.now() + (options.budgetMs ?? RECHECK.budgetMs);
   const client = await notion();
   const result: RecheckResult = {
-    counts: { roles: 0, checked: 0, open: 0, closed: 0, unknown: 0, changed: 0, watched: 0, watched_closed: 0, skipped_for_time: 0 },
+    counts: { roles: 0, checked: 0, open: 0, closed: 0, unknown: 0, changed: 0, watched: 0, watched_closed: 0, skipped_for_time: 0, firecrawl: 0 },
     changes: [],
     unknown: [],
     watchedClosed: [],
     failures: [],
+    charge: 0,
   };
 
   const rolePages = await client.query(NOTION.applications, {
     and: [
       { property: COL.entryType, select: { equals: ENTRY.role } },
-      { property: COL.reviewStatus, select: { equals: REVIEW_ADDED } },
+      { property: COL.reviewStatus, select: { equals: REVIEW.added } },
     ],
   });
   // Filtered here too, so a change in how Notion treats empty values can't
   // let other rows through.
   const roles = rolePages
-    .filter((p) => select(p.properties[COL.entryType]) === ENTRY.role && select(p.properties[COL.reviewStatus]) === REVIEW_ADDED)
+    .filter((p) => select(p.properties[COL.entryType]) === ENTRY.role && select(p.properties[COL.reviewStatus]) === REVIEW.added)
     .filter((p) => select(p.properties[COL.advertStatus]) !== ADVERT.closed && select(p.properties[COL.tag]) !== TAG_NOT_FOR_ME)
     .map(toRole);
   const watchedPages = await client.query(NOTION.applications, { property: COL.entryType, select: { equals: ENTRY.application } });
-  const watched = watchedPages.filter((p) => WATCHED_STATUSES.includes(select(p.properties[COL.status]) ?? "")).map(toRole);
+  // Application rows: report only. Only those with an advert link are checked.
+  const watched = watchedPages.filter((p) => WATCHED_STATUSES.includes(select(p.properties[COL.status]) ?? "")).map(toRole).filter((w) => w.link);
   result.counts.roles = roles.length;
   result.counts.watched = watched.length;
 
+  const checks = new Map<string, LinkCheck>();
+  const all = [...roles, ...watched];
+  result.counts.skipped_for_time += await inBatches(all, RECHECK.concurrency, deadlineAt, async (row) => {
+    checks.set(row.id, await checkLink(row.link));
+  });
+  const second = await viaFirecrawl(
+    all.filter((r) => checks.has(r.id) && retryable(checks.get(r.id)!)).map((r) => ({ key: r.id, link: r.link! })),
+    result,
+  );
+  for (const [id, check] of second) checks.set(id, check);
+
   const updates: { role: Role; status: string; how: string }[] = [];
-  result.counts.skipped_for_time += await inBatches(roles, RECHECK.concurrency, deadlineAt, async (role) => {
-    const check = await checkLink(role.link);
+  for (const role of roles) {
+    const check = checks.get(role.id);
+    if (!check) continue;
     result.counts.checked++;
     result.counts[check.state]++;
     const { status, how } = decide(check, role.deadline, today);
     const item = { name: role.name, role: role.role, link: role.link, from: role.advertStatus, to: status, how };
     if (status === null) result.unknown.push(item);
     else if (status !== role.advertStatus) updates.push({ role, status, how });
-  });
-
-  // Application rows: report only. Only those with an advert link are checked.
-  result.counts.skipped_for_time += await inBatches(
-    watched.filter((w) => w.link),
-    RECHECK.concurrency,
-    deadlineAt,
-    async (row) => {
-      const check = await checkLink(row.link);
-      const { status, how } = decide(check, row.deadline, today);
-      if (status === ADVERT.closed) {
-        result.counts.watched_closed++;
-        result.watchedClosed.push({ name: row.name, role: row.role, link: row.link, from: null, to: null, how });
-      }
-    },
-  );
+  }
+  for (const row of watched) {
+    const check = checks.get(row.id);
+    if (!check) continue;
+    const { status, how } = decide(check, row.deadline, today);
+    if (status === ADVERT.closed) {
+      result.counts.watched_closed++;
+      result.watchedClosed.push({ name: row.name, role: row.role, link: row.link, from: null, to: null, how });
+    }
+  }
 
   for (const { role, status, how } of updates) {
     const item = { name: role.name, role: role.role, link: role.link, from: role.advertStatus, to: status, how };

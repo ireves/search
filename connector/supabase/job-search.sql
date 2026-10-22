@@ -1,7 +1,8 @@
 -- Run log tables for the job search (docs/job-search/plan.md, section 7).
 -- Same Supabase project as the problem log, separate tables. Run once in the
 -- project's SQL editor.
--- job_search_runs: one row per run (scheduled or manual, real or dry).
+-- job_search_runs: one row per run (started by Claude's scheduled task or
+--   by hand, real or dry).
 -- job_search_stages: one row per stage of a run, with counts, failures,
 --   Composio charges and the stage's report (advert details only, never CV
 --   text or other personal data).
@@ -11,7 +12,7 @@
 create table public.job_search_runs (
   id text primary key check (length(id) <= 20),
   at timestamptz not null,
-  trigger text not null check (trigger in ('cron', 'manual')),
+  trigger text not null check (trigger in ('cron', 'manual', 'claude')),
   dry_run boolean not null,
   ok boolean not null,
   ms int,
