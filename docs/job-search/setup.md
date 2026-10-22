@@ -33,10 +33,23 @@ The server reads careers pages, and adverts it can't open itself (such as Indeed
 
 The daily Claude scheduled task starts the server's runs through this connector. There is no other schedule.
 
+The connector comes with the search plugin (it's listed in the plugin's `.mcp.json` as `job-search`), so you don't add it by hand. Do this in the account the scheduled task runs in.
+
+1. Update the search plugin, or install it if you don't have it yet.
+   - In Claude, open **Customize** > **Plugins** and update or add `search` from the `ireves-search` marketplace.
+   - In Claude Code, run `/plugin` and update or install `search@ireves-search`.
+2. Connect it.
+   - In Claude, open the search plugin's **Connectors** tab and choose **Connect** for `job-search`.
+   - In Claude Code it connects with the plugin, and `/mcp` lists it as `plugin:search:job-search`.
+3. Sign in when Claude asks, with your passkey or admin password, as for the Search connector.
+4. It has one tool, `run_job_search`. Only the job search scheduled task should use it.
+
+If the connector doesn't appear with the plugin, add it by hand instead:
+
 1. In Claude, open **Settings** > **Connectors** > **Add custom connector**.
 2. Name: `Job search`. Address: `https://search-connector.vercel.app/jobs/mcp`.
-3. Choose **Connect** and sign in with your passkey or admin password, as for the Search connector.
-4. It has one tool, `run_job_search`. Only the job search scheduled task should use it.
+3. Choose **Connect** and sign in with your passkey or admin password.
+   - Keep only one of the two (the plugin's or this one), so Claude sees the tool once.
 
 ## 5. Run log clean-up (one line, optional)
 

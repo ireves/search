@@ -1,6 +1,6 @@
 {
   "name": "search",
-  "description": "uni-search for sourced research and better-search for everyday questions, plus search-report for diagnosing a search run and search-log for reviewing the problem log, using the Search connector (Exa + Parallel), with Haiku workers doing the searching",
+  "description": "uni-search for sourced research and better-search for everyday questions, plus search-report for diagnosing a search run and search-log for reviewing the problem log, using the Search connector (Exa + Parallel), with Haiku workers doing the searching. Also bundles the Job search connector for the daily job search",
   "author": {
     "name": "Iuri Reves"
   }

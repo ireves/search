@@ -34,11 +34,25 @@ export interface CompanyReport {
   kept: number;
   added: string[];
   dropped: { title: string; why: string }[];
+  // Characters of advert text saved for each added role.
+  adverts?: Record<string, number>;
   error?: string;
 }
 
 export interface CompaniesResult {
-  counts: { companies: number; listed: number; kept: number; added: number; duplicates: number; needs_claude: number; firecrawl_pages: number };
+  counts: {
+    companies: number;
+    listed: number;
+    kept: number;
+    added: number;
+    duplicates: number;
+    needs_claude: number;
+    firecrawl_pages: number;
+    advert_from_list: number;
+    advert_from_page: number;
+    advert_from_firecrawl: number;
+    advert_missing: number;
+  };
   companies: CompanyReport[];
   failures: { where: string; error: string }[];
   charge: number;
@@ -193,7 +207,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
   const client = await notion();
   const prefs = await readPreferences(client);
   const result: CompaniesResult = {
-    counts: { companies: 0, listed: 0, kept: 0, added: 0, duplicates: 0, needs_claude: 0, firecrawl_pages: 0 },
+    counts: { companies: 0, listed: 0, kept: 0, added: 0, duplicates: 0, needs_claude: 0, firecrawl_pages: 0, advert_from_list: 0, advert_from_page: 0, advert_from_firecrawl: 0, advert_missing: 0 },
     companies: [],
     failures: [],
     charge: 0,
@@ -259,7 +273,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
       const message = (error as ComposioError).friendly ?? (error as Error).message;
       result.failures.push({ where: "Firecrawl through Composio", error: message });
     }
-    result.counts.firecrawl_pages = pages.length;
+    result.counts.firecrawl_pages += pages.length;
     for (const s of toScrape) {
       const page = pages.find((p) => p.id === s.company.id);
       result.charge += page?.charge ?? 0;
@@ -288,6 +302,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
     }
   }
 
+  const pending: { company: string; service: Service; board: string; job: Job }[] = [];
   for (const { company } of plan) {
     const entry = listed.get(company.id);
     const report: CompanyReport = { name: company.name, how: entry?.how ?? "no careers page link", result: entry?.result ?? RESULT.needsClaude, listed: 0, kept: 0, added: [], dropped: [] };
@@ -334,25 +349,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
         seenRoles.add(roleKey(company.name, job.title));
         report.added.push(job.title);
         result.counts.added++;
-        if (options.dry || Date.now() > deadlineAt) continue;
-        const advert = clip(job.advert ? plain(job.advert) : await advertText(entry.service, entry.board, job));
-        await createRow(
-          client,
-          {
-            [COL.name]: titleValue(company.name),
-            [COL.role]: textValue(job.title),
-            [COL.entryType]: selectValue(ENTRY.role),
-            [COL.reviewStatus]: selectValue(REVIEW.new),
-            [COL.source]: selectValue(SOURCE_CAREERS),
-            [COL.links]: urlValue(job.link),
-            [COL.roleLocation]: textValue(job.location),
-            [COL.pay]: textValue(job.pay),
-            [COL.dateFound]: dateValue(today),
-          },
-          advert ? [toggleBlock("Advert", advert)] : undefined,
-          result,
-          `${company.name} ${job.title}`,
-        );
+        pending.push({ company: company.name, service: entry.service, board: entry.board, job });
       }
     }
 
@@ -367,7 +364,93 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
       }
     }
   }
+  // Advert text for each new role: from the job list when it gives it, else
+  // the advert page opened directly, else the page through Firecrawl (for
+  // pages that block the server or only load in a browser).
+  await Promise.all(
+    pending.map(async (p) => {
+      if (Date.now() > deadlineAt) return;
+      if (p.job.advert) {
+        p.job.advert = clip(plain(p.job.advert));
+        result.counts.advert_from_list++;
+        return;
+      }
+      const text = clip(await advertText(p.service, p.board, p.job));
+      // A page that doesn't name the role is a shell or a cookie notice.
+      const fromService = p.service === "Greenhouse" && text.length > 0;
+      if (fromService || (text.length >= COMPANIES.minAdvertChars && namesRole(text, p.job.title))) {
+        p.job.advert = text;
+        result.counts.advert_from_page++;
+      }
+    }),
+  );
+  const unread = pending.filter((p) => !p.job.advert).slice(0, COMPANIES.maxFirecrawlAdverts);
+  if (unread.length && Date.now() < deadlineAt) {
+    try {
+      const pages = await (await composio()).readPages(
+        unread.map((p, i) => ({ id: String(i), url: p.job.link })),
+        { keywords: [], headChars: COMPANIES.advertChars * 2, mainOnly: true },
+      );
+      for (const page of pages) {
+        result.charge += page.charge ?? 0;
+        result.counts.firecrawl_pages++;
+        const text = page.ok ? clip(markdownText(page.head)) : "";
+        if (text.length >= COMPANIES.minAdvertChars) {
+          unread[Number(page.id)].job.advert = text;
+          result.counts.advert_from_firecrawl++;
+        }
+      }
+    } catch (error) {
+      result.failures.push({ where: "Firecrawl through Composio (advert text)", error: (error as ComposioError).friendly ?? (error as Error).message });
+    }
+  }
+  result.counts.advert_missing = pending.filter((p) => !p.job.advert).length;
+  for (const report of result.companies) {
+    report.adverts = Object.fromEntries(pending.filter((p) => p.company === report.name).map((p) => [p.job.title, p.job.advert.length]));
+  }
+
+  if (!options.dry) {
+    for (const p of pending) {
+      if (Date.now() > deadlineAt) break;
+      await createRow(
+        client,
+        {
+          [COL.name]: titleValue(p.company),
+          [COL.role]: textValue(p.job.title),
+          [COL.entryType]: selectValue(ENTRY.role),
+          [COL.reviewStatus]: selectValue(REVIEW.new),
+          [COL.source]: selectValue(SOURCE_CAREERS),
+          [COL.links]: urlValue(p.job.link),
+          [COL.roleLocation]: textValue(p.job.location),
+          [COL.pay]: textValue(p.job.pay),
+          [COL.dateFound]: dateValue(today),
+        },
+        p.job.advert ? [toggleBlock("Advert", p.job.advert)] : undefined,
+        result,
+        `${p.company} ${p.job.title}`,
+      );
+    }
+  }
   return result;
+}
+
+export function namesRole(text: string, title: string): boolean {
+  const words = title.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2).slice(0, 3);
+  const body = text.toLowerCase();
+  return words.every((w) => body.includes(w));
+}
+
+// Firecrawl's Markdown as plain reading text: images dropped, links kept as
+// their words.
+export function markdownText(md: string): string {
+  return md
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/\*\*|__/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function hostOf(link: string): string {

@@ -367,6 +367,7 @@ function companyRows() {
   return [
     row("p-role", { name: "Product Designer", entry: "Preference", type: "Role", priority: "High" }),
     row("p-ux", { name: "UX Designer", entry: "Preference", type: "Role", priority: "High" }),
+    row("p-ui", { name: "UI Designer", entry: "Preference", type: "Role", priority: "High" }),
     row("p-loc", { name: "London, UK", entry: "Preference", type: "Location", priority: "High" }),
     row("p-senior", { name: "Senior", entry: "Preference", type: "Level", priority: "Exclude" }),
     row("c-monzo", { name: "Monzo", entry: "Preference", type: "Company", priority: "High", link: "https://boards-api.greenhouse.io/v1/boards/monzo/jobs", checked: "2026-10-01" }),
@@ -396,11 +397,21 @@ function companySites() {
       };
     if (c.url === "https://boards-api.greenhouse.io/v1/boards/monzo/jobs/11") return { body: { content: "&lt;p&gt;Design lending journeys.&lt;/p&gt;" } };
     if (c.url.startsWith("https://api.ashbyhq.com/posting-api/job-board/healf")) return { raw: fixture("ashby-board.json"), headers: { "content-type": "application/json" } };
-    if (c.url === "https://www.framer.com/careers/product-designer") return html("<main><h1>Product Designer</h1><p>Shape Framer.</p></main>");
+    if (c.url === "https://www.framer.com/careers/product-designer")
+      return html(`<main><h1>Product Designer</h1><p>Shape Framer. ${"You will design the canvas, components and publishing flows with the product team. ".repeat(4)}</p></main>`);
+    if (c.url === "https://www.framer.com/careers/ui-designer") return html("Just a moment", 403);
     return undefined;
   });
   return fakeComposio({
-    "https://www.framer.com/careers/#positions": { matches: [["Product Designer", "https://www.framer.com/careers/product-designer"]] },
+    "https://www.framer.com/careers/#positions": {
+      matches: [
+        ["Product Designer", "https://www.framer.com/careers/product-designer"],
+        ["UI Designer", "https://www.framer.com/careers/ui-designer"],
+      ],
+    },
+    "https://www.framer.com/careers/ui-designer": {
+      head: `# UI Designer\n\n![logo](https://x/logo.png)\n\nWork on the [Framer](https://framer.com) editor. ${"Craft interface details for millions of sites. ".repeat(6)}`,
+    },
     "https://www.craft.do/careers": { chars: 20 },
   });
 }
@@ -419,11 +430,13 @@ test("a dry run of the company lists finds new roles and writes nothing", async 
   assert.deepEqual(by("Monzo").added, ["Product Designer, Borrowing"]);
   assert.deepEqual(by("Monzo").dropped.map((d: any) => d.why), ["excluded: Senior", "location: San Francisco, CA"]);
   assert.deepEqual(by("Healf").added, [], "already in Notion");
-  assert.deepEqual(by("Framer").added, ["Product Designer"]);
+  assert.deepEqual(by("Framer").added, ["Product Designer", "UI Designer"]);
+  assert.ok(by("Framer").adverts["UI Designer"] > 200, "advert text read through Firecrawl when the page blocks the server");
   assert.equal(by("Framer").result, "Used Firecrawl");
   assert.equal(by("Craft Docs").result, "Needs Claude", "a page that came back empty");
   assert.equal(by("Fabric (fabric.so)").result, "Needs Claude", "no careers page link");
-  assert.deepEqual(fc.asked.sort(), ["https://www.craft.do/careers", "https://www.framer.com/careers/#positions"]);
+  assert.deepEqual(fc.asked.sort(), ["https://www.craft.do/careers", "https://www.framer.com/careers/#positions", "https://www.framer.com/careers/ui-designer"]);
+  assert.deepEqual([stage.counts!.advert_from_list, stage.counts!.advert_from_page, stage.counts!.advert_from_firecrawl, stage.counts!.advert_missing], [0, 2, 1, 0]);
   assert.equal(fake.created.length + fake.updates.length, 0);
   assert.equal(stage.counts!.duplicates, 1);
 });
@@ -434,13 +447,17 @@ test("a real run adds Inbox rows with advert text and updates each company", asy
   useComposio(companySites());
   await runJobs({ dry: false, trigger: "claude", stages: ["companies"] });
   const titles = fake.created.map((c) => c.properties.Role?.rich_text?.[0]?.text.content ?? `(${c.properties["Review status"].select.name}) ${c.properties.Name.title[0].text.content}`).sort();
-  assert.deepEqual(titles, ["(Needs Claude) Craft Docs", "(Needs Claude) Fabric (fabric.so)", "Product Designer", "Product Designer, Borrowing"]);
+  assert.deepEqual(titles, ["(Needs Claude) Craft Docs", "(Needs Claude) Fabric (fabric.so)", "Product Designer", "Product Designer, Borrowing", "UI Designer"]);
   const monzo = fake.created.find((c) => c.properties.Name.title[0].text.content === "Monzo")!;
   assert.equal(monzo.properties["Review status"].select.name, "New");
   assert.equal(monzo.properties["Entry type"].select.name, "Role");
   assert.equal(monzo.properties.Source.select.name, "Careers page");
   assert.match(monzo.children![0].toggle.children[0].paragraph.rich_text[0].text.content, /Design lending journeys/);
-  const framer = fake.created.find((c) => c.properties.Name.title[0].text.content === "Framer")!;
+  const framer = fake.created.find((c) => c.properties.Role?.rich_text?.[0]?.text.content === "Product Designer" && c.properties.Name.title[0].text.content === "Framer")!;
+  const ui = fake.created.find((c) => c.properties.Role?.rich_text?.[0]?.text.content === "UI Designer")!;
+  const uiText = ui.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join("\n");
+  assert.match(uiText, /Work on the Framer editor/, "Firecrawl Markdown is saved as plain text");
+  assert.ok(!/logo\.png/.test(uiText));
   const framerText = framer.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join("\n");
   assert.match(framerText, /Shape Framer/, "own-site advert text is read directly");
   const monzoUpdate = fake.updates.find((u) => u.id === "c-monzo")!.properties;
