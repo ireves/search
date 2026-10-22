@@ -33,6 +33,7 @@ export interface NotionPage {
 export interface Notion {
   query(dataSource: string, filter?: unknown): Promise<NotionPage[]>;
   update(pageId: string, properties: Record<string, unknown>): Promise<void>;
+  create(dataSource: string, properties: Record<string, unknown>, children?: unknown[]): Promise<string>;
 }
 
 let lastCall = 0;
@@ -100,6 +101,12 @@ export async function notion(): Promise<Notion> {
     async update(pageId, properties) {
       await call(token, "PATCH", `/pages/${pageId}`, { properties });
     },
+    async create(dataSource, properties, children) {
+      const body: Record<string, unknown> = { parent: { type: "data_source_id", data_source_id: dataSource }, properties };
+      if (children?.length) body.children = children;
+      const page = await call<{ id: string }>(token, "POST", "/pages", body);
+      return page.id;
+    },
   };
 }
 
@@ -111,3 +118,24 @@ export const url = (prop: any): string | null => prop?.url ?? null;
 export const dateStart = (prop: any): string | null => prop?.date?.start ?? null;
 
 export const selectValue = (name: string) => ({ select: { name } });
+export const textValue = (value: string) => ({ rich_text: value ? [{ type: "text", text: { content: value.slice(0, 2000) } }] : [] });
+export const titleValue = (value: string) => ({ title: [{ type: "text", text: { content: value.slice(0, 2000) } }] });
+export const urlValue = (value: string | null) => ({ url: value || null });
+export const dateValue = (value: string | null) => ({ date: value ? { start: value } : null });
+
+// A folded section holding long text, split into paragraphs of Notion's
+// 2,000-character limit.
+export function toggleBlock(heading: string, body: string): unknown {
+  const parts: string[] = [];
+  for (const para of body.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)) {
+    for (let i = 0; i < para.length; i += 2000) parts.push(para.slice(i, i + 2000));
+  }
+  return {
+    object: "block",
+    type: "toggle",
+    toggle: {
+      rich_text: [{ type: "text", text: { content: heading } }],
+      children: parts.slice(0, 90).map((content) => ({ object: "block", type: "paragraph", paragraph: { rich_text: [{ type: "text", text: { content } }] } })),
+    },
+  };
+}

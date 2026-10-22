@@ -27,6 +27,8 @@ interface ClientToken extends TokenPayload {
 }
 interface CodeToken extends TokenPayload {
   cid: string;
+  // The address the tokens are for (an MCP endpoint); older codes lack it.
+  res?: string;
   ruri: string;
   cc: string;
   scope: string;
@@ -46,18 +48,30 @@ export function mcpUrl(base: string): string {
   return `${base}/mcp`;
 }
 
-export function resourceMetadataUrl(base: string): string {
-  return `${base}/.well-known/oauth-protected-resource/mcp`;
+// The job search's own MCP endpoint (api/jobs.ts). It shares this sign-in but
+// is a separate connector in Claude, so its tool never sits beside search.
+export function jobsMcpUrl(base: string): string {
+  return `${base}/jobs/mcp`;
 }
 
-export function protectedResourceMetadata(request: Request): Response {
+const RESOURCE_NAMES: Record<string, string> = { "/mcp": "Search (Exa + Parallel)", "/jobs/mcp": "Job search" };
+
+function resourcesOf(base: string): string[] {
+  return [mcpUrl(base), jobsMcpUrl(base)];
+}
+
+export function resourceMetadataUrl(base: string, resource = mcpUrl(base)): string {
+  return `${base}/.well-known/oauth-protected-resource${resource.slice(base.length)}`;
+}
+
+export function protectedResourceMetadata(request: Request, resourcePath = "/mcp"): Response {
   const base = baseUrl(request);
   return json({
-    resource: mcpUrl(base),
+    resource: `${base}${resourcePath}`,
     authorization_servers: [base],
     scopes_supported: SCOPES,
     bearer_methods_supported: ["header"],
-    resource_name: "Search (Exa + Parallel)",
+    resource_name: RESOURCE_NAMES[resourcePath] ?? RESOURCE_NAMES["/mcp"],
   });
 }
 
@@ -231,9 +245,11 @@ export async function authorize(request: Request): Promise<Response> {
   if (!p.code_challenge || p.code_challenge_method !== "S256") {
     return errorRedirect(p, "invalid_request", "PKCE with S256 is required.", base);
   }
-  if (p.resource && p.resource.replace(/\/+$/, "") !== mcpUrl(base)) {
+  const resource = p.resource ? p.resource.replace(/\/+$/, "") : mcpUrl(base);
+  if (!resourcesOf(base).includes(resource)) {
     return errorRedirect(p, "invalid_target", "Unknown resource.", base);
   }
+  const forJobs = resource === jobsMcpUrl(base);
 
   const target = new URL(p.redirect_uri);
   const formTargets = [target.origin];
@@ -267,6 +283,7 @@ export async function authorize(request: Request): Promise<Response> {
         cc: p.code_challenge,
         scope: p.scope || "search",
         ep: state.epoch,
+        res: resource,
       } satisfies CodeToken);
       target.searchParams.set("code", code);
       if (p.state) target.searchParams.set("state", p.state);
@@ -291,8 +308,13 @@ export async function authorize(request: Request): Promise<Response> {
     title: "Connect to Claude",
     formTargets,
     status: message ? 401 : 200,
-    body: `<h1>Connect Search to ${esc(client.name)}</h1>
-<p class="muted">Signing in lets this app use your Exa and Parallel keys through this connector. Your keys are never shown to it.</p>
+    body: `${
+      forJobs
+        ? `<h1>Connect Job search to ${esc(client.name)}</h1>
+<p class="muted">Signing in lets this app start your daily job search runs. Your keys are never shown to it.</p>`
+        : `<h1>Connect Search to ${esc(client.name)}</h1>
+<p class="muted">Signing in lets this app use your Exa and Parallel keys through this connector. Your keys are never shown to it.</p>`
+    }
 <div class="card"><p>Sign-in will return to <strong class="mono">${esc(target.host)}</strong>${local ? ' <span class="tag warn">a program on this computer</span>' : ""}.</p>
 ${local ? '<p class="muted">Only continue if you just started this connection from Claude Code on this computer.</p>' : ""}
 ${message ? `<p class="bad">${esc(message)}</p>` : ""}
@@ -339,7 +361,9 @@ export async function token(request: Request): Promise<Response> {
     }
     if (code.ep !== state.epoch) return oauthError("invalid_grant", "Connections were reset. Sign in again.");
     if (!(await verifyToken<ClientToken>(key, body.client_id, "client"))) return oauthError("invalid_client", "Unknown client.", 401);
-    return issueTokens(key, cid, code.scope, state.epoch, mcpUrl(base));
+    const aud = code.res ?? mcpUrl(base);
+    if (!resourcesOf(base).includes(aud)) return oauthError("invalid_grant", "Unknown resource.");
+    return issueTokens(key, cid, code.scope, state.epoch, aud);
   }
 
   if (body.grant_type === "refresh_token") {
@@ -353,10 +377,11 @@ export async function token(request: Request): Promise<Response> {
 }
 
 // For the MCP endpoint: returns null when the request carries a valid token.
-export async function requireBearer(request: Request): Promise<Response | null> {
+export async function requireBearer(request: Request, resourcePath = "/mcp"): Promise<Response | null> {
   const base = baseUrl(request);
+  const resource = `${base}${resourcePath}`;
   const challenge = (error?: string) => {
-    const parts = [`Bearer resource_metadata="${resourceMetadataUrl(base)}"`, `scope="search"`];
+    const parts = [`Bearer resource_metadata="${resourceMetadataUrl(base, resource)}"`, `scope="search"`];
     if (error) parts.push(`error="${error}"`);
     return json({ error: error ?? "unauthorized", error_description: "Sign in to use this connector." }, 401, {
       "www-authenticate": parts.join(", "),
@@ -370,6 +395,6 @@ export async function requireBearer(request: Request): Promise<Response | null> 
   const access = await verifyToken<AccessToken>(key, match[1].trim(), "access");
   if (!access) return challenge("invalid_token");
   const state = await loadState();
-  if (access.ep !== state.epoch || access.aud !== mcpUrl(base)) return challenge("invalid_token");
+  if (access.ep !== state.epoch || access.aud !== resource) return challenge("invalid_token");
   return null;
 }

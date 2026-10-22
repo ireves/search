@@ -2,7 +2,10 @@
 
 Status: agreed plan (22 October 2026). Phase 0 (Notion changes) is done; the code is not built yet. Written for a fresh Claude conversation that will build it. Read the whole file before doing anything.
 
-**Change since the first draft:** there is no separate Found Roles database, Job Inbox database or Memory rows in Search Preferences. Found roles, the inbox, applications and Claude's memory all live in one database, Job Applications, separated by an "Entry type" column and shown in different views. Section 4 describes the setup as built.
+**Changes since the first draft:**
+- One database. Found roles, the inbox, applications, search preferences and Claude's memory all live in Job Applications, separated by an "Entry type" column and shown in different views. There is no Found Roles, Job Inbox or separate Search Preferences database. Section 4 describes the setup as built.
+- No Vercel schedule. The daily Claude scheduled task starts the server's stages through the **Job search** connector (`/jobs/mcp`, one tool: `run_job_search`). It shares the Search connector's sign-in but is a separate connector, so its tool never sits beside search.
+- Composio's managed Firecrawl allows plain page reads only (no `jsonOptions` extraction, tested 22 Oct 2026). The server reads careers pages as Markdown and keeps links named after a wanted role.
 
 ## Starting prompt
 
@@ -29,8 +32,8 @@ The repo's existing search tools (the Search connector's `search`, `fetch`, `ver
 | Part | Path | Notes |
 |---|---|---|
 | Server code | `connector/lib/jobs/` | All job search logic. May reuse small helpers (`lib/engines/http.ts`, `lib/store.ts` secrets), never `lib/tools/*` or `lib/mcp.ts`. |
-| Server entry point | `connector/api/jobs.ts` | Scheduled runs and a manual "run now" for the admin. Not an MCP endpoint. |
-| Routes and schedules | `connector/vercel.json` | Add `/jobs/*` rewrites, `crons` entries and `maxDuration` for `api/jobs.ts`. Leave existing entries unchanged. |
+| Server entry point | `connector/api/jobs.ts` | `/jobs/mcp` (the Job search connector, for the daily Claude run) and `/jobs` (a dry run and "run for real" page for the owner). |
+| Routes | `connector/vercel.json` | `/jobs` and `/jobs/mcp` rewrites, the Job search sign-in address, and `maxDuration` for `api/jobs.ts`. Existing entries unchanged. |
 | Tests | `connector/test/jobs.test.ts` | Plus fixtures under `connector/test/fixtures/jobs/`. |
 | Run log tables | `connector/supabase/job-search.sql` | New tables in the same Supabase project, separate from `search_calls` and `search_issues`. |
 | Job Pick skill | `skills/job-pick/SKILL.md` | With its own worker brief in `skills/job-pick/references/`. |
@@ -53,7 +56,8 @@ The existing `search` tool's `type: jobs` stays as it is. The server's job searc
 - **Company careers pages:** free hiring-service job lists first (Greenhouse, Lever, Ashby, Workable), then `FIRECRAWL_SCRAPE` through Composio for companies with their own site (it rendered Apple's careers page in full).
 - **Candidate potential:** a new select column, Strong, Average or Weak. Weak roles are still logged.
 - **Positives and negatives** go inside each role's page, not in columns.
-- **One database:** found roles, the inbox, applications and memory are all rows in Job Applications, told apart by "Entry type" (Role, Application, Memory). Search Preferences stays its own database.
+- **One database:** found roles, the inbox, applications, preferences and memory are all rows in Job Applications, told apart by "Entry type" (Role, Application, Preference, Memory). The server's Notion key only needs Job Applications.
+- **Claude starts the server's runs** from the daily scheduled task, through the Job search connector. No Vercel schedule.
 - **Memory:** feedback is stored as Memory rows in Job Applications, shown in the "Claude Memory" view.
 - **CV:** the Notion page is a full record of the user's experience, deliberately unfiltered. Claude uses it as background and never treats it as a finished CV.
 - **Job Pick** runs only when the user starts it by hand. Claude must never run it on its own, and the daily run must never run it.
@@ -66,27 +70,27 @@ The existing `search` tool's `type: jobs` stays as it is. The server's job searc
 
 | Database or page | Link | Data source |
 |---|---|---|
-| Open Roles page (holds Search Preferences, the CV page, and a Found Roles view of Job Applications) | https://app.notion.com/p/3e94d7c1f3b9803195b7c38df745adc9 | |
-| Search Preferences | https://app.notion.com/p/903a964b511d47f8a166dfd159dbafdf | `collection://2c863bb5-d98b-488d-8541-f0630801d31f` |
-| Job Applications (roles, inbox, applications, memory) | https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd | `collection://ddd195a9-676b-4b7a-95d8-a784d1c378d9` |
+| Open Roles page (holds the CV page, and Found Roles and Search Preferences views of Job Applications) | https://app.notion.com/p/3e94d7c1f3b9803195b7c38df745adc9 | |
+| Job Applications (roles, inbox, applications, preferences, memory) | https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd | `collection://ddd195a9-676b-4b7a-95d8-a784d1c378d9` |
 | CV page (titled "Experience", on Open Roles) | https://app.notion.com/p/4014d7c1f3b98042b717f056951cb71e | |
 | Found Roles (old), kept for reference only, not used | https://app.notion.com/p/a4d1690f61d849cba23251f111def6fe | `collection://2b2cf01f-9124-415a-8b38-38990f5475f2` |
+| Search Preferences (old), kept for reference only, not used | https://app.notion.com/p/903a964b511d47f8a166dfd159dbafdf | `collection://2c863bb5-d98b-488d-8541-f0630801d31f` |
 
-Job Applications is a top-level page, not on Open Roles, so the server's Notion integration must be shared with it separately.
+Job Applications is a top-level page, not on Open Roles. The server's Notion integration is shared with Job Applications only.
 
 ### Job Applications
 
-Every row has an **Entry type**: Application (the user's own applications), Role (found by the daily runs) or Memory (Claude's notes). Columns:
+Every row has an **Entry type**: Application (the user's own applications), Role (found by the daily runs), Preference (the user's search preferences) or Memory (Claude's notes). Columns:
 
 | Column | Kind | Used by |
 |---|---|---|
-| Name (row title, renamed from "Company") | Title | All: company name for Applications and Roles; the note itself for Memory |
+| Name (row title, renamed from "Company") | Title | All: company name for Applications and Roles; the preference itself (e.g. UX Designer, London, UK, Apple); the note itself for Memory |
 | Job Position, Location, Files, Stages, Email | User's own columns, unchanged | Applications |
 | Status | Choice: Watch, Applied, Unsuccessful, Successful (a single choice, changed from Notion's status kind so new rows start empty) | Applications only; empty on Role and Memory rows |
-| Links | Web link | Advert link for Roles and Applications |
+| Links | Web link | Advert link for Roles and Applications; careers page for Company and Job Listing Websites preferences |
 | Deadline | Date | Closing date for Roles and Applications |
 | Notes | Text | All |
-| Entry type | Choice: Application, Role, Memory | All |
+| Entry type | Choice: Application, Role, Preference, Memory | All |
 | Role | Text | Job title |
 | Role location | Text | Where the job is based, as the advert says |
 | Pay, Summary, Why it matches, Reason | Text | Roles |
@@ -97,7 +101,11 @@ Every row has an **Entry type**: Application (the user's own applications), Role
 | Candidate potential | Choice: Strong, Average, Weak | Roles |
 | Source | Choice: LinkedIn, Indeed, Glassdoor, Careers page, LinkedIn post | Roles |
 | Review status | Choice: New, Needs Claude, Added, Rejected | Roles |
-| Active | Tick box | Memory |
+| Active | Tick box | Preferences and Memory: untick to pause |
+| Preference type | Choice: Role, Location, Pay, Company, Level, Company type, Job Listing Websites | Preferences |
+| Priority | Choice: High, Medium, Low, Exclude | Preferences |
+| Last checked, Last result | Date; choice: Read OK, Used Firecrawl, Needs Claude (plus the old Used JobsPipe, Used web search, Could not read) | Company and Job Listing Websites preferences, set by the server |
+| Hiring service, Board ID | Choice: Greenhouse, Lever, Ashby, Workable, Own site; text | Company preferences, filled in by the server |
 | Memory source | Choice: Comment, Chat, Pattern | Memory |
 | Source role | Link to a row in the same database | Memory |
 | Date added | Created time | Memory |
@@ -108,37 +116,39 @@ Views (each shows only its own columns):
 2. **Found Roles**: Entry type = Role and Review status = Added, newest first. Also shown on the Open Roles page.
 3. **Inbox**: Entry type = Role and Review status = New or Needs Claude.
 4. **Claude Memory**: Entry type = Memory, newest first.
+5. **Search Preferences**: Entry type = Preference, by Preference type. Also shown on the Open Roles page.
 
-The 29 rows from the old Found Roles database were copied in as Role rows with Review status "Added" (their pages had no content). The 19 existing applications were marked Application.
+The 29 rows from the old Found Roles database were copied in as Role rows with Review status "Added" (their pages had no content). The 19 existing applications were marked Application. The 65 rows from the old Search Preferences database were copied in as Preference rows; the two unnamed Job Listing Websites rows were named after their sites (indeed.com, startup.jobs).
 
 A Role row's page holds, from the top: a "Positives" heading with 1 to 3 bullet points, a "Negatives" heading with 1 to 3 bullet points, then the advert text (about 4,000 characters at most) inside a folded (toggle) section called "Advert". The server writes only the folded advert section; Claude adds the headings above it.
 
-### Search Preferences
-
-Unchanged apart from three additions for Company rows: **Hiring service** (Greenhouse, Lever, Ashby, Workable, Own site), **Board ID** (the company's name on that service, for example `monzo`), and two new **Last result** choices, "Used Firecrawl" and "Needs Claude". The server works out Hiring service and Board ID from the careers page link and fills them in. Some Careers page links are already Greenhouse job list links (for example `https://boards-api.greenhouse.io/v1/boards/monzo/jobs`).
+The server works out Hiring service and Board ID from the careers page link (or a hiring-service link on the careers page) and fills them in. Some careers links are already Greenhouse job list links (for example `https://boards-api.greenhouse.io/v1/boards/monzo/jobs`).
 
 ## 5. The daily server run (Vercel, no Claude)
 
-Runs every morning (UK time) on a Vercel cron schedule. Split into stages if one run can't fit the time limits (see section 8).
+Runs when the daily Claude scheduled task calls `run_job_search`, one stage per call: `recheck`, then `companies` (Phase 3 adds the job site and LinkedIn post stages). Each call stays inside Vercel's 300-second limit.
 
-1. **Read Notion.** Search Preferences (Active rows only) and the Role and Application rows of Job Applications. The server ignores Memory rows.
+1. **Read Notion.** Active Preference rows and the Role and Application rows of Job Applications. The server ignores Memory rows.
 2. **Recheck found roles.** Only Role rows with Review status "Added", Advert status not Closed, and Tag not "Not for me":
    - Company on a hiring service: the job missing from its list means closed.
    - Otherwise: open the advert link. Gone (404 or 410), or the page says it's closed or no longer accepting applications, means closed.
    - Set Advert status to Closed, Almost Gone (Deadline within 3 days) or Active, as the current task does. Change only Advert status.
-   - Can't tell: leave it as it is and list it in the run report.
+   - Blocked or unreachable (Indeed blocks the server): read the advert through Firecrawl on Composio instead (about $0.0008 a page, at most 40 a run). Firecrawl gets through Indeed (tested 22 Oct 2026).
+   - Still can't tell: leave it as it is and list it in the run report.
    - Application rows with Status "Watch" or "Applied": check the advert the same way but never change the row. If one has closed, list it in the run report so Claude mentions it in the summary (confirmed by the user).
 3. **Choose today's companies.** The 12 Company and Job Listing Websites rows with the oldest "Last checked" (empty first), as now. Skip the indeed.com row (the job site search covers Indeed); treat other job listing sites, such as startup.jobs, as an own site.
 4. **Check each company:**
    - Hiring service known: read its free job list. Endpoints tested on 22 Oct 2026: Greenhouse `https://boards-api.greenhouse.io/v1/boards/{id}/jobs`, Lever `https://api.lever.co/v0/postings/{id}?mode=json`, Ashby `https://api.ashbyhq.com/posting-api/job-board/{id}?includeCompensation=true`. Workable's list returned "too many requests" (Cloudflare error 1015) from the test machine; test it from Vercel and find its correct endpoint.
-   - Own site: `FIRECRAWL_SCRAPE` through Composio, using its `jsonOptions` to pull out a list of jobs (title, link, location). That runs Firecrawl's own extraction, not Claude.
-   - Nothing worked: add a Role row with Review status "Needs Claude", Source "Careers page", the company as Name, the careers page link in Links, and the Reason.
+   - Workable's list turned away requests from the test machine (Cloudflare error 1015) but answered later; when it refuses, the server reads the Workable careers page through Firecrawl instead.
+   - Own site: `FIRECRAWL_SCRAPE` through Composio, as plain Markdown (waiting 3 seconds for the page to load). Links whose text names a wanted role, on the company's own site or a hiring service, become jobs. A hiring-service link found on the page is used straight away and saved for next time.
+   - Nothing worked (no careers link, or the page came back nearly empty): add a Role row with Review status "Needs Claude", Source "Careers page", the company as Name, the careers page link in Links, and the Reason. Not added again while one is still waiting.
    - Update the company's "Last checked" and "Last result" ("Read OK", "Used Firecrawl", "Needs Claude"). Fill in "Hiring service" and "Board ID" when first worked out.
 5. **Search job sites.** For each Role and Location preference pair: `JOB_SEARCH_JOBS_SEARCH_API_SEARCH_JOBS` with UK settings and postings since the last run (with some overlap). Optionally `JOB_SEARCH_JOBS_API_LINKEDIN_SEARCH_JOBS`.
 6. **Search LinkedIn posts.** For each Role preference: `SCRAPECREATORS_SEARCH_LINKEDIN_POSTS` with hiring phrases and the location, posted in the last week. Optionally per Company row. Posts become Role rows with Review status "New" and Source "LinkedIn post"; Claude decides if each is a real job.
-7. **Filter.** Use only Search Preferences here, never Memory notes:
+7. **Filter.** Use only Preference rows here, never Memory notes:
    - Drop roles that match an "Exclude" preference.
-   - Drop roles whose title has no link to any Role preference. Keep this loose: a missed good role is worse than an extra one for Claude to reject.
+   - Drop roles whose title has no link to any Role preference. Keep this loose: a missed good role is worse than an extra one for Claude to reject. Built as: the title names a Role preference or its last word ("Designer").
+   - Drop roles clearly elsewhere: a location is kept when empty, when it names a Location preference (or the UK, for "London, UK"), or a place in the company's Notes ("London and Cupertino Only", "Any Location").
    - Don't drop roles for missing pay or level.
 8. **Remove duplicates.** Against every Role and Application row, including Rejected ones (same link after removing tracking parts, or same company and title), and across sources: the same job on several sites becomes one row, preferring the employer's own advert link.
 9. **Collect advert text.** From the job site result where it includes a description, else by opening the advert. Save it in the row's page inside a folded section called "Advert", trimmed to about 4,000 characters.
@@ -148,15 +158,16 @@ Rules for the server: never apply for a job, fill in a form, sign in or create a
 
 ## 6. The daily Claude run (scheduled task)
 
-Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style as the user's current prompt (numbered steps, plain words, helpers as haiku sub-agents with full briefs and the 400-word report limit). It runs after the server, for example two hours later. Claude uses the Notion connector, and the Search connector only for step 5.
+Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style as the user's current prompt (numbered steps, plain words, helpers as haiku sub-agents with full briefs and the 400-word report limit). It starts the server itself (step 1). Claude uses the Job search connector for step 1, the Notion connector throughout, and the Search connector only for step 6.
 
-1. **Read context.** Active Memory rows (Claude Memory view), the user's active Search Preferences, and the CV page.
-2. **Process feedback.** Read new comments on Role rows since the last run.
+1. **Run the server.** Call the Job search connector's `run_job_search` with `stage: "recheck"`, then with `stage: "companies"`. Keep both reports for the summary. If a call fails, say so in the summary and carry on.
+2. **Read context.** Active Memory rows (Claude Memory view), the user's active Preference rows (Search Preferences view), and the CV page.
+3. **Process feedback.** Read new comments on Role rows since the last run.
    - Turn each into a Memory row (Entry type Memory, the note as Name, Active ticked, Memory source "Comment", Source role linked) or an update to an existing one.
    - Reply under the comment saying what was noted, for example "Noted: added 'skip roles needing 5+ years'". A reply from Claude marks the comment as processed.
    - Unclear comment: ask in the reply instead of guessing.
    - A new note that contradicts an older one: the newest wins. Untick the older one and say so in the summary.
-3. **Review the Inbox** (Role rows with Review status "New"):
+4. **Review the Inbox** (Role rows with Review status "New"):
    - Reject only when the row is not a real job advert, is a duplicate, matches an Exclude preference, or breaks an active Memory "never" note. Set Review status "Rejected" with a one-line Reason.
    - LinkedIn posts: keep only real job posts. Find the advert link if there is one; otherwise use the post link.
    - For every kept role, fill in the same row (no new row is created):
@@ -168,9 +179,9 @@ Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style a
      - Page, under a "Negatives" heading: 1 to 3 points, one per line. Look for red flags such as pay not listed, short contracts, unclear duties, unrealistic requirements for the level, or recent layoffs. Base each on facts and on Memory notes about what matters to the user. If nothing worrying stands out, give the weakest point of the advert. Never invent a problem.
    - Set Review status to "Added", which moves the row from the Inbox view to the Found Roles view.
    - Save each role as soon as it's done.
-4. **Notice patterns.** If several roles tagged "Not for me" share a trait, add a Memory row with Active unticked and Memory source "Pattern", as a suggestion, and mention it in the summary.
-5. **Pages the server couldn't read** (Role rows with Review status "Needs Claude"). Turn each advert found into its own Role row and review it as in step 3; set the original row to "Rejected" with Reason "Checked by Claude". Use the current prompt's Round C: Search connector `search` (type "jobs", limited to the company's site with `sites`) and `fetch` to confirm adverts are open, through haiku helpers, 3 companies per helper.
-6. **Summary.**
+5. **Notice patterns.** If several roles tagged "Not for me" share a trait, add a Memory row with Active unticked and Memory source "Pattern", as a suggestion, and mention it in the summary.
+6. **Pages the server couldn't read** (Role rows with Review status "Needs Claude"). Turn each advert found into its own Role row and review it as in step 4; set the original row to "Rejected" with Reason "Checked by Claude". Use the current prompt's Round C: Search connector `search` (type "jobs", limited to the company's site with `sites`) and `fetch` to confirm adverts are open, through haiku helpers, 3 companies per helper.
+7. **Summary.**
    - New roles, Strong first, with title and company.
    - Roles whose Advert status changed to Almost Gone or Closed.
    - Watched roles that have closed.
@@ -178,7 +189,7 @@ Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style a
    - Companies checked, and any marked "Could not read".
    - The Search connector cost, if it was used.
 
-Permissions: Claude may add and edit Memory rows and review Role rows, never the user's Search Preferences rows. It never changes Tag on existing rows, never deletes rows, never edits Application rows, and never runs Job Pick.
+Permissions: Claude may add and edit Memory rows and review Role rows, never the user's Preference rows. It never changes Tag on existing rows, never deletes rows, never edits Application rows, and never runs Job Pick.
 
 ## 7. Logging and reliability
 
@@ -197,16 +208,16 @@ Composio Connect is designed for chat assistants, so it could change without not
 
 ## 8. Things to check while building
 
-- **Vercel limits:** checked 22 Oct 2026 (see setup.md). The Hobby plan allows one scheduled run a day per schedule, up to 59 minutes late, and 300 seconds per call. Build for that; give later stages their own daily schedule if needed.
+- **Vercel limits:** checked 22 Oct 2026 (see setup.md). 300 seconds per call on the Hobby plan, so each stage is its own `run_job_search` call and stops starting new work after 200 seconds. (No Vercel schedule is used.)
 - **Composio Connect terms:** whether automated use from a server is allowed. If unclear, tell the user before relying on it.
 - **Workable** job list endpoint, tested from Vercel.
 - **Tell rows apart by Entry type**, never by Status.
 
 ## 9. Keys and setup (the user does these)
 
-1. **Composio Connect key** (`ck_...`). It's already in the test project's `COMPOSIO_API_KEY` variable. For the search connector, add it as a secret on the connector's settings page (`https://search-connector.vercel.app/settings`) under a new name such as `COMPOSIO_CONSUMER_KEY`, which needs adding to the settings page's known secrets. Never ask the user to paste a key into chat.
-2. **Notion access for the server.** The user creates a Notion internal integration, copies its token, shares the Open Roles page (for Search Preferences) and Job Applications (a separate top-level page) with it, and adds the token on the settings page as `NOTION_TOKEN`. The server only needs those two; the CV page is only read by Claude, so don't share it with the integration unless a later need appears.
-3. **Cron secret:** `CRON_SECRET` as a Vercel environment variable, checked by `api/jobs.ts`.
+1. **Composio Connect key** (`ck_...`). It's already in the test project's `COMPOSIO_API_KEY` variable. Add it on the connector's settings page (`https://search-connector.vercel.app/settings`) as `COMPOSIO_CONSUMER_KEY` (listed there as "Composio Connect consumer key"). Never ask the user to paste a key into chat.
+2. **Notion access for the server.** A Notion internal integration shared with Job Applications only, its token saved on the settings page as `NOTION_TOKEN`. Done 22 Oct 2026.
+3. **Job search connector in Claude.** Add `https://search-connector.vercel.app/jobs/mcp` as a custom connector named "Job search" and sign in, in the account the scheduled task runs in.
 4. **Clean up** after the real version works: delete the `composio-test` Vercel project (it holds the test page and the keys `COMPOSIO_API_KEY` and `COMPOSIO_PLATFORM_KEY`), and revoke the unused developer platform key on Composio.
 
 Test results that this plan relies on (22 Oct 2026, `composio-test` project): through Connect and the workbench, the job site search returned 45 London listings (15 each from Glassdoor, Indeed and LinkedIn) with links, and Firecrawl returned Apple's careers page in full (24,464 characters), in 13 seconds. The LinkedIn posts search found an Apple designer's hiring post. Total cost of all tests: under 1 US cent.
@@ -235,8 +246,8 @@ Test results that this plan relies on (22 Oct 2026, `composio-test` project): th
 ## 11. Build order
 
 0. **Read and propose.** Done on 22 October 2026: Notion set up as in section 4.
-1. **Server foundation.** Notion client, secrets, run log tables, dry-run mode, the recheck step (section 5, step 2), with tests. Deploy, dry-run, show the user the report. Built 22 Oct 2026: `lib/jobs/`, `api/jobs.ts` (`/jobs` page for the owner, `/jobs/run` for the schedule), run log tables created in Supabase. The schedule is added once the user approves a dry run.
-2. **Company job lists.** Hiring-service lists and Firecrawl through Composio Connect, with the reliability measures in section 7.
+1. **Server foundation.** Notion client, secrets, run log tables, dry-run mode, the recheck step (section 5, step 2), with tests. Deploy, dry-run, show the user the report. Built and merged 22 Oct 2026 (ireves/search#36): `lib/jobs/`, `api/jobs.ts`, run log tables created in Supabase. The user's dry run matched expectations.
+2. **Company job lists.** Hiring-service lists and Firecrawl through Composio Connect, with the reliability measures in section 7. Built 22 Oct 2026, with: the Job search connector (`/jobs/mcp`) in place of a Vercel schedule, preferences moved into Job Applications, and Firecrawl for adverts the recheck can't open (Indeed). Filter, duplicate and advert-text steps (section 5, steps 7 to 10) are built for company jobs; Phase 3 adds the job site and LinkedIn post sources to them.
 3. **Job sites and LinkedIn posts.** Searches, filters, duplicates, advert text, writing new Role rows.
 4. **Daily Claude prompt.** Write `docs/job-search/scheduled-task.md`. Run it alongside the old task for a few days, compare the results with the user, then switch over.
 5. **Job Pick.** Skill and worker. Test on one real role the user chooses.

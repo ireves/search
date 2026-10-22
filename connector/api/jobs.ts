@@ -1,30 +1,26 @@
 import { adminPassword, baseUrl, routeOf } from "../lib/config.js";
-import { getKeys, nowSeconds, safeEqual, signToken, verifyToken, type TokenPayload } from "../lib/crypto.js";
+import { getKeys, nowSeconds, signToken, verifyToken, type TokenPayload } from "../lib/crypto.js";
 import { esc, json, page } from "../lib/html.js";
-import { runJobs, type RunReport } from "../lib/jobs/run.js";
+import { STAGES, type StageName } from "../lib/jobs/config.js";
+import { handleJobsMcpPost } from "../lib/jobs/mcp.js";
+import { runJobs, type RunReport, type StageReport } from "../lib/jobs/run.js";
+import { preflight, requireBearer } from "../lib/oauth.js";
 import { signedInOwner } from "../lib/settings.js";
 
-// The job search's daily run (docs/job-search/plan.md). Not an MCP endpoint.
-//   GET  /jobs/run   Vercel's scheduled run, with "Authorization: Bearer
-//                    <CRON_SECRET>". Add ?dry=1 for a dry run.
-//   GET  /jobs       Signed-in owner: a dry run, shown as a page, with a
-//                    button to run it for real.
-//   POST /jobs       Signed-in owner: the real run, from that button.
+// The job search (docs/job-search/plan.md). Not part of the Search connector.
+//   POST /jobs/mcp            The Job search connector, for the daily Claude
+//                             scheduled task (same sign-in as Search).
+//   GET  /jobs?stage=<stage>  Signed-in owner: a dry run of one stage, shown
+//                             as a page, with a button to run it for real.
+//   POST /jobs                Signed-in owner: the real run, from that button.
 
 const CSRF_TTL = 3600;
-
-async function cronAllowed(request: Request): Promise<boolean> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || secret.length < 16) return false;
-  return safeEqual(request.headers.get("authorization") ?? "", `Bearer ${secret}`);
-}
+const STAGE_TITLES: Record<StageName, string> = { recheck: "Recheck found roles", companies: "Company job lists" };
 
 function signingKey(): Promise<CryptoKey> | null {
   const password = adminPassword();
   return password ? getKeys(password).then((k) => k.signing) : null;
 }
-
-const STATUS_WORDS: Record<string, string> = { Active: "Active", "Almost Gone": "Almost Gone", Closed: "Closed" };
 
 function itemList(items: any[], withChange: boolean): string {
   if (!items?.length) return `<p class="muted">None.</p>`;
@@ -32,48 +28,71 @@ function itemList(items: any[], withChange: boolean): string {
     .map((i) => {
       const label = esc([i.role, i.name].filter(Boolean).join(" at ") || "Untitled row");
       const link = i.link ? `<a href="${esc(i.link)}" rel="noreferrer">${label}</a>` : label;
-      const change = withChange ? ` ${esc(i.from ?? "empty")} → <strong>${esc(STATUS_WORDS[i.to] ?? i.to)}</strong>` : "";
+      const change = withChange ? ` ${esc(i.from ?? "empty")} → <strong>${esc(i.to)}</strong>` : "";
       return `<li>${link}:${change} <span class="muted">(${esc(i.how)})</span></li>`;
     })
     .join("")}</ul>`;
 }
 
+function recheckSection(s: StageReport, dry: boolean): string {
+  const d = (s.details ?? {}) as any;
+  const c = s.counts ?? {};
+  return `<div class="card"><p>${c.roles ?? 0} roles to check, ${c.checked ?? 0} checked: ${c.open ?? 0} open, ${c.closed ?? 0} closed, ${c.unknown ?? 0} couldn't tell.${c.skipped_for_time ? ` ${c.skipped_for_time} skipped for time.` : ""} ${c.watched ?? 0} watched or applied roles checked. ${c.firecrawl ?? 0} read through Firecrawl.</p></div>
+<h3>${dry ? "Would change" : "Changed"} (${(d.changes ?? []).length})</h3>${itemList(d.changes, true)}
+<h3>Couldn't tell, left as they are (${(d.could_not_tell ?? []).length})</h3>${itemList(d.could_not_tell, false)}
+<h3>Watched or applied roles that have closed (${(d.watched_closed ?? []).length})</h3>${itemList(d.watched_closed, false)}`;
+}
+
+function companiesSection(s: StageReport, dry: boolean): string {
+  const d = (s.details ?? {}) as any;
+  const c = s.counts ?? {};
+  const rows = (d.companies ?? [])
+    .map((co: any) => {
+      const added = co.added?.length ? `<br>${dry ? "Would add" : "Added"}: ${co.added.map((t: string) => esc(t)).join("; ")}` : "";
+      const dropped = co.dropped?.length ? `<br><span class="muted">Left out: ${co.dropped.slice(0, 6).map((x: any) => `${esc(x.title)} (${esc(x.why)})`).join("; ")}${co.dropped.length > 6 ? ` and ${co.dropped.length - 6} more` : ""}</span>` : "";
+      const error = co.error ? `<br><span class="bad">${esc(co.error)}</span>` : "";
+      return `<li><strong>${esc(co.name)}</strong>: ${esc(co.result)}, ${esc(co.how)}. ${co.listed} jobs listed, ${co.kept} could suit.${added}${dropped}${error}</li>`;
+    })
+    .join("");
+  return `<div class="card"><p>${c.companies ?? 0} companies checked: ${c.listed ?? 0} jobs listed, ${c.kept ?? 0} could suit, ${c.duplicates ?? 0} already in Notion, ${c.added ?? 0} ${dry ? "would be added" : "added"} to the Inbox. ${c.needs_claude ?? 0} ${dry ? "would be" : ""} passed to Claude. ${c.firecrawl_pages ?? 0} pages read through Firecrawl.</p></div><ul>${rows}</ul>`;
+}
+
 function reportPage(report: RunReport, base: string, csrf: string | null): Response {
   const stages = report.stages
     .map((s) => {
-      const d = (s.details ?? {}) as any;
-      const c = s.counts ?? {};
-      const head = `<h2>Recheck found roles ${s.ok ? "" : '<span class="tag bad">problem</span>'}</h2>`;
+      const head = `<h2>${esc(STAGE_TITLES[s.stage])} ${s.ok ? "" : '<span class="tag bad">problem</span>'}</h2>`;
       if (s.error) return `${head}<div class="card bad">${esc(s.error)}</div>`;
-      return `${head}<div class="card"><p>${c.roles ?? 0} roles to check, ${c.checked ?? 0} checked: ${c.open ?? 0} open, ${c.closed ?? 0} closed, ${c.unknown ?? 0} couldn't tell.${c.skipped_for_time ? ` ${c.skipped_for_time} skipped for time.` : ""} ${c.watched ?? 0} watched or applied roles checked.</p></div>
-<h2>${report.dry_run ? "Would change" : "Changed"} (${(d.changes ?? []).length})</h2>${itemList(d.changes, true)}
-<h2>Couldn't tell, left as they are (${(d.could_not_tell ?? []).length})</h2>${itemList(d.could_not_tell, false)}
-<h2>Watched or applied roles that have closed (${(d.watched_closed ?? []).length})</h2>${itemList(d.watched_closed, false)}
-${s.failures?.length ? `<h2>Failures</h2><ul>${s.failures.map((f) => `<li>${esc(f.where)}: ${esc(f.error)}</li>`).join("")}</ul>` : ""}`;
+      const body = s.stage === "recheck" ? recheckSection(s, report.dry_run) : companiesSection(s, report.dry_run);
+      const failures = s.failures?.length ? `<h3>Failures</h3><ul>${s.failures.map((f) => `<li>${esc(f.where)}: ${esc(f.error)}</li>`).join("")}</ul>` : "";
+      const cost = s.charge_usd ? `<p class="muted">Composio charges: $${s.charge_usd.toFixed(4)}.</p>` : "";
+      return `${head}${body}${failures}${cost}`;
     })
     .join("");
+  const stage = report.stages[0]?.stage ?? "recheck";
   const runButton = csrf
-    ? `<form method="post" action="${esc(base)}/jobs"><input type="hidden" name="csrf" value="${esc(csrf)}"><button type="submit">Run for real</button> <span class="muted">Writes the changes above to Notion.</span></form>`
+    ? `<form method="post" action="${esc(base)}/jobs"><input type="hidden" name="csrf" value="${esc(csrf)}"><input type="hidden" name="stage" value="${esc(stage)}"><button type="submit">Run for real</button> <span class="muted">Writes the changes above to Notion.</span></form>`
     : "";
   return page({
     title: "Job search run",
     body: `<h1>Job search ${report.dry_run ? "dry run" : "run"}</h1>
 <p class="muted">Run ${esc(report.id)}, ${esc(report.at.slice(0, 16).replace("T", " "))} UTC, ${Math.round(report.ms / 1000)} seconds.${report.dry_run ? " Nothing was written to Notion." : ""}${report.log_error ? ` Run log not saved: ${esc(report.log_error)}` : ""}</p>
 ${stages}${report.dry_run ? runButton : ""}
-<p><a href="${esc(base)}/settings">Settings</a></p>`,
+<p>${STAGES.map((st) => `<a href="${esc(base)}/jobs?stage=${st}">Dry run: ${esc(STAGE_TITLES[st].toLowerCase())}</a>`).join(" · ")} · <a href="${esc(base)}/settings">Settings</a></p>`,
   });
 }
 
+const stageOf = (value: string | null): StageName => (STAGES.includes(value as StageName) ? (value as StageName) : "recheck");
+
 export default {
   async fetch(request: Request): Promise<Response> {
-    const route = routeOf(request, (p) => (p.replace(/\/+$/, "") === "/jobs/run" ? "run" : "page"));
-    const url = new URL(request.url);
+    const route = routeOf(request, (p) => (p.replace(/\/+$/, "") === "/jobs/mcp" ? "mcp" : "page"));
 
-    if (route === "run") {
-      if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
-      if (!(await cronAllowed(request))) return json({ error: "unauthorized" }, 401);
-      const report = await runJobs({ dry: url.searchParams.get("dry") === "1", trigger: "cron" });
-      return json(report, report.ok ? 200 : 500);
+    if (route === "mcp") {
+      if (request.method === "OPTIONS") return preflight();
+      if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: { allow: "POST, OPTIONS" } });
+      const denied = await requireBearer(request, "/jobs/mcp");
+      if (denied) return denied;
+      return handleJobsMcpPost(request);
     }
 
     const base = baseUrl(request);
@@ -90,12 +109,15 @@ export default {
 
     if (request.method === "POST") {
       const form = new URLSearchParams(await request.text());
-      const csrf = await verifyToken<TokenPayload & { sid: string }>(signing, form.get("csrf"), "jobs-run");
-      if (!csrf || csrf.sid !== sid) return page({ title: "Job search run", status: 403, body: `<h1>Job search run</h1><p>The page had expired. <a href="${esc(base)}/jobs">Start again</a>.</p>` });
-      return reportPage(await runJobs({ dry: false, trigger: "manual" }), base, null);
+      const csrf = await verifyToken<TokenPayload & { sid: string; stage: string }>(signing, form.get("csrf"), "jobs-run");
+      if (!csrf || csrf.sid !== sid || csrf.stage !== form.get("stage")) {
+        return page({ title: "Job search run", status: 403, body: `<h1>Job search run</h1><p>The page had expired. <a href="${esc(base)}/jobs">Start again</a>.</p>` });
+      }
+      return reportPage(await runJobs({ dry: false, trigger: "manual", stages: [stageOf(csrf.stage)] }), base, null);
     }
     if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
-    const csrf = await signToken(signing, { typ: "jobs-run", exp: nowSeconds() + CSRF_TTL, sid });
-    return reportPage(await runJobs({ dry: true, trigger: "manual" }), base, csrf);
+    const stage = stageOf(new URL(request.url).searchParams.get("stage"));
+    const csrf = await signToken(signing, { typ: "jobs-run", exp: nowSeconds() + CSRF_TTL, sid, stage });
+    return reportPage(await runJobs({ dry: true, trigger: "manual", stages: [stage] }), base, csrf);
   },
 };

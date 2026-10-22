@@ -3,6 +3,7 @@ import { json } from "../lib/html.js";
 import { authorizationServerMetadata, authorize, preflight, protectedResourceMetadata, register, token } from "../lib/oauth.js";
 
 function fromPath(pathname: string): string {
+  if (pathname.startsWith("/.well-known/oauth-protected-resource/jobs/mcp")) return "protected-resource-jobs";
   if (pathname.startsWith("/.well-known/oauth-protected-resource")) return "protected-resource";
   if (pathname.startsWith("/.well-known/oauth-authorization-server")) return "authorization-server";
   if (pathname.startsWith("/.well-known/openid-configuration")) return "authorization-server";
@@ -16,6 +17,8 @@ export default {
     switch (route) {
       case "protected-resource":
         return protectedResourceMetadata(request);
+      case "protected-resource-jobs":
+        return protectedResourceMetadata(request, "/jobs/mcp");
       case "authorization-server":
         return authorizationServerMetadata(request);
       case "register":
