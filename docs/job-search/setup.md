@@ -61,6 +61,19 @@ The run log tables are already in Supabase. To delete run records older than 90 
 select cron.schedule('job-search-runs-cleanup', '23 3 * * *', $$delete from public.job_search_stages where at < now() - interval '90 days'; delete from public.job_search_runs where at < now() - interval '90 days'$$);
 ```
 
+## 6. Start the daily task
+
+Follow [`scheduled-task.md`](scheduled-task.md): create the scheduled task, paste the prompt, and run it beside the old Job Finder task for a few days before switching over.
+
+## 7. Clean up afterwards
+
+Once the new daily task works:
+
+1. Delete the `composio-test` project in Vercel. It holds the test page and the keys `COMPOSIO_API_KEY` and `COMPOSIO_PLATFORM_KEY`.
+2. On Composio, revoke the developer platform key, which nothing uses now. Keep the Connect consumer key (`ck_...`) saved on the settings page.
+3. If you added the Job search connector by hand and the plugin's one also works, remove one of them.
+4. Turn off or delete the old Job Finder scheduled task.
+
 ## Limits that shape the design
 
 Checked on 22 October 2026 in [Vercel's function duration docs](https://vercel.com/docs/functions/configuring-functions/duration): on the Hobby plan each function call can run for at most 300 seconds (800 on Pro). So each stage is its own `run_job_search` call, and each stops starting new work after 200 seconds.

@@ -1,6 +1,6 @@
 # Job search automation: build plan
 
-Status: agreed plan (22 October 2026), being built. Phases 0 to 4 are done and Phase 5 is written; see section 11 for progress. Written for a fresh Claude conversation that will build it. Read the whole file before doing anything.
+Status: agreed plan (22 October 2026), being built. Phases 0 to 6 are built; Job Pick and the daily task still need their first real runs; see section 11 for progress. Written for a fresh Claude conversation that will build it. Read the whole file before doing anything.
 
 **Changes since the first draft:**
 - One database. Found roles, the inbox, applications, search preferences and Claude's memory all live in Job Applications, separated by an "Entry type" column and shown in different views. There is no Found Roles, Job Inbox or separate Search Preferences database. Section 4 describes the setup as built.
@@ -254,6 +254,6 @@ Test results that this plan relies on (22 Oct 2026, `composio-test` project): th
 3. **Job sites and LinkedIn posts.** Searches, filters, duplicates, advert text, writing new Role rows. Built 22 Oct 2026 as two more stages, `job_sites` and `linkedin_posts`, sharing the company stage's duplicate, advert-text and writing steps. An empty reply from every search is reported as a failure, so the Claude run can search those pairs itself.
 4. **Daily Claude prompt.** Write `docs/job-search/scheduled-task.md`. Run it alongside the old task for a few days, compare the results with the user, then switch over. Written 22 Oct 2026, modelled on the old "Job Finder" task. Feedback given in any conversation is saved by Claude as a Memory row (Memory source "Chat"), as the Job search connector's instructions tell it.
 5. **Job Pick.** Skill and worker. Test on one real role the user chooses. Written 22 Oct 2026: `skills/job-pick/` and `agents/job-pick-worker.md` (Haiku). Not yet tested on a real role.
-6. **Wrap up.** Docs, README line, plugin description, `search_changes` rows in Supabase for each merged change (as `CLAUDE.md` requires, probably with a new area such as "jobs"), and the clean-up in section 9.
+6. **Wrap up.** Docs, README line, plugin description, `search_changes` rows in Supabase for each merged change (as `CLAUDE.md` requires, probably with a new area such as "jobs"), and the clean-up in section 9. Done 22 Oct 2026: `docs/job-search/README.md` (how it works), setup sections 6 and 7, `search_changes` rows with area "jobs". The clean-up steps are the user's.
 
 At each phase: run `npm run typecheck` and `npm test` in `connector/`, keep changes on the job search paths, and open a draft pull request.

@@ -9,7 +9,7 @@ Web research for Claude using Exa and Parallel (with optional TinyFish, Firecraw
 - **Worker:** [`agents/search-worker.md`](agents/search-worker.md), a Haiku worker that runs the searches and returns short fact lists, so the main Claude's memory stays clear.
 - **Version 1 backup:** [`v1/`](v1) (web-search and deep-search, no workers), installable as the `search-v1` plugin.
 - **Problem log:** the search skills save errors and failures, and search-report saves its whole report, to the connector's problem log, for later troubleshooting. With Supabase set up, the connector also records every search call (engines, settings, timings, errors), and Claude can read the whole log back through the Supabase connector. Without it, entries go to the private Vercel Blob store (`search-connector/issues/`).
-- **Job search connector:** the plugin bundles the Job search connector ([`.mcp.json`](.mcp.json)) for the daily job search. Sign in when Claude asks, the first time you use it. Setup: [`docs/job-search/setup.md`](docs/job-search/setup.md).
+- **Job search connector:** the plugin bundles the Job search connector ([`.mcp.json`](.mcp.json)) for the daily job search. Sign in when Claude asks, the first time you use it. How it works: [`docs/job-search/README.md`](docs/job-search/README.md); setup: [`docs/job-search/setup.md`](docs/job-search/setup.md).
 - **API keys:** added on the connector's own settings page; write-only.
 - **Setup guide:** [`docs/connector-setup.md`](docs/connector-setup.md).
 
