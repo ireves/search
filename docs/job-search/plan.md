@@ -59,6 +59,7 @@ The existing `search` tool's `type: jobs` stays as it is. The server's job searc
 - **One database:** found roles, the inbox, applications, preferences and memory are all rows in Job Applications, told apart by "Entry type" (Role, Application, Preference, Memory). The server's Notion key only needs Job Applications.
 - **Claude starts the server's runs** from the daily scheduled task, through the Job search connector. No Vercel schedule.
 - **Memory:** feedback is stored as Memory rows in Job Applications, shown in the "Claude Memory" view.
+- **Feedback comes two ways:** comments on a role's Notion page, and what the user says in Claude conversations. Both become Memory rows (Memory source "Comment" or "Chat").
 - **CV:** the Notion page is a full record of the user's experience, deliberately unfiltered. Claude uses it as background and never treats it as a finished CV.
 - **Job Pick** runs only when the user starts it by hand. Claude must never run it on its own, and the daily run must never run it.
 - **Job Pick status change:** it changes the same row's Entry type from Role to Application and sets Status to "Watch", so the row moves from the Found Roles view to the Job Applications view. The user changes Status to "Applied" by hand.
@@ -118,6 +119,8 @@ Views (each shows only its own columns):
 4. **Claude Memory**: Entry type = Memory, newest first.
 5. **Search Preferences**: Entry type = Preference, by Preference type. Also shown on the Open Roles page.
 
+Each row's page (shared by every view) always shows Entry type and the user's application columns. The role, preference and memory columns show only when filled in, so a role's page shows its role details and a preference's page its preference details. Comments sit beside the page content, where the user leaves feedback on a role.
+
 The 29 rows from the old Found Roles database were copied in as Role rows with Review status "Added" (their pages had no content). The 19 existing applications were marked Application. The 65 rows from the old Search Preferences database were copied in as Preference rows; the two unnamed Job Listing Websites rows were named after their sites (indeed.com, startup.jobs).
 
 A Role row's page holds, from the top: a "Positives" heading with 1 to 3 bullet points, a "Negatives" heading with 1 to 3 bullet points, then the advert text (about 4,000 characters at most) inside a folded (toggle) section called "Advert". The server writes only the folded advert section; Claude adds the headings above it.
@@ -151,7 +154,7 @@ Runs when the daily Claude scheduled task calls `run_job_search`, one stage per 
    - Drop roles clearly elsewhere: a location is kept when empty, when it names a Location preference (or the UK, for "London, UK"), or a place in the company's Notes ("London and Cupertino Only", "Any Location").
    - Don't drop roles for missing pay or level.
 8. **Remove duplicates.** Against every Role and Application row, including Rejected ones (same link after removing tracking parts, or same company and title), and across sources: the same job on several sites becomes one row, preferring the employer's own advert link.
-9. **Collect advert text.** From the job site result where it includes a description, else by opening the advert. Save it in the row's page inside a folded section called "Advert", trimmed to about 4,000 characters.
+9. **Collect advert text.** In order: the job list's own description (Lever, Ashby) or the hiring service's advert (Greenhouse); else the advert page opened directly, when the text names the role and runs to 200 characters or more; else the advert page through Firecrawl (main content, as plain text, at most 30 a run). Save it in the row's page inside a folded section called "Advert", trimmed to about 4,000 characters. The report counts where each advert's text came from, and any left without.
 10. **Write the new rows** (Entry type Role, Review status New, Date found today, and whichever of Name, Role, Role location, Pay, Deadline, Links, Source the source gave) and the run log (section 7).
 
 Rules for the server: never apply for a job, fill in a form, sign in or create an account. Never invent details: leave a field empty when it isn't given.
@@ -162,8 +165,8 @@ Write the new prompt to `docs/job-search/scheduled-task.md`, in the same style a
 
 1. **Run the server.** Call the Job search connector's `run_job_search` with `stage: "recheck"`, then with `stage: "companies"`. Keep both reports for the summary. If a call fails, say so in the summary and carry on.
 2. **Read context.** Active Memory rows (Claude Memory view), the user's active Preference rows (Search Preferences view), and the CV page.
-3. **Process feedback.** Read new comments on Role rows since the last run.
-   - Turn each into a Memory row (Entry type Memory, the note as Name, Active ticked, Memory source "Comment", Source role linked) or an update to an existing one.
+3. **Process feedback.** Read new comments on Role rows since the last run, and any feedback the user has given in Claude conversations (for example "remember I don't want agency roles").
+   - Turn each into a Memory row (Entry type Memory, the note as Name, Active ticked, Memory source "Comment" with Source role linked, or "Chat" for feedback from a conversation) or an update to an existing one. In any conversation, when the user gives job search feedback, Claude saves it the same way straight away.
    - Reply under the comment saying what was noted, for example "Noted: added 'skip roles needing 5+ years'". A reply from Claude marks the comment as processed.
    - Unclear comment: ask in the reply instead of guessing.
    - A new note that contradicts an older one: the newest wins. Untick the older one and say so in the summary.
@@ -217,7 +220,7 @@ Composio Connect is designed for chat assistants, so it could change without not
 
 1. **Composio Connect key** (`ck_...`). It's already in the test project's `COMPOSIO_API_KEY` variable. Add it on the connector's settings page (`https://search-connector.vercel.app/settings`) as `COMPOSIO_CONSUMER_KEY` (listed there as "Composio Connect consumer key"). Never ask the user to paste a key into chat.
 2. **Notion access for the server.** A Notion internal integration shared with Job Applications only, its token saved on the settings page as `NOTION_TOKEN`. Done 22 Oct 2026.
-3. **Job search connector in Claude.** Add `https://search-connector.vercel.app/jobs/mcp` as a custom connector named "Job search" and sign in, in the account the scheduled task runs in.
+3. **Job search connector in Claude.** Bundled with the search plugin in `.mcp.json` (server `job-search`, `https://search-connector.vercel.app/jobs/mcp`). Update or install the plugin and sign in when Claude asks, in the account the scheduled task runs in. If it doesn't appear, add the same address by hand as a custom connector named "Job search" (setup.md, section 4).
 4. **Clean up** after the real version works: delete the `composio-test` Vercel project (it holds the test page and the keys `COMPOSIO_API_KEY` and `COMPOSIO_PLATFORM_KEY`), and revoke the unused developer platform key on Composio.
 
 Test results that this plan relies on (22 Oct 2026, `composio-test` project): through Connect and the workbench, the job site search returned 45 London listings (15 each from Glassdoor, Indeed and LinkedIn) with links, and Firecrawl returned Apple's careers page in full (24,464 characters), in 13 seconds. The LinkedIn posts search found an Apple designer's hiring post. Total cost of all tests: under 1 US cent.

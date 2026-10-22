@@ -8,7 +8,7 @@
     {
       "name": "search",
       "source": "./",
-      "description": "Version 2: uni-search for sourced research and better-search for everyday questions, with Haiku workers doing the searching"
+      "description": "Version 2: uni-search for sourced research and better-search for everyday questions, with Haiku workers doing the searching, plus the Job search connector for the daily job search"
     },
     {
       "name": "search-v1",

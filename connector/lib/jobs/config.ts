@@ -76,6 +76,10 @@ export const COMPANIES = {
   minPageChars: 300,
   // Advert text saved in each new row's page.
   advertChars: 4000,
+  // Shorter than this, the text read isn't really the advert.
+  minAdvertChars: 200,
+  // Adverts read through Firecrawl when they won't open directly, per run.
+  maxFirecrawlAdverts: 30,
   budgetMs: 200_000,
 };
 
