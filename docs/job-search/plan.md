@@ -82,7 +82,7 @@ Every row has an **Entry type**: Application (the user's own applications), Role
 |---|---|---|
 | Name (row title, renamed from "Company") | Title | All: company name for Applications and Roles; the note itself for Memory |
 | Job Position, Location, Files, Stages, Email | User's own columns, unchanged | Applications |
-| Status | Status: Watch, Applied, Unsuccessful, Successful (default Watch) | Applications. New Role and Memory rows also get "Watch" by default; ignore it on those rows |
+| Status | Choice: Watch, Applied, Unsuccessful, Successful (a single choice, changed from Notion's status kind so new rows start empty) | Applications only; empty on Role and Memory rows |
 | Links | Web link | Advert link for Roles and Applications |
 | Deadline | Date | Closing date for Roles and Applications |
 | Notes | Text | All |
@@ -200,7 +200,7 @@ Composio Connect is designed for chat assistants, so it could change without not
 - **Vercel limits** on the user's plan: how often crons may run, how long a function may run, and whether timing is exact. Check the current Vercel docs; don't rely on memory. Split the run into stages if needed.
 - **Composio Connect terms:** whether automated use from a server is allowed. If unclear, tell the user before relying on it.
 - **Workable** job list endpoint, tested from Vercel.
-- **The default Status** ("Watch") that Notion gives every new row. The server and Claude must tell rows apart by Entry type, never by Status.
+- **Tell rows apart by Entry type**, never by Status.
 
 ## 9. Keys and setup (the user does these)
 
