@@ -9,7 +9,9 @@ import { runJobs, type RunReport } from "./run.js";
 
 const PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
-export const INSTRUCTIONS = `Runs the server side of the user's daily job search. Use it only from the job search scheduled task (docs/job-search/scheduled-task.md) or when the user asks for a job search run. Call run_job_search once per stage, in order: recheck, companies, job_sites, linkedin_posts. Each call can take up to about four minutes.`;
+export const INSTRUCTIONS = `Runs the server side of the user's daily job search. Use it only from the job search scheduled task (docs/job-search/scheduled-task.md) or when the user asks for a job search run. Call run_job_search once per stage, in order: recheck, companies, job_sites, linkedin_posts. Each call can take up to about four minutes.
+
+In any conversation, when the user gives feedback about their job search (for example "remember I don't want agency roles"), save it straight away with the Notion connector as a Memory row in the Job Applications database (https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd): Entry type "Memory", the note as Name, Active ticked, Memory source "Chat". If an active Memory row says nearly the same thing, update it instead; if the new note contradicts one, untick the older one. Tell the user what you saved.`;
 
 export const TOOLS = [
   {
