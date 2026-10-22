@@ -10,9 +10,9 @@ What you need to do once so the daily job search can run. The plan is in [plan.m
    - Workspace: the one with Open Roles.
 2. On the integration's **Capabilities** tab, tick **Read content** and **Update content**. Leave **Insert content** ticked too (later phases add new rows). Comments and user information aren't needed.
 3. Copy the **Internal integration secret** (it starts with `ntn_`). Don't paste it into a chat.
-4. Share two pages with the integration:
-   - Open the **Open Roles** page, choose **•••** (top right) > **Connections**, and add `Job search`. This covers Search Preferences.
-   - Do the same on the **Job Applications** page. It's a separate page, so it needs its own connection.
+4. Share pages with the integration:
+   - Open the **Job Applications** page, choose **•••** (top right) > **Connections**, and add `Job search`. Phase 1 (the recheck) needs only this.
+   - From Phase 2, the server also reads **Search Preferences** (companies, roles and locations). Share just that database with the integration then, or the Open Roles page it sits on.
    - Don't share the CV ("Experience") page. Only Claude reads it.
 5. Open the connector's [settings page](https://search-connector.vercel.app/settings), sign in, and save the secret under **Notion integration token (job search)** (`NOTION_TOKEN`).
 
