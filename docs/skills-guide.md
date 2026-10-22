@@ -118,6 +118,18 @@ A few habits help with answers that aren't clear-cut:
 - **Auto:** sized to the question. A simple lookup takes one or two searches; a question with several parts gets a search for each part.
 - **Deep:** always searches thoroughly, from several angles at once (official pages, people's experiences, reviews, news). The answer is still only as long as the question needs.
 
+## job-pick: preparing for a job you picked
+
+Type `/job-pick` with a role from your Open Roles list in Notion (or an advert link). Claude:
+
+1. Checks the advert is still open.
+2. Researches, with sources and dates: the hiring process and interview stages, what candidates and staff say (Glassdoor, Reddit, LinkedIn), the company's health (Companies House, recent news on layoffs or funding), and pay compared with UK figures for similar roles.
+3. Checks the key facts, and marks anything older than about a year or not about the UK.
+4. Writes a CV of under 500 words for this job, using only what is on your CV page.
+5. Saves the research and the CV in folded sections on the role's Notion page, and moves the row to your applications with Status "Watch".
+
+It runs only when you type the command; the daily job search never runs it. How the daily job search works: [`job-search/plan.md`](job-search/plan.md).
+
 ## search-log: reviewing the problem log
 
 **When it's used:** when you type `/search-log`, or ask Claude to check or review the search problem log or earlier search errors. In the Claude app it may show as `/search:search-log`. It needs the Supabase connector switched on.
