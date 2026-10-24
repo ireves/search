@@ -13,6 +13,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 | `log_issue` | Saves a skill run's errors and failures, or a search-report report, to the problem log | A row in Supabase's `search_issues` table, or one JSON file in the private Vercel Blob store |
 | `run_job_search` | Runs one stage of the daily job search; only the `/job-search` skill uses it ([`docs/job-search`](../docs/job-search/README.md)) | The stage's report as JSON; changes go to Notion and the run log in Supabase |
 | `job_search_notes` | Reads the job search preferences and Claude's memory notes, and adds or changes memory notes (for `/job-search`, `/job-pick` and job search feedback) | One private file in the Blob store (`search-connector/job-notes.json`), edited by the owner at `/preferences` |
+| `job_search_inbox` | Lists and reads the job search Inbox, keeps a role (written to Notion's Open Roles) or rejects it; only the `/job-search` skill uses it | The `job_inbox` table in Supabase ([`supabase/job-inbox.sql`](supabase/job-inbox.sql)), and Notion for kept roles |
 
 The server also sends a short `instructions` text when Claude connects, so Claude knows the tools without a skill.
 

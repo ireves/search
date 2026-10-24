@@ -1,6 +1,6 @@
 # Job search: how it works
 
-Your daily design job search, split between a server that does the repetitive work and Claude, which does the judging. Everything lives in one Notion database, [Job Applications](https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd).
+Your daily design job search, split between a server that does the repetitive work and Claude, which does the judging. The roles you'll want to look at live in one Notion database, [Job Applications](https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd). Roles waiting for review are kept in Supabase.
 
 ## Each day
 
@@ -9,14 +9,14 @@ Your daily design job search, split between a server that does the repetitive wo
    - **Companies:** reads the job lists of the 12 companies checked longest ago.
    - **Job sites:** searches Indeed, LinkedIn and Glassdoor for each role and place you want.
    - **LinkedIn posts:** finds recent posts from people hiring.
-2. **The server** filters the results with your search preferences (on the connector's [preferences page](https://search-connector.vercel.app/preferences)), leaves out anything already in Notion, saves each advert's text, and adds new roles to the **Inbox** view.
+2. **The server** filters the results with your search preferences (on the connector's [preferences page](https://search-connector.vercel.app/preferences)), leaves out anything already in Notion or found before, saves each advert's text, and adds new roles to the **Inbox**, a table in Supabase (`job_inbox`).
 3. **Claude** then:
    - reads your comments on roles and turns them into memory notes on the preferences page, replying under each;
-   - reviews every Inbox role (rejecting non-jobs, duplicates, and roles outside your role, location and Exclude preferences, and filling in the summary, fit, positives and negatives);
+   - reviews every Inbox role through the Search connector's `job_search_inbox` tool: it rejects non-jobs, duplicates, and roles outside your role, location and Exclude preferences (they stay in Supabase with the reason), and keeps the rest with a summary, fit, positives and negatives, which the server writes to Notion;
    - reads careers pages the server couldn't;
    - and ends with a summary, including what it cost.
 
-Reviewed roles appear in the **Open Roles** view.
+Kept roles appear in the **Open Roles** view. To see the Inbox itself, including rejected roles and why, open the `job_inbox` table in Supabase's **Table editor**.
 
 ## When you pick a role
 

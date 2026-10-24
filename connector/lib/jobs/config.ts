@@ -39,6 +39,10 @@ export const COL = {
   lastResult: "Last result",
   hiringService: "Hiring service",
   boardId: "Board ID",
+  level: "Level",
+  summary: "Summary",
+  potential: "Candidate potential",
+  why: "Why it matches",
 };
 
 export const ENTRY = { role: "Role", application: "Application", memory: "Memory", preference: "Preference" } as const;
@@ -197,6 +201,21 @@ export const COMPOSIO = {
     // Settings the weekly check expects the tool to still take.
     expects: ["url", "formats", "waitFor", "timeout", "onlyMainContent", "location"],
   },
+};
+
+// The Inbox in Supabase (supabase/job-inbox.sql): new roles waiting for
+// Claude's review. Uses the run log's Supabase project and key.
+export const INBOX = {
+  table: "job_inbox",
+  timeoutMs: 10_000,
+  // Rows read for the duplicate check, at most.
+  maxRows: 50_000,
+  // Characters of advert text in each row.
+  advertChars: 10_000,
+  // Choices Claude may give when keeping a role.
+  levels: ["Internship", "Graduate", "Junior", "Mid", "Senior", "Unknown"],
+  potentials: ["Strong", "Average", "Weak"],
+  advertStatuses: ["Active", "Almost Gone"],
 };
 
 // The run log in Supabase (supabase/job-search.sql). Uses the same project

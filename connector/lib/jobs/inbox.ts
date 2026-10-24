@@ -1,10 +1,12 @@
 // What every stage that finds roles shares: the duplicate check against Job
-// Applications, the advert text for each new role, and writing the new rows
-// to the Inbox (Entry type Role, Review status New).
+// Applications and the Inbox, the advert text for each new role, and adding
+// the new roles to the Inbox in Supabase (lib/jobs/inboxstore.ts) for Claude
+// to review.
 
 import { COL, COMPANIES, ENTRY, HIRING_SERVICES, NOTION, RECHECK, REVIEW } from "./config.js";
 import { composio, type ComposioError } from "./composio.js";
-import { dateValue, select, selectValue, text, textValue, titleValue, toggleBlock, url, urlValue, type Notion } from "./notion.js";
+import { inbox, newInboxId, type InboxRow } from "./inboxstore.js";
+import { select, text, url, type Notion } from "./notion.js";
 import { linkKey, roleKey } from "./prefs.js";
 
 export interface Job {
@@ -28,6 +30,8 @@ export interface Pending {
   job: Job;
   // Advert text from the source that is trusted at any length.
   trusted?: boolean;
+  // Other links for the same advert (its job-site copy).
+  otherLinks?: string[];
 }
 
 export const plain = (html: string) =>
@@ -105,8 +109,8 @@ export interface Existing {
   needsClaude: Set<string>;
 }
 
-// Every Role and Application row, rejected ones included, so a role is never
-// added twice.
+// Every Role and Application row in Notion and every Inbox row, rejected ones
+// included, so a role is never added twice.
 export async function loadExisting(client: Notion): Promise<Existing> {
   const rows = [
     ...(await client.query(NOTION.applications, { property: COL.entryType, select: { equals: ENTRY.role } })),
@@ -121,7 +125,35 @@ export async function loadExisting(client: Notion): Promise<Existing> {
     if (text(p[COL.role])) existing.roles.add(roleKey(name, text(p[COL.role])));
     if (select(p[COL.reviewStatus]) === REVIEW.needsClaude) existing.needsClaude.add(name.toLowerCase());
   }
+  for (const row of await (await inbox()).keys()) {
+    row.keys?.forEach((k) => existing.links.add(k));
+    if (row.role_key) existing.roles.add(row.role_key);
+    if (row.kind === "needs_claude" && row.status === "new") existing.needsClaude.add(row.company.toLowerCase());
+  }
   return existing;
+}
+
+// An Inbox row for a role, or for a company Claude should check.
+export function inboxRow(p: { company: string; title?: string | null; link?: string | null; otherLinks?: string[]; location?: string; pay?: string; source?: string; advert?: string; reason?: string }, found: string, kind: InboxRow["kind"] = "role"): InboxRow {
+  const keys = kind === "role" ? [...new Set([p.link ?? "", ...(p.otherLinks ?? [])].map(linkKey).filter(Boolean))].slice(0, 10) : [];
+  return {
+    id: newInboxId(),
+    found,
+    kind,
+    status: "new",
+    company: p.company.slice(0, 300),
+    title: p.title?.slice(0, 300) || null,
+    link: p.link || null,
+    keys,
+    role_key: kind === "role" && p.title ? roleKey(p.company, p.title).slice(0, 700) : null,
+    location: p.location?.slice(0, 300) || null,
+    pay: p.pay?.slice(0, 300) || null,
+    source: p.source || null,
+    advert: p.advert?.slice(0, 10_000) || null,
+    reason: p.reason?.slice(0, 1000) || null,
+    notion_url: null,
+    reviewed_at: null,
+  };
 }
 
 // true when the role is new; it is then counted as seen.
@@ -195,41 +227,13 @@ export async function fillAdverts(pending: Pending[], deadlineAt: number): Promi
   return { counts, charge, failures };
 }
 
-export async function createRow(client: Notion, properties: Record<string, unknown>, children: unknown[] | undefined, what: string): Promise<{ where: string; error: string } | null> {
+// Adds the new roles to the Inbox, with their advert text, in one go.
+export async function writeRoles(pending: Pending[], today: string): Promise<{ where: string; error: string }[]> {
+  if (!pending.length) return [];
   try {
-    await client.create(NOTION.applications, properties, children);
-    return null;
+    await (await inbox()).insert(pending.map((p) => inboxRow({ company: p.company, title: p.job.title, link: p.job.link, otherLinks: p.otherLinks, location: p.job.location, pay: p.job.pay, source: p.source, advert: p.job.advert }, today)));
+    return [];
   } catch (error) {
-    return { where: `add ${what}`, error: (error as any).friendly ?? (error as Error).message };
+    return [{ where: `add ${pending.length} roles to the Inbox`, error: (error as any).friendly ?? (error as Error).message }];
   }
-}
-
-// Writes the new roles to the Inbox, with the advert text in a folded
-// "Advert" section of each page.
-export async function writeRoles(client: Notion, pending: Pending[], today: string, deadlineAt: number): Promise<{ where: string; error: string }[]> {
-  const failures: { where: string; error: string }[] = [];
-  for (const p of pending) {
-    if (Date.now() > deadlineAt) {
-      failures.push({ where: "time limit", error: `${pending.length - pending.indexOf(p)} roles not written; they'll be found again next run` });
-      break;
-    }
-    const failed = await createRow(
-      client,
-      {
-        [COL.name]: titleValue(p.company),
-        [COL.role]: textValue(p.job.title),
-        [COL.entryType]: selectValue(ENTRY.role),
-        [COL.reviewStatus]: selectValue(REVIEW.new),
-        [COL.source]: selectValue(p.source),
-        [COL.links]: urlValue(p.job.link),
-        [COL.roleLocation]: textValue(p.job.location),
-        [COL.pay]: textValue(p.job.pay),
-        [COL.dateFound]: dateValue(today),
-      },
-      p.job.advert ? [toggleBlock("Advert", p.job.advert)] : undefined,
-      `${p.company} ${p.job.title}`,
-    );
-    if (failed) failures.push(failed);
-  }
-  return failures;
 }

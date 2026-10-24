@@ -81,13 +81,13 @@ function reportPage(report: RunReport, base: string, csrf: string | null): Respo
     .join("");
   const stage = report.stages[0]?.stage ?? "recheck";
   const runButton = csrf
-    ? `<form method="post" action="${esc(base)}/jobs"><input type="hidden" name="csrf" value="${esc(csrf)}"><input type="hidden" name="stage" value="${esc(stage)}"><button type="submit">Run for real</button> <span class="muted">Writes the changes above to Notion.</span></form>`
+    ? `<form method="post" action="${esc(base)}/jobs"><input type="hidden" name="csrf" value="${esc(csrf)}"><input type="hidden" name="stage" value="${esc(stage)}"><button type="submit">Run for real</button> <span class="muted">Saves the changes above: the recheck's to Notion, new roles to the Inbox in Supabase.</span></form>`
     : "";
   return page({
     title: "Job search run",
     wide: true,
     body: `${nav(base, "jobs")}<h1>Job search ${report.dry_run ? "dry run" : "run"}</h1>
-<p class="muted">Run ${esc(report.id)}, ${esc(report.at.slice(0, 16).replace("T", " "))} UTC, ${Math.round(report.ms / 1000)} seconds.${report.dry_run ? " Nothing was written to Notion." : ""}${report.log_error ? ` Run log not saved: ${esc(report.log_error)}` : ""}</p>
+<p class="muted">Run ${esc(report.id)}, ${esc(report.at.slice(0, 16).replace("T", " "))} UTC, ${Math.round(report.ms / 1000)} seconds.${report.dry_run ? " Nothing was saved." : ""}${report.log_error ? ` Run log not saved: ${esc(report.log_error)}` : ""}</p>
 ${stages}${report.dry_run ? runButton : ""}
 <p>${STAGES.map((st) => `<a href="${esc(base)}/jobs?stage=${st}">Dry run: ${esc(STAGE_TITLES[st].toLowerCase())}</a>`).join(" · ")}</p>`,
   });

@@ -1,11 +1,13 @@
 // The Search connector's job search tools (lib/mcp.ts lists them):
-// run_job_search and job_search_notes. The daily
+// run_job_search, job_search_notes and job_search_inbox. The daily
 // job search skill (/job-search) calls it to run the server's stages; the
 // connector's instructions and the description keep Claude from using it
 // anywhere else.
 
-import { STAGES, type StageName } from "./config.js";
+import { INBOX, STAGES, type StageName } from "./config.js";
+import { inbox } from "./inboxstore.js";
 import { changeNotes, cleanMemory, loadNotes, MEMORY_SOURCES } from "./notes.js";
+import { keepRole, rejectRow, ReviewError, type Keep } from "./review.js";
 import { runJobs, type RunReport } from "./run.js";
 
 export const JOB_SEARCH_TOOL = {
@@ -111,5 +113,79 @@ export async function runNotesTool(args: Json): Promise<{ text: string; isError:
     return fail("action must be read, add_memory or update_memory.");
   } catch (error) {
     return fail(`The job search notes failed: ${(error as Error).message}`);
+  }
+}
+
+// The Inbox in Supabase, for the /job-search skill's review (lib/jobs/review.ts).
+export const INBOX_TOOL = {
+  name: "job_search_inbox",
+  title: "Job search Inbox",
+  description:
+    "Only for the /job-search skill: never call it unless that skill is running. The roles the server found that are waiting for review, and companies whose careers page it couldn't read. list: every waiting row, without advert text. read: up to 10 rows by id, with advert text. add: keep a role; the server writes it to Notion's Open Roles with your review and the advert text, and returns its Notion link. Give id for an Inbox row, or company, title, link and source for a role you found yourself (refused if it's already in Job Applications or the Inbox). reject: leave a row out, with a one-line reason.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      action: { type: "string", enum: ["list", "read", "add", "reject"] },
+      id: { type: "string", description: "add or reject: the Inbox row's id, from list." },
+      ids: { type: "array", items: { type: "string" }, maxItems: 10, description: "read: the rows to read." },
+      reason: { type: "string", description: "reject: one line naming why, e.g. the preference it fails." },
+      company: { type: "string", description: "add: the hiring company (corrects the row's, or for a role you found)." },
+      title: { type: "string", description: "add: the job title." },
+      link: { type: "string", description: "add: the advert link (the employer's own when there is one)." },
+      source: { type: "string", enum: ["LinkedIn", "Indeed", "Glassdoor", "Careers page", "LinkedIn post"], description: "add without id: where you found it." },
+      location: { type: "string", description: "add: where the job is based, as the advert says." },
+      level: { type: "string", enum: INBOX.levels },
+      pay: { type: "string", description: "add: as written, or \"Not listed\"." },
+      deadline: { type: "string", description: "add: closing date YYYY-MM-DD, only if the advert gives one." },
+      advert_status: { type: "string", enum: INBOX.advertStatuses, description: "add: Almost Gone when the deadline is within 3 days." },
+      summary: { type: "string", description: "add: one or two sentences on the day-to-day work." },
+      candidate_potential: { type: "string", enum: INBOX.potentials },
+      why_it_matches: { type: "string", description: "add: one sentence naming the preferences met and the CV parts that suit it." },
+      positives: { type: "array", items: { type: "string" }, maxItems: 3, description: "add: 1 to 3 points." },
+      negatives: { type: "array", items: { type: "string" }, maxItems: 3, description: "add: 1 to 3 points." },
+    },
+    required: ["action"],
+    additionalProperties: false,
+  },
+  annotations: { title: "Job search Inbox", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+};
+
+export async function runInboxTool(args: Json): Promise<{ text: string; isError: boolean }> {
+  const fail = (text: string) => ({ text, isError: true });
+  const done = (value: unknown) => ({ text: JSON.stringify(value), isError: false });
+  try {
+    if (args.action === "list") {
+      const rows = await (await inbox()).byStatus("new");
+      return done({
+        rows: rows.map((r) => ({
+          id: r.id,
+          kind: r.kind,
+          company: r.company,
+          ...(r.title ? { title: r.title } : {}),
+          link: r.link,
+          ...(r.location ? { location: r.location } : {}),
+          ...(r.pay ? { pay: r.pay } : {}),
+          source: r.source,
+          found: r.found,
+          ...(r.reason ? { reason: r.reason } : {}),
+          advert_chars: r.advert?.length ?? 0,
+        })),
+      });
+    }
+    if (args.action === "read") {
+      const ids = Array.isArray(args.ids) ? args.ids.slice(0, 10).map(String) : [];
+      if (!ids.length) return fail("ids is required.");
+      const rows = await (await inbox()).byIds(ids);
+      return done({ rows: rows.map(({ keys, role_key, ...r }) => r) });
+    }
+    if (args.action === "add") return done({ added: await keepRole(args as Keep) });
+    if (args.action === "reject") {
+      if (!args.id) return fail("id is required.");
+      await rejectRow(String(args.id), String(args.reason ?? ""));
+      return done({ rejected: args.id });
+    }
+    return fail("action must be list, read, add or reject.");
+  } catch (error) {
+    return fail(error instanceof ReviewError ? error.message : `The job search Inbox failed: ${(error as any).friendly ?? (error as Error).message}`);
   }
 }

@@ -1,22 +1,24 @@
 ---
 name: job-search
-description: The daily design job search. Runs the server's job search stages through the Search connector's run_job_search tool, then reviews the Notion Inbox, processes feedback and writes a summary. Run only when the user or the daily scheduled task types /job-search; never for other questions about jobs.
+description: The daily design job search. Runs the server's job search stages through the Search connector's run_job_search tool, then reviews the Inbox (job_search_inbox), processes feedback and writes a summary. Run only when the user or the daily scheduled task types /job-search; never for other questions about jobs.
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-24c
+Skill version: 2026-10-24d
 
 You are running my daily design job search. A server does the repetitive
-work; you review what it found and keep my Notion up to date. Save your
-work to Notion as you go, so nothing is lost if the run ends early.
+work; you review what it found and keep my Notion up to date. Save each
+decision as you go, so nothing is lost if the run ends early.
 
 WHERE THINGS ARE
-- Job Applications database (everything lives here, told apart by
-  "Entry type"):
+- The Inbox: roles the server found that are waiting for your review,
+  and companies whose careers page it couldn't read. It is not in
+  Notion: use the Search connector's "job_search_inbox" tool.
+- Job Applications database in Notion, rows told apart by "Entry type":
   https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd
-  - Role rows: jobs found by the searches. The "Inbox" view shows
-    Review status New or Needs Claude; the "Open Roles" view shows
-    Review status Added.
+  - Role rows: roles you kept, in the "Open Roles" view (Review status
+    Added). job_search_inbox writes them; you never create them
+    yourself.
   - Application rows: my own applications. Never change these.
 - My search preferences and your memory notes about what I want are
   not in Notion. Read and save them with the Search connector's
@@ -33,10 +35,14 @@ TOOLS
   only in Step 1 of this skill.
 - The Search connector's "job_search_notes" tool reads my preferences
   and your memory notes, and saves memory notes.
+- The Search connector's "job_search_inbox" tool lists and reads the
+  Inbox, and keeps ("add") or rejects each row. Use it only in Steps 4,
+  6 and 7.
 - Tool names may have a prefix (Search:run_job_search,
   mcp__search__run_job_search); match the end of the name.
-- If run_job_search or job_search_notes is missing, say the Search
-  connector needs connecting again, and carry on with what you can.
+- If run_job_search, job_search_notes or job_search_inbox is missing,
+  say the Search connector needs connecting again, and carry on with
+  what you can.
 - The Notion connector for everything in Notion.
 - The Search connector ("search" and "fetch") only in Steps 6 and 7.
 - The Indeed connector only in Step 7.
@@ -102,7 +108,9 @@ STEP 3: PROCESS FEEDBACK (you do this)
     the summary.
 
 STEP 4: REVIEW THE INBOX (you do this)
-Work through every Role row with Review status "New".
+Call job_search_inbox with action "list". Work through every row with
+kind "role" (rows with kind "needs_claude" are for Step 6). Read the
+advert text with "read", up to 10 ids at a time.
 - Check every row against my preferences from Step 2. Reject it when:
   - it is not a real job advert, or is a duplicate of another row;
   - the job is not one of my Role preferences. Close variants count
@@ -116,42 +124,43 @@ Work through every Role row with Review status "New".
   - it matches a preference with Priority "Exclude" (for example a
     Senior, Lead or Manager level, in the title or the advert's stated
     level), or breaks an active memory note that says never.
-  Set Review status to "Rejected" and write a one-line Reason naming
-  the preference it fails. Missing pay or level is never a reason to
-  reject, and neither is a Low or Medium priority preference: those
-  only lower Candidate potential and go in Why it matches.
+  Reject it with job_search_inbox: action "reject", its id and a
+  one-line reason naming the preference it fails. Missing pay or level
+  is never a reason to reject, and neither is a Low or Medium priority
+  preference: those only lower Candidate potential and go in
+  why_it_matches.
 - Source "LinkedIn post": keep it only if the post is advertising a
-  real job. If the post links to an advert, put that link in Links;
-  otherwise keep the post link. Fill in Name with the hiring company,
-  not the person who posted, and Role with the job title.
-- For every row you keep, fill in the same row (never create a new one):
-  - Check or complete Name (company), Role, Links, Role location,
-    Level (Internship, Graduate, Junior, Mid, Senior or Unknown; Senior
-    for Lead roles), Pay (as written, or "Not listed") and Deadline
-    (only if the advert gives one). Use the folded "Advert" section on
-    the page; it holds the advert text.
-  - Advert status: "Almost Gone" if the deadline is within 3 days,
-    otherwise "Active". Tag: "New".
-  - Summary: one or two sentences on what the job involves day to day.
-  - Candidate potential: "Strong" (I match most of the requirements),
+  real job. If the post links to an advert, give that link as link;
+  otherwise the post link stays. Give the hiring company as company,
+  not the person who posted, and the job title as title.
+- Keep every other row with job_search_inbox: action "add", its id,
+  and your review:
+  - company, title, link and location only to correct the row's.
+  - level: Internship, Graduate, Junior, Mid, Senior or Unknown (Senior
+    for Lead roles). pay: as written, or "Not listed". deadline
+    (YYYY-MM-DD) only if the advert gives one.
+  - advert_status: "Almost Gone" if the deadline is within 3 days,
+    otherwise "Active".
+  - summary: one or two sentences on what the job involves day to day.
+  - candidate_potential: "Strong" (I match most of the requirements),
     "Average" (I match the core, with gaps) or "Weak" (I'm missing key
     requirements). Judge against the full CV page and memory notes.
-  - Why it matches: one short sentence naming the preferences it meets
+  - why_it_matches: one short sentence naming the preferences it meets
     and the parts of my CV that suit it.
-  - On the page, above the folded "Advert" section, add a "Positives"
-    heading with 1 to 3 points, one per line, on what is good about the
-    role or company, each based on the advert or known facts.
-  - Below it, a "Negatives" heading with 1 to 3 points, one per line.
-    Look for red flags such as pay not listed, short contracts, unclear
-    duties, unrealistic requirements for the level or recent layoffs.
-    Base each on facts and on what the memory notes say matters to me. If
-    nothing worrying stands out, give the weakest point of the advert.
-    Never invent a problem.
-  - If a row has no advert text and its Links can't tell you enough,
-    give it to a helper to open with "fetch" (up to 8 rows per helper),
-    asking for the job's duties, requirements, location, pay, level and
-    closing date.
-  - Set Review status to "Added". Save each row as soon as it's done.
+  - positives: 1 to 3 points on what is good about the role or
+    company, each based on the advert or known facts.
+  - negatives: 1 to 3 points. Look for red flags such as pay not
+    listed, short contracts, unclear duties, unrealistic requirements
+    for the level or recent layoffs. Base each on facts and on what the
+    memory notes say matters to me. If nothing worrying stands out,
+    give the weakest point of the advert. Never invent a problem.
+  The tool writes the role to Open Roles (Tag "New", Review status
+  Added) with the advert text on its page, and returns its Notion link.
+- If a row has no advert text (advert_chars 0) and its link can't tell
+  you enough, give it to a helper to open with "fetch" (up to 8 rows
+  per helper), asking for the job's duties, requirements, location,
+  pay, level and closing date.
+- Save each decision as soon as it's made.
 
 STEP 5: NOTICE PATTERNS (you do this)
 - Look at Role rows I have tagged "Not for me". If several share a
@@ -161,8 +170,8 @@ STEP 5: NOTICE PATTERNS (you do this)
   to switch on at /preferences. Mention it in the summary.
 
 STEP 6: PAGES THE SERVER COULDN'T READ
-Every Role row with Review status "Needs Claude" is a company whose
-careers page the server couldn't read. Its Links holds the careers page.
+Every Inbox row with kind "needs_claude" is a company whose careers
+page the server couldn't read. Its link is the careers page.
 - Helpers: up to 3 companies per helper. Each uses the Search
   connector's "search" with type "jobs" and the query "[company] [role]
   [location]" for my Role and Location preferences, limited with
@@ -172,11 +181,11 @@ careers page the server couldn't read. Its Links holds the careers page.
   "fetch" (fresh) to check it is still open, and reports for each
   matching role: title, link, location, level, pay and closing date, as
   written, or "Not listed".
-- You: check each reported role against Job Applications for
-  duplicates (same link, or same company and title). Add each new one
-  as a Role row (Entry type "Role", Source "Careers page", Date found
-  today) and review it as in Step 4. Then set the "Needs Claude" row to
-  "Rejected" with Reason "Checked by Claude".
+- You: review each reported role as in Step 4. Keep one with
+  job_search_inbox "add" without an id: company, title, link, source
+  "Careers page" and your review. The tool refuses roles already in
+  Job Applications or the Inbox; skip those. Then reject the
+  "needs_claude" row with reason "Checked by Claude".
 
 STEP 7: IF A SEARCH STAGE FAILED
 Only if the job_sites or linkedin_posts report in Step 1 failed, or its
@@ -186,8 +195,8 @@ failures say every search came back empty:
   Indeed connector and the Search connector's "search" (type "jobs"),
   reporting in the Step 6 format.
 - linkedin_posts: skip it for today and say so in the summary.
-- You: add new roles as in Step 6, with Source "Indeed" or "LinkedIn"
-  as found, and review them as in Step 4.
+- You: keep new roles as in Step 6, with source "Indeed" or "LinkedIn"
+  as found.
 
 STEP 8: SUMMARY
 Finish with a short summary listing:

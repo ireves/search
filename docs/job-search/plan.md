@@ -7,6 +7,7 @@ Status: agreed plan (22 October 2026), being built. Phases 0 to 6 are built; Job
 - No Vercel schedule. The daily Claude scheduled task starts the server's stages through the **Job search** connector (`/jobs/mcp`, one tool: `run_job_search`). It shares the Search connector's sign-in but is a separate connector, so its tool never sits beside search.
   - Changed 24 Oct 2026: `run_job_search` moved into the Search connector (one sign-in), and the daily instructions moved into the `/job-search` skill, which only runs when typed. The separate connector and `/jobs/mcp` are gone.
   - Changed 24 Oct 2026: preferences and Claude's memory moved out of Notion into one private file in the connector's Blob store, edited at `/preferences` (passkey sign-in) and read by Claude through `job_search_notes`, to save Notion searches.
+  - Changed 24 Oct 2026: the Inbox moved from Notion to a Supabase table (`job_inbox`). Claude reviews it with `job_search_inbox`; the server writes kept roles to Open Roles and keeps rejected ones in Supabase for the duplicate check.
 - Composio's managed Firecrawl allows plain page reads only (no `jsonOptions` extraction, tested 22 Oct 2026). The server reads careers pages as Markdown and keeps links named after a wanted role.
 
 ## Starting prompt

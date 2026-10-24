@@ -6,7 +6,7 @@
 //     last week that read like hiring posts. Claude decides which are real.
 // Both filter loosely with the user's preferences, leave out duplicates
 // (preferring the employer's own advert link), collect advert text and add
-// each new role to the Inbox (Review status New).
+// each new role to the Inbox in Supabase for Claude to review.
 
 import { SEARCHES, SOURCE_POST, SOURCE_SITES } from "./config.js";
 import { composio, type ComposioError, type SearchItem, type SearchRequest, type SearchResult } from "./composio.js";
@@ -175,6 +175,7 @@ async function runSearches(
       job,
       // A post is its own advert.
       trusted: kind === "linkedin_posts",
+      otherLinks: job.link !== item.link ? [item.link] : [],
     });
   }
 
@@ -188,7 +189,7 @@ async function runSearches(
   Object.assign(result.counts, adverts.counts);
   result.charge += adverts.charge;
   result.failures.push(...adverts.failures);
-  if (!options.dry) result.failures.push(...(await writeRoles(client, pending, today, deadlineAt)));
+  if (!options.dry) result.failures.push(...(await writeRoles(pending, today)));
   return result;
 }
 
