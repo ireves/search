@@ -119,7 +119,7 @@ test("full sign-in, MCP calls, refresh, and sign-out-all", async () => {
   const list = (await (await mcp.fetch(req("/mcp", { method: "POST", headers: auth, json: { jsonrpc: "2.0", id: 2, method: "tools/list" } }))).json()) as any;
   assert.deepEqual(
     list.result.tools.map((t: any) => t.name),
-    ["search", "fetch", "verify", "research", "log_issue", "run_job_search"],
+    ["search", "fetch", "verify", "research", "log_issue", "run_job_search", "job_search_notes"],
   );
 
   const refreshed = (await (

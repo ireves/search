@@ -42,15 +42,16 @@ export interface Backend {
 
 class BlobBackend implements Backend {
   name = "Vercel Blob";
+  constructor(private path = STATE_PATH) {}
   async read(): Promise<string | null> {
     const { get } = await import("@vercel/blob");
-    const result = await get(STATE_PATH, { access: "private", useCache: false });
+    const result = await get(this.path, { access: "private", useCache: false });
     if (!result || result.statusCode !== 200 || !result.stream) return null;
     return await new Response(result.stream).text();
   }
   async write(body: string): Promise<void> {
     const { put } = await import("@vercel/blob");
-    await put(STATE_PATH, body, {
+    await put(this.path, body, {
       access: "private",
       addRandomSuffix: false,
       allowOverwrite: true,
@@ -72,16 +73,32 @@ export class MemoryBackend implements Backend {
 }
 
 let backendOverride: Backend | null = null;
+let fileOverrides: Map<string, Backend> | null = null;
 
-// Used by tests and local development.
+// Used by tests and local development. Other files (fileBackend) are then
+// kept in memory too.
 export function useBackend(backend: Backend | null): void {
   backendOverride = backend;
+  fileOverrides = backend ? new Map() : null;
   cache = null;
 }
 
+const blobConnected = () => Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+
 export function backend(): Backend | null {
   if (backendOverride) return backendOverride;
-  if (process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN) return new BlobBackend();
+  if (blobConnected()) return new BlobBackend();
+  return null;
+}
+
+// Another private file in the same Blob store, such as the job search's
+// preferences and memory notes (lib/jobs/notes.ts).
+export function fileBackend(path: string): Backend | null {
+  if (fileOverrides) {
+    if (!fileOverrides.has(path)) fileOverrides.set(path, new MemoryBackend());
+    return fileOverrides.get(path)!;
+  }
+  if (blobConnected()) return new BlobBackend(path);
   return null;
 }
 

@@ -1,6 +1,6 @@
 import { adminPassword, baseUrl } from "../lib/config.js";
 import { getKeys, nowSeconds, signToken, verifyToken, type TokenPayload } from "../lib/crypto.js";
-import { esc, json, page } from "../lib/html.js";
+import { esc, json, nav, page } from "../lib/html.js";
 import { STAGES, type StageName } from "../lib/jobs/config.js";
 import { runJobs, type RunReport, type StageReport } from "../lib/jobs/run.js";
 import { signedInOwner } from "../lib/settings.js";
@@ -85,10 +85,11 @@ function reportPage(report: RunReport, base: string, csrf: string | null): Respo
     : "";
   return page({
     title: "Job search run",
-    body: `<h1>Job search ${report.dry_run ? "dry run" : "run"}</h1>
+    wide: true,
+    body: `${nav(base, "jobs")}<h1>Job search ${report.dry_run ? "dry run" : "run"}</h1>
 <p class="muted">Run ${esc(report.id)}, ${esc(report.at.slice(0, 16).replace("T", " "))} UTC, ${Math.round(report.ms / 1000)} seconds.${report.dry_run ? " Nothing was written to Notion." : ""}${report.log_error ? ` Run log not saved: ${esc(report.log_error)}` : ""}</p>
 ${stages}${report.dry_run ? runButton : ""}
-<p>${STAGES.map((st) => `<a href="${esc(base)}/jobs?stage=${st}">Dry run: ${esc(STAGE_TITLES[st].toLowerCase())}</a>`).join(" · ")} · <a href="${esc(base)}/settings">Settings</a></p>`,
+<p>${STAGES.map((st) => `<a href="${esc(base)}/jobs?stage=${st}">Dry run: ${esc(STAGE_TITLES[st].toLowerCase())}</a>`).join(" · ")}</p>`,
   });
 }
 
@@ -103,7 +104,7 @@ export default {
       return page({
         title: "Job search run",
         status: 401,
-        body: `<h1>Job search run</h1><p>Sign in on the <a href="${esc(base)}/settings">settings page</a> first, then open this page again.</p>`,
+        body: `<h1>Job search run</h1><p><a href="${esc(base)}/settings?next=/jobs">Sign in</a> first.</p>`,
       });
     }
     const signing = await key;

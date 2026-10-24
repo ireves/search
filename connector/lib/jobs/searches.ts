@@ -107,7 +107,7 @@ async function runSearches(
   const today = ukToday(options.now);
   const deadlineAt = Date.now() + (options.budgetMs ?? SEARCHES.budgetMs);
   const client = await notion();
-  const prefs = await readPreferences(client);
+  const prefs = await readPreferences();
   const result: SearchesResult = { counts: { searches: 0, empty_searches: 0, raw: 0, matched: 0, duplicates: 0, added: 0 }, searches: [], failures: [], charge: 0 };
   const { calls, labels } = kind === "job_sites" ? jobSearchCalls(prefs) : postSearchCalls(prefs);
   result.counts.searches = calls.length;

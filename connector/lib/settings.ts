@@ -10,13 +10,16 @@ import { firecrawlCheck } from "./engines/firecrawl.js";
 import { tinyfishCheck } from "./engines/tinyfish.js";
 import { openalexCheck } from "./engines/openalex.js";
 import { parallelCheck } from "./engines/parallel.js";
-import { esc, json, page, passkeyFields, redirect, setupNeededPage } from "./html.js";
+import { esc, json, nav, page, passkeyFields, redirect, setupNeededPage } from "./html.js";
 import { mcpUrl } from "./oauth.js";
 import { clearFailures, isLocked, recordFailure } from "./ratelimit.js";
 import { addPasskey, MAX_PASSKEYS, passwordSignInAllowed, PASSKEY_SCRIPT, registrationOptions, removePasskey, signinOptions, verifySignin } from "./passkeys.js";
 import { backend, bumpEpoch, listSecrets, loadState, readSecret, removeSecret, SECRET_NAME, setSecret, type State } from "./store.js";
 
 const SESSION_TTL = 12 * 3600;
+// Signed-in pages that sign-in can return to.
+const NEXT_PAGES = ["/settings", "/preferences", "/jobs"];
+const nextPage = (value: string | null) => (value && NEXT_PAGES.includes(value) ? value : "/settings");
 
 interface Session extends TokenPayload {
   sid: string;
@@ -89,21 +92,22 @@ export async function handleSettings(request: Request): Promise<Response> {
     if (action === "login") {
       const ip = clientIp(request);
       const state = await loadState(true);
+      const next = nextPage(form.get("next"));
       const fail = async (text: string) => {
         await recordFailure(ip);
-        return loginPage(base, state, text);
+        return loginPage(base, state, text, next);
       };
-      if (isLocked(ip)) return loginPage(base, state, "Too many failed attempts. Wait 10 minutes and try again.");
+      if (isLocked(ip)) return loginPage(base, state, "Too many failed attempts. Wait 10 minutes and try again.", next);
       if (form.get("passkey")) {
         if (!(await verifySignin(request, form.get("passkey"), form.get("pktoken")))) return fail("That passkey wasn't accepted. Try again.");
       } else if (!passwordSignInAllowed(state)) {
-        return loginPage(base, state, "Password sign-in is off because a passkey is set up. Use your passkey.");
+        return loginPage(base, state, "Password sign-in is off because a passkey is set up. Use your passkey.", next);
       } else if (!(await safeEqual(form.get("password") ?? "", password))) {
         return fail("That password isn't right.");
       }
       clearFailures(ip);
       const token = await signToken(signing, { typ: "session", exp: nowSeconds() + SESSION_TTL, sid: randomId(), ep: state.epoch });
-      return redirect(`${base}/settings`, { "set-cookie": sessionCookie(request, token, SESSION_TTL) });
+      return redirect(`${base}${next}`, { "set-cookie": sessionCookie(request, token, SESSION_TTL) });
     }
 
     const session = await currentSession(request, signing);
@@ -158,7 +162,7 @@ export async function handleSettings(request: Request): Promise<Response> {
   }
 
   const session = await currentSession(request, signing);
-  if (!session) return loginPage(base, await loadState(true));
+  if (!session) return loginPage(base, await loadState(true), "", nextPage(url.searchParams.get("next")));
   return dashboard(base, await csrfFor(signing, session), url.searchParams);
 }
 
@@ -172,15 +176,15 @@ async function checkKey(name: string, check: (key: string) => Promise<number>): 
   }
 }
 
-function loginPage(base: string, state: State, message = ""): Response {
+function loginPage(base: string, state: State, message = "", next = "/settings"): Response {
   const hasPasskey = Boolean(state.passkeys?.length);
   const passwordAllowed = passwordSignInAllowed(state);
   return page({
     title: "Sign in",
     status: message ? 401 : 200,
-    body: `<h1>${esc(SERVER_TITLE)}</h1><p class="muted">Sign in to manage API keys.</p>
+    body: `<h1>${esc(SERVER_TITLE)}</h1><p class="muted">${next === "/preferences" ? "Sign in to edit your job search preferences." : next === "/jobs" ? "Sign in to run the job search." : "Sign in to manage API keys."}</p>
 <div class="card">${message ? `<p class="bad">${esc(message)}</p>` : ""}
-<form method="post" action="${esc(base)}/settings"><input type="hidden" name="action" value="login">
+<form method="post" action="${esc(base)}/settings"><input type="hidden" name="action" value="login"><input type="hidden" name="next" value="${esc(next)}">
 ${hasPasskey ? `<button type="button" data-passkey="signin">Sign in with passkey</button>${passkeyFields()}` : ""}
 ${
   passwordAllowed
@@ -264,7 +268,7 @@ ${removable ? `<form method="post" action="${esc(base)}/settings">${token}<input
 
   return page({
     title: "Settings",
-    body: `<div class="row"><div class="grow"><h1>${esc(SERVER_TITLE)}</h1></div>
+    body: `${nav(base, "settings")}<div class="row"><div class="grow"><h1>${esc(SERVER_TITLE)}</h1></div>
 <form method="post" action="${esc(base)}/settings">${token}<input type="hidden" name="action" value="logout"><button type="submit" class="plain">Sign out</button></form></div>
 ${flash ? `<p class="${flash[0]}">${esc(flash[1])}</p>` : ""}
 <h2>Connector address</h2>

@@ -13,6 +13,7 @@ import { checkLink, closedPhrase, decide, ukToday } from "../lib/jobs/recheck.js
 import { notion, useNotion, type Notion, type NotionPage } from "../lib/jobs/notion.js";
 import { excludedBy, linkKey, locationWanted, titleWanted, type Preferences } from "../lib/jobs/prefs.js";
 import { runJobs } from "../lib/jobs/run.js";
+import { importFromNotion, loadNotes } from "../lib/jobs/notes.js";
 import { useRunLog } from "../lib/jobs/runlog.js";
 import { setSecret } from "../lib/store.js";
 
@@ -82,6 +83,15 @@ function fakeNotion(pages: NotionPage[]) {
     },
   };
   return Object.assign(client, { updates, created });
+}
+
+// Uses a fake Notion, with its Preference and Memory rows moved to the
+// preferences file as the /preferences page's import does.
+async function useFake(pages: NotionPage[]) {
+  const fake = fakeNotion(pages);
+  useNotion(fake);
+  await importFromNotion(fake);
+  return fake;
 }
 
 function fakeComposio(pages: Record<string, Partial<PageResult>>, searches: (call: SearchRequest) => SearchItem[] = () => []) {
@@ -290,18 +300,21 @@ test("the Notion client queries data sources and pages through results", async (
 // ---- Filters ----
 
 const prefs = (): Preferences => {
-  const p = (name: string, type: string, priority = "High") => ({ id: name, name, type, priority, notes: "", link: null, lastChecked: null, hiringService: null, boardId: "" });
+  const p = (name: string, type: string, priority = "High") => ({ id: name, name, type, priority, active: true, notes: "", link: null, lastChecked: null, lastResult: null, hiringService: null, boardId: "" });
   const roles = ["UX Designer", "Interaction Designer", "Product Designer", "Visual Designer", "UI Designer"].map((r) => p(r, "Role"));
   const locations = [p("London, UK", "Location"), p("Remote", "Location", "Low")];
   const excludes = [p("Senior", "Level", "Exclude"), p("Lead", "Level", "Exclude"), p("Manager", "Level", "Exclude"), p("Revolut", "Company", "Exclude")];
   return { all: [...roles, ...locations, ...excludes], roles, locations, excludes, sources: [] };
 };
 
-test("job titles are kept loosely, and Exclude preferences drop roles", () => {
+test("job titles must be a wanted kind of role, and Exclude preferences drop roles", () => {
   const pr = prefs();
   assert.ok(titleWanted("Product Designer, Apple Weather", pr));
-  assert.ok(titleWanted("Brand Designer", pr), "any Designer gets through for Claude to judge");
+  assert.ok(!titleWanted("Brand Designer", pr), "other kinds of designer are left out");
+  assert.ok(!titleWanted("Production Designer", pr));
   assert.ok(titleWanted("UI/UX Designer", pr));
+  assert.ok(titleWanted("Mobile Product Designer", pr));
+  assert.ok(titleWanted("Product Design Lead", pr));
   assert.ok(!titleWanted("Software Engineer", pr));
   assert.equal(excludedBy({ title: "Senior Product Designer", company: "Apple" }, pr), "Senior");
   assert.equal(excludedBy({ title: "Sr. Product Designer", company: "Apple" }, pr), "Senior");
@@ -426,8 +439,7 @@ function companySites() {
 }
 
 test("a dry run of the company lists finds new roles and writes nothing", async () => {
-  const fake = fakeNotion(companyRows());
-  useNotion(fake);
+  const fake = await useFake(companyRows());
   const fc = companySites();
   useComposio(fc);
   const report = await runJobs({ dry: true, trigger: "manual", stages: ["companies"] });
@@ -451,8 +463,7 @@ test("a dry run of the company lists finds new roles and writes nothing", async 
 });
 
 test("a real run adds Inbox rows with advert text and updates each company", async () => {
-  const fake = fakeNotion(companyRows());
-  useNotion(fake);
+  const fake = await useFake(companyRows());
   useComposio(companySites());
   await runJobs({ dry: false, trigger: "claude", stages: ["companies"] });
   const titles = fake.created.map((c) => c.properties.Role?.rich_text?.[0]?.text.content ?? `(${c.properties["Review status"].select.name}) ${c.properties.Name.title[0].text.content}`).sort();
@@ -469,12 +480,15 @@ test("a real run adds Inbox rows with advert text and updates each company", asy
   assert.ok(!/logo\.png/.test(uiText));
   const framerText = framer.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join("\n");
   assert.match(framerText, /Shape Framer/, "own-site advert text is read directly");
-  const monzoUpdate = fake.updates.find((u) => u.id === "c-monzo")!.properties;
-  assert.equal(monzoUpdate["Last result"].select.name, "Read OK");
-  assert.equal(monzoUpdate["Hiring service"].select.name, "Greenhouse");
-  assert.equal(monzoUpdate["Board ID"].rich_text[0].text.content, "monzo");
-  assert.equal(fake.updates.find((u) => u.id === "c-craft")!.properties["Last result"].select.name, "Needs Claude");
-  assert.equal(fake.updates.length, 5, "only the companies checked");
+  const saved = (await loadNotes()).preferences;
+  const pref = (name: string) => saved.find((p) => p.name === name)!;
+  assert.equal(pref("Monzo").lastResult, "Read OK");
+  assert.equal(pref("Monzo").lastChecked, ukToday());
+  assert.equal(pref("Monzo").hiringService, "Greenhouse");
+  assert.equal(pref("Monzo").boardId, "monzo");
+  assert.equal(pref("Craft Docs").lastResult, "Needs Claude");
+  assert.equal(saved.filter((p) => p.lastChecked === ukToday()).length, 5, "only the companies checked");
+  assert.equal(fake.updates.length, 0, "nothing in Notion is changed for the companies");
 });
 
 // ---- Endpoints ----
@@ -593,8 +607,7 @@ test("the search script keeps only matching items, with tidy pay", () => {
 });
 
 test("job site results become Inbox rows, once each, with advert text", async () => {
-  const fake = fakeNotion(searchPrefs());
-  useNotion(fake);
+  const fake = await useFake(searchPrefs());
   mockNetwork((c) => (c.url === "https://uk.linkedin.com/jobs/view/2" ? html(`<main><h1>UI Designer</h1><p>${"Design the UI for our banking app with the team. ".repeat(6)}</p></main>`) : undefined));
   const fc = fakeComposio({}, (c) => {
     if (c.kind === "jobs" && c.args.search_term === "Product Designer" && c.args.location === "London, UK")
@@ -631,8 +644,7 @@ test("job site results become Inbox rows, once each, with advert text", async ()
 });
 
 test("only posts that read like hiring posts go to the Inbox, for Claude to judge", async () => {
-  const fake = fakeNotion(searchPrefs());
-  useNotion(fake);
+  const fake = await useFake(searchPrefs());
   const fc = fakeComposio({}, (c) =>
     c.kind === "posts" && String(c.args.query).includes("Product Designer")
       ? [
@@ -655,7 +667,7 @@ test("only posts that read like hiring posts go to the Inbox, for Claude to judg
 });
 
 test("a search tool that returns nothing at all is reported as a failure", async () => {
-  useNotion(fakeNotion(searchPrefs()));
+  await useFake(searchPrefs());
   const empty: Composio = {
     ...fakeComposio({}),
     async search(calls) {
