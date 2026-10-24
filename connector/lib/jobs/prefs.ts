@@ -1,23 +1,13 @@
-// The user's search preferences (Preference rows in Job Applications) and the
-// loose filters built from them. Only the user's own preferences are used
-// here, never Claude's Memory notes. A missed good role is worse than an
-// extra one for Claude to reject, so the filters err on keeping a role, but
-// only roles of the kinds the user asked for.
+// The user's search preferences (lib/jobs/notes.ts, edited on the
+// /preferences page) and the loose filters built from them. Only the user's
+// own preferences are used here, never Claude's memory notes. A missed good
+// role is worse than an extra one for Claude to reject, so the filters err on
+// keeping a role, but only roles of the kinds the user asked for.
 
-import { COL, ENTRY, NOTION, PREF, PRIORITY_EXCLUDE } from "./config.js";
-import { dateStart, select, text, url, type Notion, type NotionPage } from "./notion.js";
+import { PREF, PRIORITY_EXCLUDE } from "./config.js";
+import { loadNotes, type Preference } from "./notes.js";
 
-export interface Preference {
-  id: string;
-  name: string;
-  type: string | null;
-  priority: string | null;
-  notes: string;
-  link: string | null;
-  lastChecked: string | null;
-  hiringService: string | null;
-  boardId: string;
-}
+export type { Preference };
 
 export interface Preferences {
   all: Preference[];
@@ -27,29 +17,8 @@ export interface Preferences {
   sources: Preference[];
 }
 
-function toPreference(page: NotionPage): Preference {
-  const p = page.properties;
-  return {
-    id: page.id,
-    name: text(p[COL.name]),
-    type: select(p[COL.preferenceType]),
-    priority: select(p[COL.priority]),
-    notes: text(p[COL.notes]),
-    link: url(p[COL.links]),
-    lastChecked: dateStart(p[COL.lastChecked]),
-    hiringService: select(p[COL.hiringService]),
-    boardId: text(p[COL.boardId]),
-  };
-}
-
-export async function readPreferences(client: Notion): Promise<Preferences> {
-  const pages = await client.query(NOTION.applications, {
-    and: [
-      { property: COL.entryType, select: { equals: ENTRY.preference } },
-      { property: COL.active, checkbox: { equals: true } },
-    ],
-  });
-  const all = pages.filter((p) => select(p.properties[COL.entryType]) === ENTRY.preference && p.properties[COL.active]?.checkbox === true).map(toPreference);
+export function sortPreferences(list: Preference[]): Preferences {
+  const all = list.filter((p) => p.active);
   const kept = all.filter((p) => p.priority !== PRIORITY_EXCLUDE);
   return {
     all,
@@ -58,6 +27,10 @@ export async function readPreferences(client: Notion): Promise<Preferences> {
     excludes: all.filter((p) => p.priority === PRIORITY_EXCLUDE && p.name),
     sources: kept.filter((p) => p.type === PREF.company || p.type === PREF.sites),
   };
+}
+
+export async function readPreferences(): Promise<Preferences> {
+  return sortPreferences((await loadNotes()).preferences);
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9+#]+/g, " ").trim();

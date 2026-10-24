@@ -4,14 +4,14 @@ description: Researches one job the user has picked (hiring process, candidate a
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-22
+Skill version: 2026-10-24
 
 Purpose: help the user decide on and prepare for one job they picked. Every finding is sourced and dated; nothing invented; the CV holds only what is on their CV page. Only ever run when the user starts it; never from the daily job search.
 
-Tools: the Notion connector (Job Applications and the CV page), and search, fetch, verify from the Search connector, run by workers (WORKERS below; log_issue is the one exception). Names may be prefixed (Search:search, mcp__search__search); match the suffix. Never use built-in web_search/web_fetch. Notion or Search tools missing -> tell the user which connector to add at claude.ai/customize/connectors; stop.
+Tools: the Notion connector (Job Applications and the CV page), and search, fetch, verify from the Search connector, run by workers (WORKERS below; log_issue and job_search_notes are the exceptions, yours). Names may be prefixed (Search:search, mcp__search__search); match the suffix. Never use built-in web_search/web_fetch. Notion or Search tools missing -> tell the user which connector to add at claude.ai/customize/connectors; stop.
 
 WHERE THINGS ARE
-- Job Applications database: https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd (data source collection://ddd195a9-676b-4b7a-95d8-a784d1c378d9). Rows are told apart by Entry type: Role (found jobs; Open Roles view), Application (the user's applications), Preference, Memory.
+- Job Applications database: https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd (data source collection://ddd195a9-676b-4b7a-95d8-a784d1c378d9). Rows are told apart by Entry type: Role (found jobs; Open Roles view), Application (the user's applications). Preferences and memory notes are not in Notion (job_search_notes).
 - CV page ("Experience"), a full, deliberately unfiltered record of the user's experience: https://app.notion.com/p/4014d7c1f3b98042b717f056951cb71e
 - The user is in the UK. Today's date from context.
 
@@ -20,7 +20,7 @@ STEP 1 CONFIRM THE ROLE (yours)
 - Row's Entry type is already Application -> say so and ask whether to research it again; stop on no.
 - Read the row: Name, Role, Links, Role location, Pay, Level, Deadline, Summary, and the page (Positives, Negatives, the folded "Advert" section).
 - One worker: read the advert link with fresh:true, question "Is this job still open? Give the closing date, job title, location, pay, level, duties, requirements and how to apply." Closed or gone -> tell the user and stop unless they want to carry on.
-- Also read now: the CV page, and active Memory rows (Entry type Memory, Active ticked) for what matters to the user.
+- Also read now: the CV page, and the user's memory notes and preferences for what matters to them (Search connector's job_search_notes, action "read"; use the active notes). Never change them.
 
 STEP 2 RESEARCH (workers; one round, all in the same message)
 Company = the row's Name; role = Role. Every search: country "GB". Brief LIMIT 400 words.

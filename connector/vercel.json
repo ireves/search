@@ -14,12 +14,14 @@
     { "source": "/register", "destination": "/api/oauth?route=register" },
     { "source": "/authorize", "destination": "/api/oauth?route=authorize" },
     { "source": "/token", "destination": "/api/oauth?route=token" },
-    { "source": "/jobs", "destination": "/api/jobs?route=page" }
+    { "source": "/jobs", "destination": "/api/jobs?route=page" },
+    { "source": "/preferences", "destination": "/api/preferences" }
   ],
   "functions": {
     "api/mcp.ts": { "maxDuration": 300 },
     "api/oauth.ts": { "maxDuration": 15 },
     "api/settings.ts": { "maxDuration": 30 },
-    "api/jobs.ts": { "maxDuration": 300 }
+    "api/jobs.ts": { "maxDuration": 300 },
+    "api/preferences.ts": { "maxDuration": 60 }
   }
 }

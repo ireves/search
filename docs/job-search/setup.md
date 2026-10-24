@@ -10,7 +10,7 @@ What you need to do once so the daily job search can run. The plan is in [plan.m
    - Workspace: the one with Open Roles.
 2. On the integration's **Capabilities** tab, tick **Read content** and **Update content**. Leave **Insert content** ticked too (later phases add new rows). Comments and user information aren't needed.
 3. Copy the **Internal integration secret** (it starts with `ntn_`). Don't paste it into a chat.
-4. Open the **Job Applications** page, choose **•••** (top right) > **Connections**, and add `Job search`. That's the only page it needs: roles, applications, search preferences and Claude's memory are all in Job Applications. Don't share the CV ("Experience") page; only Claude reads it.
+4. Open the **Job Applications** page, choose **•••** (top right) > **Connections**, and add `Job search`. That's the only page it needs: roles and applications are in Job Applications. (Your search preferences and Claude's memory are on the connector's own page, section 4.) Don't share the CV ("Experience") page; only Claude reads it.
 5. Open the connector's [settings page](https://search-connector.vercel.app/settings), sign in, and save the secret under **Notion integration token (job search)** (`NOTION_TOKEN`).
 
 ## 2. Give the server access to Composio
@@ -41,6 +41,15 @@ The job search tool, `run_job_search`, is part of the Search connector, so it us
 2. Check the Search connector is connected and signed in (**Settings** > **Connectors**).
    - Claude reads the connector's tool list when it connects. If `run_job_search` doesn't show up, disconnect the Search connector and connect it again.
 3. Only the `/job-search` skill uses `run_job_search`. The tool's description and the connector's instructions tell Claude never to call it otherwise, and the skill only runs when you or the scheduled task type `/job-search`.
+
+Your search preferences and Claude's memory notes live on the connector's own page, [search-connector.vercel.app/preferences](https://search-connector.vercel.app/preferences), not in Notion. Reading them there costs no Notion searches. Claude reads them, and saves memory notes, through the Search connector's `job_search_notes` tool. To move them from Notion, once:
+
+1. Open [the preferences page](https://search-connector.vercel.app/preferences) and sign in with your passkey (the same one as the settings page).
+2. Choose **Import from Notion**.
+   - It copies every Preference and Memory row from Job Applications, including paused ones.
+   - If the page already has something on it, tick **Replace what's here** first.
+3. Check the page looks right. From now on, add, edit and pause preferences and notes there.
+4. Once you're happy, delete the Preference and Memory rows (and the Search Preferences and Claude Memory views) in Notion. Nothing reads them any more.
 
 ## 5. Run log clean-up (one line, optional)
 

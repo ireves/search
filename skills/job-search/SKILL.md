@@ -4,7 +4,7 @@ description: The daily design job search. Runs the server's job search stages th
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-24b
+Skill version: 2026-10-24c
 
 You are running my daily design job search. A server does the repetitive
 work; you review what it found and keep my Notion up to date. Save your
@@ -18,9 +18,12 @@ WHERE THINGS ARE
     Review status New or Needs Claude; the "Open Roles" view shows
     Review status Added.
   - Application rows: my own applications. Never change these.
-  - Preference rows: my search preferences ("Search Preferences" view).
-    Never change these.
-  - Memory rows: your notes about what I want ("Claude Memory" view).
+- My search preferences and your memory notes about what I want are
+  not in Notion. Read and save them with the Search connector's
+  "job_search_notes" tool. I edit them on the connector's
+  /preferences page.
+  - Preferences: never change these.
+  - Memory notes: yours to add and switch on or off, as below.
 - My CV page, a full unfiltered record of my experience:
   https://app.notion.com/p/4014d7c1f3b98042b717f056951cb71e
   Use it as background only. It is not a finished CV.
@@ -28,10 +31,12 @@ WHERE THINGS ARE
 TOOLS
 - The Search connector's "run_job_search" tool runs the server. Use it
   only in Step 1 of this skill.
+- The Search connector's "job_search_notes" tool reads my preferences
+  and your memory notes, and saves memory notes.
 - Tool names may have a prefix (Search:run_job_search,
   mcp__search__run_job_search); match the end of the name.
-- If run_job_search is missing, say the Search connector needs
-  updating or signing in again, and carry on from Step 2.
+- If run_job_search or job_search_notes is missing, say the Search
+  connector needs connecting again, and carry on with what you can.
 - The Notion connector for everything in Notion.
 - The Search connector ("search" and "fetch") only in Steps 6 and 7.
 - The Indeed connector only in Step 7.
@@ -70,10 +75,11 @@ STEP 1: RUN THE SERVER
   with the next stage.
 
 STEP 2: READ CONTEXT (you do this)
-- Every Memory row with Active ticked.
-- Every Preference row with Active ticked, grouped by Preference type
-  (Role, Location, Pay, Level, Company, Company type, Job Listing
-  Websites) and Priority (High, Medium, Low, Exclude).
+- Call job_search_notes with action "read" once. It gives my active
+  preferences grouped by type (Role, Location, Pay, Level, Company,
+  Company type, Job Listing Websites), each with its Priority (High,
+  Medium, Low, Exclude), and every memory note with its id. Use the
+  active memory notes; keep the ids for Steps 3 and 5.
 - The CV page.
 
 STEP 3: PROCESS FEEDBACK (you do this)
@@ -81,21 +87,23 @@ STEP 3: PROCESS FEEDBACK (you do this)
   thread whose last comment is from you has already been processed;
   skip it.
 - For each new comment from me:
-  - Turn it into a Memory row: Entry type "Memory", the note itself as
-    Name (short and specific, for example "Skip roles needing 5+
-    years"), Active ticked, Memory source "Comment", Source role linked
-    to the row it was left on. If an existing Memory row says nearly
-    the same thing, update that one instead.
+  - Turn it into a memory note with job_search_notes, action
+    "add_memory": the note short and specific (for example "Skip roles
+    needing 5+ years"), source "Comment", role_link the Notion link of
+    the row it was left on, role_name "Role at Company". If an existing
+    note says nearly the same thing, reword that one instead with
+    "update_memory" and its id.
   - Reply under the comment saying what you noted, for example
     "Noted: added 'skip roles needing 5+ years'".
   - If the comment is unclear, ask in your reply instead of guessing,
-    and add no Memory row yet.
-  - If the new note contradicts an older one, the newest wins: untick
-    Active on the older one and say so in the summary.
+    and add no memory note yet.
+  - If the new note contradicts an older one, the newest wins: switch
+    the older one off ("update_memory" with active false) and say so in
+    the summary.
 
 STEP 4: REVIEW THE INBOX (you do this)
 Work through every Role row with Review status "New".
-- Check every row against my Preference rows. Reject it when:
+- Check every row against my preferences from Step 2. Reject it when:
   - it is not a real job advert, or is a duplicate of another row;
   - the job is not one of my Role preferences. Close variants count
     (for example "UI/UX Designer", "Mobile Product Designer", "Product
@@ -107,7 +115,7 @@ Work through every Role row with Review status "New".
     or region is rejected;
   - it matches a preference with Priority "Exclude" (for example a
     Senior, Lead or Manager level, in the title or the advert's stated
-    level), or breaks an active Memory note that says never.
+    level), or breaks an active memory note that says never.
   Set Review status to "Rejected" and write a one-line Reason naming
   the preference it fails. Missing pay or level is never a reason to
   reject, and neither is a Low or Medium priority preference: those
@@ -127,7 +135,7 @@ Work through every Role row with Review status "New".
   - Summary: one or two sentences on what the job involves day to day.
   - Candidate potential: "Strong" (I match most of the requirements),
     "Average" (I match the core, with gaps) or "Weak" (I'm missing key
-    requirements). Judge against the full CV page and Memory notes.
+    requirements). Judge against the full CV page and memory notes.
   - Why it matches: one short sentence naming the preferences it meets
     and the parts of my CV that suit it.
   - On the page, above the folded "Advert" section, add a "Positives"
@@ -136,7 +144,7 @@ Work through every Role row with Review status "New".
   - Below it, a "Negatives" heading with 1 to 3 points, one per line.
     Look for red flags such as pay not listed, short contracts, unclear
     duties, unrealistic requirements for the level or recent layoffs.
-    Base each on facts and on what Memory says matters to me. If
+    Base each on facts and on what the memory notes say matters to me. If
     nothing worrying stands out, give the weakest point of the advert.
     Never invent a problem.
   - If a row has no advert text and its Links can't tell you enough,
@@ -147,10 +155,10 @@ Work through every Role row with Review status "New".
 
 STEP 5: NOTICE PATTERNS (you do this)
 - Look at Role rows I have tagged "Not for me". If several share a
-  trait that no Memory note covers yet (for example all agency roles,
-  or all need 5+ years), add a Memory row with Active unticked and
-  Memory source "Pattern", as a suggestion for me to switch on. Mention
-  it in the summary.
+  trait that no memory note covers yet (for example all agency roles,
+  or all need 5+ years), add a memory note with job_search_notes:
+  "add_memory", source "Pattern", active false, as a suggestion for me
+  to switch on at /preferences. Mention it in the summary.
 
 STEP 6: PAGES THE SERVER COULDN'T READ
 Every Role row with Review status "Needs Claude" is a company whose
@@ -187,7 +195,7 @@ Finish with a short summary listing:
 - Roles whose Advert status changed to Almost Gone or Closed.
 - Watched or applied roles whose advert has closed (from the recheck's
   watched_closed list).
-- New Memory notes, notes you switched off, and pattern suggestions.
+- New memory notes, notes you switched off, and pattern suggestions.
 - Companies checked today, and any passed to you as "Needs Claude".
 - Anything that failed, from the server reports and your own steps.
 - Costs: Composio (add up every report's charge_usd) and the Search
@@ -198,5 +206,6 @@ RULES
 - Never invent details. If something isn't in the advert, leave it
   blank or write "Not listed".
 - Never change the Tag column on existing rows. I update that myself.
-- Never edit Application or Preference rows, and never delete rows.
+- Never edit Application rows or my preferences, and never delete rows
+  or memory notes.
 - Never run Job Pick.

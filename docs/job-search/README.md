@@ -9,9 +9,9 @@ Your daily design job search, split between a server that does the repetitive wo
    - **Companies:** reads the job lists of the 12 companies checked longest ago.
    - **Job sites:** searches Indeed, LinkedIn and Glassdoor for each role and place you want.
    - **LinkedIn posts:** finds recent posts from people hiring.
-2. **The server** filters the results with your Search Preferences, leaves out anything already in Notion, saves each advert's text, and adds new roles to the **Inbox** view.
+2. **The server** filters the results with your search preferences (on the connector's [preferences page](https://search-connector.vercel.app/preferences)), leaves out anything already in Notion, saves each advert's text, and adds new roles to the **Inbox** view.
 3. **Claude** then:
-   - reads your comments on roles and turns them into notes in the **Claude Memory** view, replying under each;
+   - reads your comments on roles and turns them into memory notes on the preferences page, replying under each;
    - reviews every Inbox role (rejecting non-jobs, duplicates, and roles outside your role, location and Exclude preferences, and filling in the summary, fit, positives and negatives);
    - reads careers pages the server couldn't;
    - and ends with a summary, including what it cost.
@@ -25,8 +25,8 @@ Type `/job-pick` with the role. Claude researches it (interviews, reviews, compa
 ## Giving feedback
 
 - Leave a comment on a role's Notion page, or tell Claude in any conversation (for example "remember I don't want agency roles").
-- Claude saves it as a Memory note and uses it from the next run. To pause a note, untick Active in the Claude Memory view.
-- Your Search Preferences are yours: Claude never changes them.
+- Claude saves it as a memory note and uses it from the next run. To see, edit or pause notes, open the [preferences page](https://search-connector.vercel.app/preferences) and sign in with your passkey.
+- Your search preferences are yours: you edit them on the same page, and Claude never changes them.
 
 ## Costs
 

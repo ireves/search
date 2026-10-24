@@ -8,11 +8,13 @@
 //     is saved so the free list is used next time.
 //   - Nothing worked: a Role row with Review status "Needs Claude".
 // Each company's Last checked, Last result, Hiring service and Board ID are
-// updated. Nothing here applies for a job or signs in anywhere.
+// updated in the preferences file (lib/jobs/notes.ts). Nothing here applies
+// for a job or signs in anywhere.
 
 import { COL, COMPANIES, COMPOSIO, ENTRY, HIRING_SERVICES, RESULT, REVIEW, SEARCHES, SOURCE_CAREERS } from "./config.js";
 import { composio, ComposioError, type PageResult } from "./composio.js";
 import { claim, createRow, fillAdverts, getJson, loadExisting, plain, writeRoles, type Job, type Pending, type Service } from "./inbox.js";
+import { changeNotes } from "./notes.js";
 import { dateValue, notion, selectValue, textValue, titleValue, urlValue } from "./notion.js";
 import { excludedBy, linkKey, locationWanted, readPreferences, roleWords, titleWanted, type Preference } from "./prefs.js";
 import { ukToday } from "./recheck.js";
@@ -145,7 +147,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
   const today = ukToday(options.now);
   const deadlineAt = Date.now() + (options.budgetMs ?? COMPANIES.budgetMs);
   const client = await notion();
-  const prefs = await readPreferences(client);
+  const prefs = await readPreferences();
   const result: CompaniesResult = {
     counts: { companies: 0, listed: 0, kept: 0, added: 0, duplicates: 0, needs_claude: 0, firecrawl_pages: 0, advert_from_list: 0, advert_from_page: 0, advert_from_firecrawl: 0, advert_missing: 0 },
     companies: [],
@@ -231,6 +233,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
   }
 
   const pending: Pending[] = [];
+  const checked = new Map<string, { lastChecked: string; lastResult: string; hiringService?: string; boardId?: string }>();
   for (const { company } of plan) {
     const entry = listed.get(company.id);
     const report: CompanyReport = { name: company.name, how: entry?.how ?? "no careers page link", result: entry?.result ?? RESULT.needsClaude, listed: 0, kept: 0, added: [], dropped: [] };
@@ -280,15 +283,20 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
       }
     }
 
-    if (!options.dry) {
-      const props: Record<string, unknown> = { [COL.lastChecked]: dateValue(today), [COL.lastResult]: selectValue(report.result) };
-      if (entry && entry.service && !company.hiringService) props[COL.hiringService] = selectValue(entry.service);
-      if (entry?.board && !company.boardId) props[COL.boardId] = textValue(entry.board);
-      try {
-        await client.update(company.id, props);
-      } catch (error) {
-        result.failures.push({ where: `update ${company.name}`, error: (error as any).friendly ?? (error as Error).message });
-      }
+    checked.set(company.id, {
+      lastChecked: today,
+      lastResult: report.result,
+      ...(entry?.service && !company.hiringService ? { hiringService: entry.service } : {}),
+      ...(entry?.board && !company.boardId ? { boardId: entry.board } : {}),
+    });
+  }
+  if (!options.dry && checked.size) {
+    try {
+      await changeNotes((notes) => {
+        for (const pref of notes.preferences) Object.assign(pref, checked.get(pref.id) ?? {});
+      });
+    } catch (error) {
+      result.failures.push({ where: "save the companies' last check", error: (error as Error).message });
     }
   }
   const counts = await fillAdverts(pending, deadlineAt);

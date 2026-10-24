@@ -5,7 +5,7 @@
 import { SERVER_NAME, SERVER_TITLE, SERVER_VERSION } from "./config.js";
 import { costLine, metered } from "./cost.js";
 import { APPS, OUTCOMES, runLogIssue } from "./issues.js";
-import { JOB_SEARCH_TOOL, runJobSearchTool } from "./jobs/mcp.js";
+import { JOB_SEARCH_TOOL, NOTES_TOOL, runJobSearchTool, runNotesTool } from "./jobs/mcp.js";
 import { afterReply, newRef, rowWriter } from "./logstore.js";
 import { compact, traced } from "./trace.js";
 import { runFetch } from "./tools/fetch.js";
@@ -22,8 +22,9 @@ export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tool
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
 - log_issue: save errors and failures from a search skill run, or a /search-report report, to the connector's problem log, for later troubleshooting. Free.
 - run_job_search: only while the /job-search skill is running. Never call it otherwise, even for questions about jobs.
+- job_search_notes: the user's job search preferences and Claude's memory notes, for /job-search and /job-pick, and for saving job search feedback.
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.
-When the user gives feedback about their job search in any conversation (e.g. "remember I don't want agency roles"), save it with the Notion connector as a Memory row in Job Applications (https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd): Entry type "Memory", the note as Name, Active ticked, Memory source "Chat". Update a near-identical active Memory row instead; untick one the note contradicts. Tell the user what you saved.
+When the user gives feedback about their job search in any conversation (e.g. "remember I don't want agency roles"), save it with job_search_notes: read, then add_memory with source Chat, or update_memory for a near-identical active note; switch off (active false) a note it contradicts. Tell the user what you saved.
 Each search, fetch, verify and research result ends with its search cost. End every reply that used them with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any result used them.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -186,6 +187,7 @@ export const TOOLS = [
     annotations: { title: "Log a problem", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
   },
   JOB_SEARCH_TOOL,
+  NOTES_TOOL,
 ];
 
 type Json = Record<string, any>;
@@ -210,7 +212,7 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
 // record's ref, which log_issue takes in place of the call's details. Job
 // search runs keep their own log (lib/jobs/runlog.ts).
 export async function callTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {
-  if (!TOOLS.some((t) => t.name === name) || name === "log_issue" || name === JOB_SEARCH_TOOL.name) return runTool(name, args);
+  if (!TOOLS.some((t) => t.name === name) || name === "log_issue" || name === JOB_SEARCH_TOOL.name || name === NOTES_TOOL.name) return runTool(name, args);
   const started = Date.now();
   const { value: run, meter } = await metered(() => traced(() => runTool(name, args)));
   const { value, steps } = run;
@@ -245,6 +247,8 @@ async function runTool(name: string, args: Json): Promise<{ text: string; isErro
         return await runLogIssue(args as any);
       case "run_job_search":
         return await runJobSearchTool(args);
+      case "job_search_notes":
+        return await runNotesTool(args);
       default:
         return { text: `Unknown tool: ${name}`, isError: true };
     }
