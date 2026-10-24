@@ -31,27 +31,16 @@ The server reads careers pages, and adverts it can't open itself (such as Indeed
    - Job sites searches Indeed, LinkedIn and Glassdoor for each role and location you've set; LinkedIn posts looks for recent hiring posts.
 5. Each stage can take a minute or two. If a report looks right, **Run for real** writes it to Notion.
 
-## 4. Add the Job search connector to Claude
+## 4. Get the job search tool and skill in Claude
 
-The daily Claude scheduled task starts the server's runs through this connector. There is no other schedule.
-
-The connector comes with the search plugin (it's listed in the plugin's `.mcp.json` as `job-search`), so you don't add it by hand. Do this in the account the scheduled task runs in.
+The job search tool, `run_job_search`, is part of the Search connector, so it uses the Search connector's sign-in. The `/job-search` skill, which comes with the search plugin, holds the daily instructions. Do this in the account the scheduled task runs in.
 
 1. Update the search plugin, or install it if you don't have it yet.
    - In Claude, open **Customize** > **Plugins** and update or add `search` from the `ireves-search` marketplace.
    - In Claude Code, run `/plugin` and update or install `search@ireves-search`.
-2. Connect it.
-   - In Claude, open the search plugin's **Connectors** tab and choose **Connect** for `job-search`.
-   - In Claude Code it connects with the plugin, and `/mcp` lists it as `plugin:search:job-search`.
-3. Sign in when Claude asks, with your passkey or admin password, as for the Search connector.
-4. It has one tool, `run_job_search`. Only the job search scheduled task should use it.
-
-If the connector doesn't appear with the plugin, add it by hand instead:
-
-1. In Claude, open **Settings** > **Connectors** > **Add custom connector**.
-2. Name: `Job search`. Address: `https://search-connector.vercel.app/jobs/mcp`.
-3. Choose **Connect** and sign in with your passkey or admin password.
-   - Keep only one of the two (the plugin's or this one), so Claude sees the tool once.
+2. Check the Search connector is connected and signed in (**Settings** > **Connectors**).
+   - Claude reads the connector's tool list when it connects. If `run_job_search` doesn't show up, disconnect the Search connector and connect it again.
+3. Only the `/job-search` skill uses `run_job_search`. The tool's description and the connector's instructions tell Claude never to call it otherwise, and the skill only runs when you or the scheduled task type `/job-search`.
 
 ## 5. Run log clean-up (one line, optional)
 
@@ -63,7 +52,7 @@ select cron.schedule('job-search-runs-cleanup', '23 3 * * *', $$delete from publ
 
 ## 6. Start the daily task
 
-Follow [`scheduled-task.md`](scheduled-task.md): create the scheduled task, paste the prompt, and run it beside the old Job Finder task for a few days before switching over.
+Follow [`scheduled-task.md`](scheduled-task.md): create the scheduled task with the prompt `/job-search`, and run it beside the old Job Finder task for a few days before switching over.
 
 ## 7. Clean up afterwards
 
@@ -71,7 +60,7 @@ Once the new daily task works:
 
 1. Delete the `composio-test` project in Vercel. It holds the test page and the keys `COMPOSIO_API_KEY` and `COMPOSIO_PLATFORM_KEY`.
 2. On Composio, revoke the developer platform key, which nothing uses now. Keep the Connect consumer key (`ck_...`) saved on the settings page.
-3. If you added the Job search connector by hand and the plugin's one also works, remove one of them.
+3. If you added the old separate "Job search" connector (address ending `/jobs/mcp`), remove it from **Settings** > **Connectors**. It no longer works; the tool is in the Search connector now.
 4. Turn off or delete the old Job Finder scheduled task.
 
 ## Limits that shape the design

@@ -4,7 +4,7 @@ Your daily design job search, split between a server that does the repetitive wo
 
 ## Each day
 
-1. **Claude's scheduled task starts** ([`scheduled-task.md`](scheduled-task.md)) and asks the server to run four stages, one after the other, through the Job search connector:
+1. **Claude's scheduled task starts** ([`scheduled-task.md`](scheduled-task.md)) and runs the `/job-search` skill, which asks the server to run four stages, one after the other, through the Search connector's `run_job_search` tool:
    - **Recheck:** opens every found role's advert and marks it Active, Almost Gone or Closed. It also checks your watched and applied roles, but only reports on them.
    - **Companies:** reads the job lists of the 12 companies checked longest ago.
    - **Job sites:** searches Indeed, LinkedIn and Glassdoor for each role and place you want.

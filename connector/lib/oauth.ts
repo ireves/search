@@ -48,30 +48,22 @@ export function mcpUrl(base: string): string {
   return `${base}/mcp`;
 }
 
-// The job search's own MCP endpoint (api/jobs.ts). It shares this sign-in but
-// is a separate connector in Claude, so its tool never sits beside search.
-export function jobsMcpUrl(base: string): string {
-  return `${base}/jobs/mcp`;
-}
-
-const RESOURCE_NAMES: Record<string, string> = { "/mcp": "Search (Exa + Parallel)", "/jobs/mcp": "Job search" };
-
 function resourcesOf(base: string): string[] {
-  return [mcpUrl(base), jobsMcpUrl(base)];
+  return [mcpUrl(base)];
 }
 
 export function resourceMetadataUrl(base: string, resource = mcpUrl(base)): string {
   return `${base}/.well-known/oauth-protected-resource${resource.slice(base.length)}`;
 }
 
-export function protectedResourceMetadata(request: Request, resourcePath = "/mcp"): Response {
+export function protectedResourceMetadata(request: Request): Response {
   const base = baseUrl(request);
   return json({
-    resource: `${base}${resourcePath}`,
+    resource: mcpUrl(base),
     authorization_servers: [base],
     scopes_supported: SCOPES,
     bearer_methods_supported: ["header"],
-    resource_name: RESOURCE_NAMES[resourcePath] ?? RESOURCE_NAMES["/mcp"],
+    resource_name: "Search (Exa + Parallel)",
   });
 }
 
@@ -249,7 +241,6 @@ export async function authorize(request: Request): Promise<Response> {
   if (!resourcesOf(base).includes(resource)) {
     return errorRedirect(p, "invalid_target", "Unknown resource.", base);
   }
-  const forJobs = resource === jobsMcpUrl(base);
 
   const target = new URL(p.redirect_uri);
   const formTargets = [target.origin];
@@ -308,13 +299,8 @@ export async function authorize(request: Request): Promise<Response> {
     title: "Connect to Claude",
     formTargets,
     status: message ? 401 : 200,
-    body: `${
-      forJobs
-        ? `<h1>Connect Job search to ${esc(client.name)}</h1>
-<p class="muted">Signing in lets this app start your daily job search runs. Your keys are never shown to it.</p>`
-        : `<h1>Connect Search to ${esc(client.name)}</h1>
-<p class="muted">Signing in lets this app use your Exa and Parallel keys through this connector. Your keys are never shown to it.</p>`
-    }
+    body: `<h1>Connect Search to ${esc(client.name)}</h1>
+<p class="muted">Signing in lets this app use your Exa and Parallel keys through this connector. Your keys are never shown to it.</p>
 <div class="card"><p>Sign-in will return to <strong class="mono">${esc(target.host)}</strong>${local ? ' <span class="tag warn">a program on this computer</span>' : ""}.</p>
 ${local ? '<p class="muted">Only continue if you just started this connection from Claude Code on this computer.</p>' : ""}
 ${message ? `<p class="bad">${esc(message)}</p>` : ""}
@@ -377,9 +363,9 @@ export async function token(request: Request): Promise<Response> {
 }
 
 // For the MCP endpoint: returns null when the request carries a valid token.
-export async function requireBearer(request: Request, resourcePath = "/mcp"): Promise<Response | null> {
+export async function requireBearer(request: Request): Promise<Response | null> {
   const base = baseUrl(request);
-  const resource = `${base}${resourcePath}`;
+  const resource = mcpUrl(base);
   const challenge = (error?: string) => {
     const parts = [`Bearer resource_metadata="${resourceMetadataUrl(base, resource)}"`, `scope="search"`];
     if (error) parts.push(`error="${error}"`);

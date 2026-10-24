@@ -11,6 +11,7 @@ A remote MCP server that gives Claude one set of web tools backed by both [Exa](
 | `verify` | Evidence for up to 8 claims, each from different websites | One Exa and one Parallel search per claim |
 | `research` | A cited report from one or two research agents | Exa Agent (`/agent/runs`); for `deep`, also Parallel Task API (`pro`) |
 | `log_issue` | Saves a skill run's errors and failures, or a search-report report, to the problem log | A row in Supabase's `search_issues` table, or one JSON file in the private Vercel Blob store |
+| `run_job_search` | Runs one stage of the daily job search; only the `/job-search` skill uses it ([`docs/job-search`](../docs/job-search/README.md)) | The stage's report as JSON; changes go to Notion and the run log in Supabase |
 
 The server also sends a short `instructions` text when Claude connects, so Claude knows the tools without a skill.
 
