@@ -29,7 +29,7 @@ The server reads careers pages, and adverts it can't open itself (such as Indeed
    - It reads the job lists of the 12 companies checked longest ago and shows the roles it would add to the Inbox.
 4. Then [job sites](https://search-connector.vercel.app/jobs?stage=job_sites) and [LinkedIn posts](https://search-connector.vercel.app/jobs?stage=linkedin_posts).
    - Job sites searches Indeed, LinkedIn and Glassdoor for each role and location you've set; LinkedIn posts looks for recent hiring posts.
-5. Each stage can take a minute or two. If a report looks right, **Run for real** writes it to Notion.
+5. Each stage can take a minute or two. If a report looks right, **Run for real** saves it: the recheck's changes go to Notion, and new roles go to the Inbox in Supabase.
 
 ## 4. Get the job search tool and skill in Claude
 
@@ -51,7 +51,15 @@ Your search preferences and Claude's memory notes live on the connector's own pa
 3. Check the page looks right. From now on, add, edit and pause preferences and notes there. To change the order of a list, drag a row by its handle (⋮⋮) or use its ↑ and ↓ buttons.
 4. Once you're happy, delete the Preference and Memory rows (and the Search Preferences and Claude Memory views) in Notion. Nothing reads them any more.
 
-## 5. Run log clean-up (one line, optional)
+## 5. The Inbox table in Supabase
+
+New roles wait for Claude's review in a Supabase table, `job_inbox`, in the same project as the run log. Create it once: paste [`connector/supabase/job-inbox.sql`](../../connector/supabase/job-inbox.sql) into the project's **SQL editor** and choose **Run**. It also sets up a daily clean-up: advert text of reviewed roles is dropped after 30 days, and rejected roles are deleted after a year.
+
+The connector's Supabase key can read and change rows in this table (never delete them), unlike the log tables, where it can only add rows. The rows hold job adverts only.
+
+Once it's in use, delete the **Inbox** view in Notion: new roles no longer go there.
+
+## Run log clean-up (one line, optional)
 
 The run log tables are already in Supabase. To delete run records older than 90 days automatically, paste this into the Supabase project's **SQL editor** and choose **Run**:
 

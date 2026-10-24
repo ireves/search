@@ -90,3 +90,29 @@ export const parallelResult = (url: string, title: string, excerpt: string, date
   publish_date: date,
   excerpts: [excerpt],
 });
+
+// The job search Inbox kept in memory, standing in for Supabase.
+import type { InboxRow, InboxStore } from "../lib/jobs/inboxstore.js";
+
+export function memoryInbox(): InboxStore & { rows: InboxRow[] } {
+  const rows: InboxRow[] = [];
+  return {
+    rows,
+    async keys() {
+      return rows.map(({ company, kind, status, keys, role_key }) => ({ company, kind, status, keys, role_key }));
+    },
+    async byStatus(status) {
+      return rows.filter((r) => r.status === status).map((r) => ({ ...r }));
+    },
+    async byIds(ids) {
+      return rows.filter((r) => ids.includes(r.id)).map((r) => ({ ...r }));
+    },
+    async insert(list) {
+      rows.push(...list.map((r) => ({ ...r, at: new Date().toISOString() })));
+    },
+    async update(id, patch) {
+      const row = rows.find((r) => r.id === id);
+      if (row) Object.assign(row, patch);
+    },
+  };
+}

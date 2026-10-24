@@ -1,21 +1,22 @@
 // Stage 2 of the daily run: read the job lists of the companies and job sites
 // checked longest ago, keep the roles that could suit, and add each new one
-// to Job Applications as a Role row for Claude to review (Review status New).
+// to the Inbox in Supabase for Claude to review.
 //   - On a hiring service (Greenhouse, Lever, Ashby, Workable): its free job
 //     list, with each advert's text where the list gives it.
 //   - Own site: the careers page through Firecrawl (Composio), keeping links
 //     whose text names a wanted role. A hiring-service link found on the page
 //     is saved so the free list is used next time.
-//   - Nothing worked: a Role row with Review status "Needs Claude".
+//   - Nothing worked: a "needs_claude" row in the Inbox for Claude to check.
 // Each company's Last checked, Last result, Hiring service and Board ID are
 // updated in the preferences file (lib/jobs/notes.ts). Nothing here applies
 // for a job or signs in anywhere.
 
-import { COL, COMPANIES, COMPOSIO, ENTRY, HIRING_SERVICES, RESULT, REVIEW, SEARCHES, SOURCE_CAREERS } from "./config.js";
+import { COMPANIES, COMPOSIO, HIRING_SERVICES, RESULT, SEARCHES, SOURCE_CAREERS } from "./config.js";
 import { composio, ComposioError, type PageResult } from "./composio.js";
-import { claim, createRow, fillAdverts, getJson, loadExisting, plain, writeRoles, type Job, type Pending, type Service } from "./inbox.js";
+import { claim, fillAdverts, getJson, inboxRow, loadExisting, plain, writeRoles, type Job, type Pending, type Service } from "./inbox.js";
+import { inbox, type InboxRow } from "./inboxstore.js";
 import { changeNotes } from "./notes.js";
-import { dateValue, notion, selectValue, textValue, titleValue, urlValue } from "./notion.js";
+import { notion } from "./notion.js";
 import { excludedBy, linkKey, locationWanted, readPreferences, roleWords, titleWanted, type Preference } from "./prefs.js";
 import { ukToday } from "./recheck.js";
 
@@ -233,6 +234,7 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
   }
 
   const pending: Pending[] = [];
+  const needsClaude: InboxRow[] = [];
   const checked = new Map<string, { lastChecked: string; lastResult: string; hiringService?: string; boardId?: string }>();
   for (const { company } of plan) {
     const entry = listed.get(company.id);
@@ -243,18 +245,12 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
       report.error = entry?.error ?? "no careers page link";
       if (!existing.needsClaude.has(company.name.toLowerCase())) {
         result.counts.needs_claude++;
-        if (!options.dry) {
-          const failed = await createRow(client, {
-            [COL.name]: titleValue(company.name),
-            [COL.entryType]: selectValue(ENTRY.role),
-            [COL.reviewStatus]: selectValue(REVIEW.needsClaude),
-            [COL.source]: selectValue(SOURCE_CAREERS),
-            [COL.links]: urlValue(company.link),
-            [COL.dateFound]: dateValue(today),
-            [COL.reason]: textValue(company.link ? `The server couldn't read the careers page (${report.error}). Check it for open roles.` : "No careers page link. Find their jobs page and check it for open roles."),
-          }, undefined, company.name);
-          if (failed) result.failures.push(failed);
-        }
+        if (!options.dry) needsClaude.push(inboxRow({
+          company: company.name,
+          link: company.link,
+          source: SOURCE_CAREERS,
+          reason: company.link ? `The server couldn't read the careers page (${report.error}). Check it for open roles.` : "No careers page link. Find their jobs page and check it for open roles.",
+        }, today, "needs_claude"));
       }
     } else {
       report.listed = entry.jobs.length;
@@ -306,7 +302,16 @@ export async function runCompanies(options: { dry: boolean; now?: Date; budgetMs
   for (const report of result.companies) {
     report.adverts = Object.fromEntries(pending.filter((p) => p.company === report.name).map((p) => [p.job.title, p.job.advert.length]));
   }
-  if (!options.dry) result.failures.push(...(await writeRoles(client, pending, today, deadlineAt)));
+  if (!options.dry) {
+    result.failures.push(...(await writeRoles(pending, today)));
+    if (needsClaude.length) {
+      try {
+        await (await inbox()).insert(needsClaude);
+      } catch (error) {
+        result.failures.push({ where: "add Needs Claude companies to the Inbox", error: (error as any).friendly ?? (error as Error).message });
+      }
+    }
+  }
   return result;
 }
 

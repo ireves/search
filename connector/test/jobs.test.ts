@@ -2,7 +2,8 @@ import { strict as assert } from "node:assert";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, beforeEach, test } from "node:test";
-import { calls, freshStore, mockNetwork, req, restoreNetwork } from "./helpers.js";
+import { calls, freshStore, memoryInbox, mockNetwork, req, restoreNetwork } from "./helpers.js";
+import { useInbox } from "../lib/jobs/inboxstore.js";
 import jobs from "../api/jobs.js";
 import oauth from "../api/oauth.js";
 import settings from "../api/settings.js";
@@ -122,8 +123,11 @@ function fakeComposio(pages: Record<string, Partial<PageResult>>, searches: (cal
 }
 
 let logged: { table: string; row: any }[] = [];
+let box = memoryInbox();
 beforeEach(async () => {
   await freshStore(false);
+  box = memoryInbox();
+  useInbox(box);
   logged = [];
   useRunLog(async (table, r) => {
     logged.push({ table, row: r });
@@ -458,7 +462,7 @@ test("a dry run of the company lists finds new roles and writes nothing", async 
   assert.equal(by("Fabric (fabric.so)").result, "Needs Claude", "no careers page link");
   assert.deepEqual(fc.asked.sort(), ["https://www.craft.do/careers", "https://www.framer.com/careers/#positions", "https://www.framer.com/careers/ui-designer"]);
   assert.deepEqual([stage.counts!.advert_from_list, stage.counts!.advert_from_page, stage.counts!.advert_from_firecrawl, stage.counts!.advert_missing], [0, 2, 1, 0]);
-  assert.equal(fake.created.length + fake.updates.length, 0);
+  assert.equal(fake.created.length + fake.updates.length + box.rows.length, 0);
   assert.equal(stage.counts!.duplicates, 1);
 });
 
@@ -466,20 +470,24 @@ test("a real run adds Inbox rows with advert text and updates each company", asy
   const fake = await useFake(companyRows());
   useComposio(companySites());
   await runJobs({ dry: false, trigger: "claude", stages: ["companies"] });
-  const titles = fake.created.map((c) => c.properties.Role?.rich_text?.[0]?.text.content ?? `(${c.properties["Review status"].select.name}) ${c.properties.Name.title[0].text.content}`).sort();
-  assert.deepEqual(titles, ["(Needs Claude) Craft Docs", "(Needs Claude) Fabric (fabric.so)", "Product Designer", "Product Designer, Borrowing", "UI Designer"]);
-  const monzo = fake.created.find((c) => c.properties.Name.title[0].text.content === "Monzo")!;
-  assert.equal(monzo.properties["Review status"].select.name, "New");
-  assert.equal(monzo.properties["Entry type"].select.name, "Role");
-  assert.equal(monzo.properties.Source.select.name, "Careers page");
-  assert.match(monzo.children![0].toggle.children[0].paragraph.rich_text[0].text.content, /Design lending journeys/);
-  const framer = fake.created.find((c) => c.properties.Role?.rich_text?.[0]?.text.content === "Product Designer" && c.properties.Name.title[0].text.content === "Framer")!;
-  const ui = fake.created.find((c) => c.properties.Role?.rich_text?.[0]?.text.content === "UI Designer")!;
-  const uiText = ui.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join("\n");
-  assert.match(uiText, /Work on the Framer editor/, "Firecrawl Markdown is saved as plain text");
-  assert.ok(!/logo\.png/.test(uiText));
-  const framerText = framer.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join("\n");
-  assert.match(framerText, /Shape Framer/, "own-site advert text is read directly");
+  assert.equal(fake.created.length, 0, "new roles go to the Inbox, not Notion");
+  const titles = box.rows.map((r) => (r.kind === "role" ? r.title : `(needs_claude) ${r.company}`)).sort();
+  assert.deepEqual(titles, ["(needs_claude) Craft Docs", "(needs_claude) Fabric (fabric.so)", "Product Designer", "Product Designer, Borrowing", "UI Designer"]);
+  const monzo = box.rows.find((r) => r.company === "Monzo")!;
+  assert.equal(monzo.status, "new");
+  assert.equal(monzo.source, "Careers page");
+  assert.equal(monzo.found, ukToday());
+  assert.ok(monzo.keys.length && monzo.role_key, "keys for the duplicate check");
+  assert.match(monzo.advert!, /Design lending journeys/);
+  assert.match(box.rows.find((r) => r.company === "Craft Docs")!.reason!, /couldn't read the careers page/);
+  const framer = box.rows.find((r) => r.title === "Product Designer" && r.company === "Framer")!;
+  const ui = box.rows.find((r) => r.title === "UI Designer")!;
+  assert.match(ui.advert!, /Work on the Framer editor/, "Firecrawl Markdown is saved as plain text");
+  assert.ok(!/logo\.png/.test(ui.advert!));
+  assert.match(framer.advert!, /Shape Framer/, "own-site advert text is read directly");
+
+  await runJobs({ dry: false, trigger: "claude", stages: ["companies"] });
+  assert.equal(box.rows.length, 5, "a second run finds nothing new: Inbox rows count as seen, and Needs Claude companies aren't repeated");
   const saved = (await loadNotes()).preferences;
   const pref = (name: string) => saved.find((p) => p.name === name)!;
   assert.equal(pref("Monzo").lastResult, "Read OK");
@@ -626,21 +634,22 @@ test("job site results become Inbox rows, once each, with advert text", async ()
   useComposio(fc);
   const dry = await runJobs({ dry: true, trigger: "manual", stages: ["job_sites"] });
   assert.equal(fc.searched.length, 8, "2 roles x 2 locations x 2 tools");
-  assert.equal(fake.created.length, 0);
+  assert.equal(fake.created.length + box.rows.length, 0);
   assert.equal(dry.stages[0].counts!.added, 2);
   assert.equal(dry.stages[0].counts!.duplicates, 2, "Monzo on LinkedIn too, and a role already in Notion");
 
   await runJobs({ dry: false, trigger: "claude", stages: ["job_sites"] });
-  const rows = fake.created.map((c) => [c.properties.Name.title[0].text.content, c.properties.Role.rich_text[0].text.content, c.properties.Source.select.name, c.properties.Links.url]);
+  const rows = box.rows.map((r) => [r.company, r.title, r.source, r.link]);
   assert.deepEqual(rows.sort(), [
     ["Monzo", "Product Designer", "Indeed", "https://monzo.com/careers/product-designer-1"],
     ["Starling", "UI Designer", "LinkedIn", "https://uk.linkedin.com/jobs/view/2"],
   ]);
-  const monzo = fake.created.find((c) => c.properties.Name.title[0].text.content === "Monzo")!;
-  assert.equal(monzo.properties.Pay.rich_text[0].text.content, "£50000-60000 a year");
-  assert.match(monzo.children![0].toggle.children[0].paragraph.rich_text[0].text.content, /Design money tools/);
-  const starling = fake.created.find((c) => c.properties.Name.title[0].text.content === "Starling")!;
-  assert.match(starling.children![0].toggle.children.map((b: any) => b.paragraph.rich_text[0].text.content).join(" "), /banking app/, "LinkedIn adverts are read from the page");
+  const monzo = box.rows.find((r) => r.company === "Monzo")!;
+  assert.equal(monzo.pay, "£50000-60000 a year");
+  assert.match(monzo.advert!, /Design money tools/);
+  assert.equal(monzo.keys.length, 2, "the job-site copy's link counts as seen too");
+  const starling = box.rows.find((r) => r.company === "Starling")!;
+  assert.match(starling.advert!, /banking app/, "LinkedIn adverts are read from the page");
 });
 
 test("only posts that read like hiring posts go to the Inbox, for Claude to judge", async () => {
@@ -659,11 +668,11 @@ test("only posts that read like hiring posts go to the Inbox, for Claude to judg
     { query: "hiring Product Designer London", date_posted: "last-week" },
     { query: "hiring UI Designer London", date_posted: "last-week" },
   ]);
-  assert.equal(fake.created.length, 1);
-  const post = fake.created[0];
-  assert.equal(post.properties.Source.select.name, "LinkedIn post");
-  assert.equal(post.properties.Links.url, "https://www.linkedin.com/posts/if_1");
-  assert.match(post.children![0].toggle.children[0].paragraph.rich_text[0].text.content, /Send us your portfolio/, "a post is its own advert, however short");
+  assert.equal(box.rows.length, 1);
+  const post = box.rows[0];
+  assert.equal(post.source, "LinkedIn post");
+  assert.equal(post.link, "https://www.linkedin.com/posts/if_1");
+  assert.match(post.advert!, /Send us your portfolio/, "a post is its own advert, however short");
 });
 
 test("a search tool that returns nothing at all is reported as a failure", async () => {
