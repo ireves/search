@@ -297,11 +297,14 @@ const prefs = (): Preferences => {
   return { all: [...roles, ...locations, ...excludes], roles, locations, excludes, sources: [] };
 };
 
-test("job titles are kept loosely, and Exclude preferences drop roles", () => {
+test("job titles must be a wanted kind of role, and Exclude preferences drop roles", () => {
   const pr = prefs();
   assert.ok(titleWanted("Product Designer, Apple Weather", pr));
-  assert.ok(titleWanted("Brand Designer", pr), "any Designer gets through for Claude to judge");
+  assert.ok(!titleWanted("Brand Designer", pr), "other kinds of designer are left out");
+  assert.ok(!titleWanted("Production Designer", pr));
   assert.ok(titleWanted("UI/UX Designer", pr));
+  assert.ok(titleWanted("Mobile Product Designer", pr));
+  assert.ok(titleWanted("Product Design Lead", pr));
   assert.ok(!titleWanted("Software Engineer", pr));
   assert.equal(excludedBy({ title: "Senior Product Designer", company: "Apple" }, pr), "Senior");
   assert.equal(excludedBy({ title: "Sr. Product Designer", company: "Apple" }, pr), "Senior");

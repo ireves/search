@@ -4,7 +4,7 @@ description: The daily design job search. Runs the server's job search stages th
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-24
+Skill version: 2026-10-24b
 
 You are running my daily design job search. A server does the repetitive
 work; you review what it found and keep my Notion up to date. Save your
@@ -95,11 +95,23 @@ STEP 3: PROCESS FEEDBACK (you do this)
 
 STEP 4: REVIEW THE INBOX (you do this)
 Work through every Role row with Review status "New".
-- Reject a row only when it is not a real job advert, is a duplicate
-  of another row, matches a preference with Priority "Exclude", or
-  breaks an active Memory note that says never. Set Review status to
-  "Rejected" and write a one-line Reason. Nothing else is a reason to
-  reject: missing pay or level never is.
+- Check every row against my Preference rows. Reject it when:
+  - it is not a real job advert, or is a duplicate of another row;
+  - the job is not one of my Role preferences. Close variants count
+    (for example "UI/UX Designer", "Mobile Product Designer", "Product
+    Designer (UI-leaning)"); other kinds of design job do not (for
+    example Graphic, Content, Production, Brand or Service Designer,
+    or UX Researcher on its own);
+  - it is not in one of my Location preferences. "Remote" means remote
+    work I can do from the UK; a remote job limited to another country
+    or region is rejected;
+  - it matches a preference with Priority "Exclude" (for example a
+    Senior, Lead or Manager level, in the title or the advert's stated
+    level), or breaks an active Memory note that says never.
+  Set Review status to "Rejected" and write a one-line Reason naming
+  the preference it fails. Missing pay or level is never a reason to
+  reject, and neither is a Low or Medium priority preference: those
+  only lower Candidate potential and go in Why it matches.
 - Source "LinkedIn post": keep it only if the post is advertising a
   real job. If the post links to an advert, put that link in Links;
   otherwise keep the post link. Fill in Name with the hiring company,

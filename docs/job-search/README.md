@@ -12,7 +12,7 @@ Your daily design job search, split between a server that does the repetitive wo
 2. **The server** filters the results with your Search Preferences, leaves out anything already in Notion, saves each advert's text, and adds new roles to the **Inbox** view.
 3. **Claude** then:
    - reads your comments on roles and turns them into notes in the **Claude Memory** view, replying under each;
-   - reviews every Inbox role (rejecting non-jobs and duplicates, and filling in the summary, fit, positives and negatives);
+   - reviews every Inbox role (rejecting non-jobs, duplicates, and roles outside your role, location and Exclude preferences, and filling in the summary, fit, positives and negatives);
    - reads careers pages the server couldn't;
    - and ends with a summary, including what it cost.
 

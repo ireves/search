@@ -1,7 +1,8 @@
 // The user's search preferences (Preference rows in Job Applications) and the
 // loose filters built from them. Only the user's own preferences are used
 // here, never Claude's Memory notes. A missed good role is worse than an
-// extra one for Claude to reject, so every filter errs on keeping a role.
+// extra one for Claude to reject, so the filters err on keeping a role, but
+// only roles of the kinds the user asked for.
 
 import { COL, ENTRY, NOTION, PREF, PRIORITY_EXCLUDE } from "./config.js";
 import { dateStart, select, text, url, type Notion, type NotionPage } from "./notion.js";
@@ -78,9 +79,19 @@ export function roleWords(prefs: Preferences): string[] {
   return [...words];
 }
 
+// Whether a job title is one of the wanted roles: a Role preference in full,
+// or its kind ("Product", "UX") with a design word, so "Senior Product
+// Designer", "UI/UX Designer" and "Product Design Lead" get through but
+// "Graphic Designer" or "Production Designer" don't. A one-word Role
+// preference ("Designer") lets any title holding it through.
 export function titleWanted(title: string, prefs: Preferences): boolean {
   if (!prefs.roles.length) return true;
-  return roleWords(prefs).some((w) => hasWord(title, w));
+  const design = /\bdesign/.test(norm(title));
+  return prefs.roles.some((role) => {
+    const words = norm(role.name).split(" ");
+    if (hasWord(title, role.name)) return true;
+    return design && words.length > 1 && words.slice(0, -1).some((w) => hasWord(title, w));
+  });
 }
 
 // An Exclude preference the job matches, if any (a level such as "Senior" in
