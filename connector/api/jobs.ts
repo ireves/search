@@ -1,15 +1,12 @@
-import { adminPassword, baseUrl, routeOf } from "../lib/config.js";
+import { adminPassword, baseUrl } from "../lib/config.js";
 import { getKeys, nowSeconds, signToken, verifyToken, type TokenPayload } from "../lib/crypto.js";
 import { esc, json, page } from "../lib/html.js";
 import { STAGES, type StageName } from "../lib/jobs/config.js";
-import { handleJobsMcpPost } from "../lib/jobs/mcp.js";
 import { runJobs, type RunReport, type StageReport } from "../lib/jobs/run.js";
-import { preflight, requireBearer } from "../lib/oauth.js";
 import { signedInOwner } from "../lib/settings.js";
 
-// The job search (docs/job-search/plan.md). Not part of the Search connector.
-//   POST /jobs/mcp            The Job search connector, for the daily Claude
-//                             scheduled task (same sign-in as Search).
+// The job search's pages (docs/job-search/plan.md). Claude starts runs through
+// the Search connector's run_job_search tool (lib/jobs/mcp.ts).
 //   GET  /jobs?stage=<stage>  Signed-in owner: a dry run of one stage, shown
 //                             as a page, with a button to run it for real.
 //   POST /jobs                Signed-in owner: the real run, from that button.
@@ -99,16 +96,6 @@ const stageOf = (value: string | null): StageName => (STAGES.includes(value as S
 
 export default {
   async fetch(request: Request): Promise<Response> {
-    const route = routeOf(request, (p) => (p.replace(/\/+$/, "") === "/jobs/mcp" ? "mcp" : "page"));
-
-    if (route === "mcp") {
-      if (request.method === "OPTIONS") return preflight();
-      if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: { allow: "POST, OPTIONS" } });
-      const denied = await requireBearer(request, "/jobs/mcp");
-      if (denied) return denied;
-      return handleJobsMcpPost(request);
-    }
-
     const base = baseUrl(request);
     const sid = await signedInOwner(request);
     const key = signingKey();

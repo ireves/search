@@ -503,7 +503,7 @@ test("the run page is for the signed-in owner and starts with a dry run", async 
   assert.equal(fake.updates.length, 3);
 });
 
-async function jobsToken(): Promise<string> {
+async function searchToken(): Promise<string> {
   const redirect = "https://claude.ai/api/mcp/auth_callback";
   const reg = (await (await oauth.fetch(req("/register", { method: "POST", json: { redirect_uris: [redirect], client_name: "Claude" } }))).json()) as any;
   const verifier = "v".repeat(50);
@@ -516,43 +516,40 @@ async function jobsToken(): Promise<string> {
     code_challenge_method: "S256",
     state: "s",
     scope: "search",
-    resource: "https://search.example.com/jobs/mcp",
+    resource: "https://search.example.com/mcp",
     password: "correct horse battery staple",
     decision: "allow",
   };
-  const page = await (await oauth.fetch(req(`/authorize?${new URLSearchParams(form)}`))).text();
-  assert.match(page, /Connect Job search to Claude/);
   const done = await oauth.fetch(req("/authorize", { method: "POST", form }));
   const code = new URL(done.headers.get("location")!).searchParams.get("code")!;
   const tokens = (await (await oauth.fetch(req("/token", { method: "POST", form: { grant_type: "authorization_code", code, client_id: reg.client_id, redirect_uri: redirect, code_verifier: verifier } }))).json()) as any;
   return tokens.access_token;
 }
 
-test("the Job search connector has its own sign-in and its one tool", async () => {
+test("run_job_search is a Search connector tool, and the old Job search connector is gone", async () => {
   advertSite();
   useNotion(fakeNotion(rolePages()));
   useComposio(blockedPages());
-  const rpc = (body: unknown, token?: string) =>
-    jobs.fetch(req("/jobs/mcp", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {}, json: body }));
+  const searchMcp = (await import("../api/mcp.js")).default;
+  const token = await searchToken();
+  const rpc = (body: unknown) => searchMcp.fetch(req("/mcp", { method: "POST", headers: { authorization: `Bearer ${token}` }, json: body }));
 
-  const anonymous = await rpc({ jsonrpc: "2.0", id: 1, method: "tools/list" });
-  assert.equal(anonymous.status, 401);
-  assert.match(anonymous.headers.get("www-authenticate")!, /oauth-protected-resource\/jobs\/mcp/);
-  const meta = (await (await oauth.fetch(req("/.well-known/oauth-protected-resource/jobs/mcp"))).json()) as any;
-  assert.equal(meta.resource, "https://search.example.com/jobs/mcp");
-
-  const token = await jobsToken();
-  const list = (await (await rpc({ jsonrpc: "2.0", id: 2, method: "tools/list" }, token)).json()) as any;
-  assert.deepEqual(list.result.tools.map((t: any) => t.name), ["run_job_search"]);
-  const run = (await (await rpc({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "run_job_search", arguments: { stage: "recheck", dry_run: true } } }, token)).json()) as any;
+  const list = (await (await rpc({ jsonrpc: "2.0", id: 1, method: "tools/list" })).json()) as any;
+  const tool = list.result.tools.find((t: any) => t.name === "run_job_search");
+  assert.match(tool.description, /Only for the \/job-search skill/);
+  const run = (await (await rpc({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "run_job_search", arguments: { stage: "recheck", dry_run: true } } })).json()) as any;
+  assert.equal(run.result.isError, false);
+  assert.doesNotMatch(run.result.content[0].text, /Search cost/, "job runs carry no search cost line");
   const report = JSON.parse(run.result.content[0].text);
   assert.equal(report.dry_run, true);
   assert.equal(report.trigger, "claude");
   assert.equal(report.stages[0].stage, "recheck");
 
-  const searchMcp = (await import("../api/mcp.js")).default;
-  const crossed = await searchMcp.fetch(req("/mcp", { method: "POST", headers: { authorization: `Bearer ${token}` }, json: { jsonrpc: "2.0", id: 4, method: "tools/list" } }));
-  assert.equal(crossed.status, 401, "a Job search token doesn't open the Search connector");
+  const bad = (await (await rpc({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "run_job_search", arguments: { stage: "everything" } } })).json()) as any;
+  assert.equal(bad.result.isError, true);
+
+  const old = await jobs.fetch(req("/jobs/mcp", { method: "POST", headers: { authorization: `Bearer ${token}` }, json: { jsonrpc: "2.0", id: 4, method: "tools/list" } }));
+  assert.notEqual(old.headers.get("content-type"), "application/json", "/jobs/mcp no longer answers as a connector");
 });
 
 // ---- Job sites and LinkedIn posts ----

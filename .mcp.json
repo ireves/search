@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "job-search": {
-      "type": "http",
-      "url": "https://search-connector.vercel.app/jobs/mcp"
-    }
-  }
-}

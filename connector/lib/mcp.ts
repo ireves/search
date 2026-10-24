@@ -5,6 +5,7 @@
 import { SERVER_NAME, SERVER_TITLE, SERVER_VERSION } from "./config.js";
 import { costLine, metered } from "./cost.js";
 import { APPS, OUTCOMES, runLogIssue } from "./issues.js";
+import { JOB_SEARCH_TOOL, runJobSearchTool } from "./jobs/mcp.js";
 import { afterReply, newRef, rowWriter } from "./logstore.js";
 import { compact, traced } from "./trace.js";
 import { runFetch } from "./tools/fetch.js";
@@ -14,14 +15,16 @@ import { runVerify } from "./tools/verify.js";
 
 const PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
-export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tools only when the user explicitly asks for this connector or runs one of its search skills (/uni-search, /better-search, /web-search, /deep-search, /job-pick), including as a worker those skills started; otherwise leave them alone.
+export const INSTRUCTIONS = `Web search through Exa and Parallel. Use these tools only when the user explicitly asks for this connector or runs one of its search skills (/uni-search, /better-search, /web-search, /deep-search, /job-pick, /job-search), including as a worker those skills started; otherwise leave them alone.
 - search: find pages. Results are ranked, de-duplicated and trimmed to the relevant passages, with dates and links. Pick a type for papers, people, companies, news, jobs, code, Reddit-style discussions, X posts, reviews or shopping.
 - fetch: read known links (pages, PDFs, YouTube transcripts, Reddit threads with comments). Pass a question to get only the passages that answer it.
 - verify: check several factual claims at once against independent sources before stating them.
 - research: hand a multi-step question to research agents that search and read on their own (slow; costs more).
 - log_issue: save errors and failures from a search skill run, or a /search-report report, to the connector's problem log, for later troubleshooting. Free.
+- run_job_search: only while the /job-search skill is running. Never call it otherwise, even for questions about jobs.
 Cite the links you rely on. If a result says an engine is unavailable, tell the user.
-Each result ends with its search cost. End every reply that used these tools with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any result used them.`;
+When the user gives feedback about their job search in any conversation (e.g. "remember I don't want agency roles"), save it with the Notion connector as a Memory row in Job Applications (https://app.notion.com/p/75fcf49f17c748edb75ebceabeb695cd): Entry type "Memory", the note as Name, Active ticked, Memory source "Chat". Update a near-identical active Memory row instead; untick one the note contradicts. Tell the user what you saved.
+Each search, fetch, verify and research result ends with its search cost. End every reply that used them with one line: "Search cost: $X (Exa $Y, Parallel $Z)", adding up every call made since your last reply, plus ", Apify $W", ", OpenAlex $V", ", Firecrawl N credits" and ", TinyFish free (N pages, N searches)" inside the brackets when any result used them.`;
 
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
@@ -182,6 +185,7 @@ export const TOOLS = [
     },
     annotations: { title: "Log a problem", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
   },
+  JOB_SEARCH_TOOL,
 ];
 
 type Json = Record<string, any>;
@@ -203,9 +207,10 @@ function rpcError(id: RpcRequest["id"], code: number, message: string) {
 
 // Every search, fetch, verify and research call is recorded in the problem
 // log's search_calls table when one is set up, and its reply ends with the
-// record's ref, which log_issue takes in place of the call's details.
+// record's ref, which log_issue takes in place of the call's details. Job
+// search runs keep their own log (lib/jobs/runlog.ts).
 export async function callTool(name: string, args: Json): Promise<{ text: string; isError: boolean }> {
-  if (!TOOLS.some((t) => t.name === name) || name === "log_issue") return runTool(name, args);
+  if (!TOOLS.some((t) => t.name === name) || name === "log_issue" || name === JOB_SEARCH_TOOL.name) return runTool(name, args);
   const started = Date.now();
   const { value: run, meter } = await metered(() => traced(() => runTool(name, args)));
   const { value, steps } = run;
@@ -238,6 +243,8 @@ async function runTool(name: string, args: Json): Promise<{ text: string; isErro
         return await runResearch(args as any);
       case "log_issue":
         return await runLogIssue(args as any);
+      case "run_job_search":
+        return await runJobSearchTool(args);
       default:
         return { text: `Unknown tool: ${name}`, isError: true };
     }
