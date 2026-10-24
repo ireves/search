@@ -165,3 +165,15 @@ export async function importFromNotion(client: Notion): Promise<{ preferences: n
   });
   return { preferences: preferences.length, memories: memories.length };
 }
+
+// Puts the rows that `inList` picks into the order of `ids`, in the same
+// places in the full list. Rows missing from `ids` keep their order, after.
+export function reorder<T extends { id: string }>(all: T[], ids: string[], inList: (row: T) => boolean): T[] {
+  const slots = all.map((row, i) => (inList(row) ? i : -1)).filter((i) => i >= 0);
+  const rows = slots.map((i) => all[i]);
+  const rank = (row: T) => (ids.includes(row.id) ? ids.indexOf(row.id) : ids.length + rows.indexOf(row));
+  const sorted = [...rows].sort((a, b) => rank(a) - rank(b));
+  const out = [...all];
+  slots.forEach((slot, k) => (out[slot] = sorted[k]));
+  return out;
+}

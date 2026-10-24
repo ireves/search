@@ -48,7 +48,7 @@ Your search preferences and Claude's memory notes live on the connector's own pa
 2. Choose **Import from Notion**.
    - It copies every Preference and Memory row from Job Applications, including paused ones.
    - If the page already has something on it, tick **Replace what's here** first.
-3. Check the page looks right. From now on, add, edit and pause preferences and notes there.
+3. Check the page looks right. From now on, add, edit and pause preferences and notes there. To change the order of a list, drag a row by its handle (⋮⋮) or use its ↑ and ↓ buttons.
 4. Once you're happy, delete the Preference and Memory rows (and the Search Preferences and Claude Memory views) in Notion. Nothing reads them any more.
 
 ## 5. Run log clean-up (one line, optional)

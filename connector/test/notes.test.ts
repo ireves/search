@@ -146,3 +146,37 @@ test("Claude reads preferences and saves memory notes through job_search_notes",
   assert.match(page, /Skip roles needing 5\+ years/);
   assert.match(page, /Product Designer at Wise/);
 });
+
+test("rows are reordered with the arrows and by dragging, within their own list", async () => {
+  const { cookie } = await login();
+  const { csrf } = await open(cookie);
+  for (const name of ["A", "B", "C"]) await post(cookie, { csrf, action: "pref-save", type: "Role", name, active: "on" });
+  await post(cookie, { csrf, action: "pref-save", type: "Location", name: "London", active: "on" });
+  await post(cookie, { csrf, action: "pref-save", type: "Role", name: "D", active: "on" });
+  const roles = async () => (await loadNotes()).preferences.filter((p) => p.type === "Role").map((p) => p.name);
+  const id = async (name: string) => (await loadNotes()).preferences.find((p) => p.name === name)!.id;
+
+  const moved = await post(cookie, { csrf, action: "pref-down", id: await id("C"), type: "Role" });
+  assert.match(moved.headers.get("location")!, /m=moved#type-role/);
+  assert.deepEqual(await roles(), ["A", "B", "D", "C"], "skips the Location row between them");
+  await post(cookie, { csrf, action: "pref-up", id: await id("A"), type: "Role" });
+  assert.deepEqual(await roles(), ["A", "B", "D", "C"], "the first row stays first");
+
+  await post(cookie, { csrf, action: "pref-order", type: "Role", ids: [await id("C"), await id("A")].join(",") });
+  assert.deepEqual(await roles(), ["C", "A", "B", "D"], "rows left out keep their order after");
+  assert.equal((await loadNotes()).preferences.find((p) => p.type === "Location")!.name, "London");
+
+  await callTool("job_search_notes", { action: "add_memory", note: "one" });
+  await callTool("job_search_notes", { action: "add_memory", note: "two" });
+  const memories = async () => (await loadNotes()).memories.map((m) => m.note);
+  assert.deepEqual(await memories(), ["two", "one"]);
+  await post(cookie, { csrf, action: "memory-down", id: (await loadNotes()).memories[0].id });
+  assert.deepEqual(await memories(), ["one", "two"]);
+
+  const html = (await open(cookie)).html;
+  assert.match(html, /<script src="\/preferences.js" defer><\/script>/);
+  assert.match(html, /data-sortable="pref-order" data-type="Role"/);
+  const script = await preferences.fetch(req("/preferences.js"));
+  assert.equal(script.headers.get("content-type"), "text/javascript; charset=utf-8");
+  assert.match(await script.text(), /dragend/);
+});
