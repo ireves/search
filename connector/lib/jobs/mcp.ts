@@ -139,6 +139,8 @@ export const INBOX_TOOL = {
       deadline: { type: "string", description: "add: closing date YYYY-MM-DD, only if the advert gives one." },
       advert_status: { type: "string", enum: INBOX.advertStatuses, description: "add: Almost Gone when the deadline is within 3 days." },
       summary: { type: "string", description: "add: one or two sentences on the day-to-day work." },
+      company_description: { type: "string", description: "add, required: one sentence on what the company is and does." },
+      role_description: { type: "string", description: "add, required: one sentence on what the role is." },
       candidate_potential: { type: "string", enum: INBOX.potentials },
       why_it_matches: { type: "string", description: "add: one sentence naming the preferences met and the CV parts that suit it." },
       positives: { type: "array", items: { type: "string" }, maxItems: 3, description: "add: 1 to 3 points." },

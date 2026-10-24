@@ -4,7 +4,7 @@ description: The daily design job search. Runs the server's job search stages th
 disable-model-invocation: true
 ---
 
-Skill version: 2026-10-24d
+Skill version: 2026-10-24e
 
 You are running my daily design job search. A server does the repetitive
 work; you review what it found and keep my Notion up to date. Save each
@@ -142,6 +142,11 @@ advert text with "read", up to 10 ids at a time.
   - advert_status: "Almost Gone" if the deadline is within 3 days,
     otherwise "Active".
   - summary: one or two sentences on what the job involves day to day.
+  - company_description: always, one sentence on what the company is
+    and does (for example "Monzo is a UK digital bank with about 13
+    million customers."). Base it on the advert or known facts.
+  - role_description: always, one sentence on what the role is (for
+    example "A mid-level product designer on the savings app team.").
   - candidate_potential: "Strong" (I match most of the requirements),
     "Average" (I match the core, with gaps) or "Weak" (I'm missing key
     requirements). Judge against the full CV page and memory notes.
@@ -155,7 +160,9 @@ advert text with "read", up to 10 ids at a time.
     memory notes say matters to me. If nothing worrying stands out,
     give the weakest point of the advert. Never invent a problem.
   The tool writes the role to Open Roles (Tag "New", Review status
-  Added) with the advert text on its page, and returns its Notion link.
+  Added). Its page starts with the company and role descriptions, then
+  Positives and Negatives in bold with their points, then the advert
+  text. It returns the Notion link.
 - If a row has no advert text (advert_chars 0) and its link can't tell
   you enough, give it to a helper to open with "fetch" (up to 8 rows
   per helper), asking for the job's duties, requirements, location,

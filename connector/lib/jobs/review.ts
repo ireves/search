@@ -1,6 +1,7 @@
 // Claude's review of the Inbox (the job_search_inbox tool, lib/jobs/mcp.ts).
 // A kept role becomes a Role row in Notion's Open Roles (Review status
-// Added), with Positives, Negatives and the advert text on its page; a
+// Added). Its page holds a one-sentence description of the company and of
+// the role, then Positives, Negatives and the advert text; a
 // rejected one stays in the Inbox with the reason. Roles Claude found itself
 // (careers pages the server couldn't read) are checked for duplicates first
 // and recorded in the Inbox too, so they're never added twice.
@@ -23,6 +24,8 @@ export interface Keep {
   deadline?: string;
   advert_status?: string;
   summary?: string;
+  company_description?: string;
+  role_description?: string;
   candidate_potential?: string;
   why_it_matches?: string;
   positives?: string[];
@@ -32,8 +35,12 @@ export interface Keep {
 const pick = (list: string[], value: unknown, fallback: string | null) => (list.includes(value as string) ? (value as string) : fallback);
 const lines = (list: unknown) => (Array.isArray(list) ? list.map((x) => String(x).trim()).filter(Boolean).slice(0, 3) : []);
 
-function heading(content: string): unknown {
-  return { object: "block", type: "heading_3", heading_3: { rich_text: [{ type: "text", text: { content } }] } };
+// A paragraph in bold, used as a label ("Positives"), or a bold label
+// followed by plain text on the same line.
+function bold(label: string, rest = ""): unknown {
+  const rich_text: unknown[] = [{ type: "text", text: { content: label }, annotations: { bold: true } }];
+  if (rest) rich_text.push({ type: "text", text: { content: ` ${rest.slice(0, 1900)}` } });
+  return { object: "block", type: "paragraph", paragraph: { rich_text } };
 }
 
 function bullet(content: string): unknown {
@@ -46,6 +53,9 @@ export class ReviewError extends Error {}
 
 // Writes a kept role to Open Roles and marks its Inbox row added.
 export async function keepRole(input: Keep, now?: Date): Promise<{ id: string; notion_url: string }> {
+  const companyText = input.company_description?.trim() ?? "";
+  const roleText = input.role_description?.trim() ?? "";
+  if (!companyText || !roleText) throw new ReviewError("Give company_description and role_description, one sentence each.");
   const store = await inbox();
   const today = ukToday(now);
   let row: InboxRow | undefined;
@@ -89,8 +99,10 @@ export async function keepRole(input: Keep, now?: Date): Promise<{ id: string; n
   const positives = lines(input.positives);
   const negatives = lines(input.negatives);
   const children = [
-    ...(positives.length ? [heading("Positives"), ...positives.map(bullet)] : []),
-    ...(negatives.length ? [heading("Negatives"), ...negatives.map(bullet)] : []),
+    bold("Company:", companyText),
+    bold("Role:", roleText),
+    ...(positives.length ? [bold("Positives"), ...positives.map(bullet)] : []),
+    ...(negatives.length ? [bold("Negatives"), ...negatives.map(bullet)] : []),
     ...(row.advert ? [toggleBlock("Advert", row.advert)] : []),
   ];
 
