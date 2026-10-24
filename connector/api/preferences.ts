@@ -12,6 +12,7 @@ import {
   notesConnected,
   PREFERENCE_TYPES,
   PRIORITIES,
+  reorder,
   type Memory,
   type Notes,
   type Preference,
@@ -21,14 +22,16 @@ import { signedInOwner } from "../lib/settings.js";
 
 // The job search's preferences and Claude's memory notes (lib/jobs/notes.ts),
 // for the signed-in owner (the settings page's passkey sign-in).
-//   GET  /preferences   the page
-//   POST /preferences   save, delete or add a row, or import from Notion
+//   GET  /preferences     the page
+//   GET  /preferences.js  drag-to-reorder for the page's lists
+//   POST /preferences     save, delete, add or move a row, or import from Notion
 
 const CSRF_TTL = 12 * 3600;
 const TITLE = "Job search preferences";
 
 const MESSAGES: Record<string, [string, string]> = {
   saved: ["ok", "Saved."],
+  moved: ["ok", "Order saved."],
   deleted: ["ok", "Deleted."],
   imported: ["ok", "Imported from Notion."],
   confirm: ["bad", "Tick the box to replace what's here, then import again."],
@@ -60,44 +63,50 @@ const TYPE_HELP: Record<string, string> = {
 };
 const CHECKED = new Set(["Company", "Job Listing Websites"]);
 const linkLabel = (type: string | null) => (type === "Company" ? "Careers page link" : "Link to the job list");
+// A drag handle, the row's cells, then Save, Delete and the move arrows.
+const prefColumns = (company: boolean) =>
+  company ? "20px minmax(140px,1.2fr) 110px 56px minmax(160px,1.6fr) minmax(120px,1fr) 176px" : "20px minmax(140px,1.5fr) 110px 56px minmax(160px,2fr) 176px";
+const HANDLE = `<span class="handle" title="Drag to reorder" aria-hidden="true">⋮⋮</span>`;
+const moves = (kind: string) =>
+  `<button type="submit" name="action" value="${kind}-up" class="plain small" aria-label="Move up" title="Move up">↑</button><button type="submit" name="action" value="${kind}-down" class="plain small" aria-label="Move down" title="Move down">↓</button>`;
 
 function preferenceRow(p: Preference, token: string, action: string): string {
   const company = CHECKED.has(p.type ?? "");
-  const columns = company ? "minmax(140px,1.2fr) 110px 56px minmax(160px,1.6fr) minmax(120px,1fr) 120px" : "minmax(140px,1.5fr) 110px 56px minmax(160px,2fr) 120px";
+  const columns = prefColumns(company);
   const checked = company
     ? `<div class="wide-cell muted">${p.lastChecked ? `Checked ${esc(p.lastChecked)} ${tag(p.lastResult)}` : "Not checked yet"}<br><select name="hiringService" aria-label="Hiring service">${options(HIRING_SERVICE_NAMES, p.hiringService, "Hiring service")}</select><input type="text" name="boardId" value="${esc(p.boardId)}" placeholder="Board ID" aria-label="Board ID"></div>`
     : "";
-  return `<form method="post" action="${action}" class="trow${p.active ? "" : " off"}" style="grid-template-columns:${columns}">${token}<input type="hidden" name="id" value="${esc(p.id)}"><input type="hidden" name="type" value="${esc(p.type ?? "")}">
-<div class="wide-cell"><input type="text" name="name" value="${esc(p.name)}" aria-label="Name" required>${company ? `<input type="url" name="link" value="${esc(p.link ?? "")}" placeholder="${linkLabel(p.type)}" aria-label="${linkLabel(p.type)}">` : ""}</div>
+  return `<form method="post" action="${action}" class="trow${p.active ? "" : " off"}" style="grid-template-columns:${columns}" data-id="${esc(p.id)}">${token}<input type="hidden" name="id" value="${esc(p.id)}"><input type="hidden" name="type" value="${esc(p.type ?? "")}">
+${HANDLE}<div class="wide-cell"><input type="text" name="name" value="${esc(p.name)}" aria-label="Name" required>${company ? `<input type="url" name="link" value="${esc(p.link ?? "")}" placeholder="${linkLabel(p.type)}" aria-label="${linkLabel(p.type)}">` : ""}</div>
 <select name="priority" aria-label="Priority">${options(PRIORITIES, p.priority, "None")}</select>
 <input type="checkbox" name="active"${p.active ? " checked" : ""} aria-label="Active" title="Active">
 <div class="wide-cell"><input type="text" name="notes" value="${esc(p.notes)}" placeholder="Notes" aria-label="Notes">${company ? "" : `<input type="hidden" name="link" value="${esc(p.link ?? "")}">`}</div>
-${checked}<div class="cell-actions"><button type="submit" name="action" value="pref-save" class="plain small">Save</button><button type="submit" name="action" value="pref-delete" class="danger small">Delete</button></div></form>`;
+${checked}<div class="cell-actions"><button type="submit" name="action" value="pref-save" class="plain small">Save</button><button type="submit" name="action" value="pref-delete" class="danger small">Delete</button>${moves("pref")}</div></form>`;
 }
 
 function preferenceSection(type: string, rows: Preference[], token: string, action: string): string {
   const company = CHECKED.has(type);
-  const columns = company ? "minmax(140px,1.2fr) 110px 56px minmax(160px,1.6fr) minmax(120px,1fr) 120px" : "minmax(140px,1.5fr) 110px 56px minmax(160px,2fr) 120px";
-  const head = `<div class="thead" style="grid-template-columns:${columns}"><span>Name${company ? " and link" : ""}</span><span>Priority</span><span>Active</span><span>Notes</span>${company ? "<span>Last check</span>" : ""}<span></span></div>`;
+  const columns = prefColumns(company);
+  const head = `<div class="thead" style="grid-template-columns:${columns}"><span></span><span>Name${company ? " and link" : ""}</span><span>Priority</span><span>Active</span><span>Notes</span>${company ? "<span>Last check</span>" : ""}<span></span></div>`;
   const add = `<form method="post" action="${action}" class="trow" style="grid-template-columns:${columns}">${token}<input type="hidden" name="type" value="${esc(type)}">
-<div class="wide-cell"><input type="text" name="name" placeholder="+ New ${esc(type.toLowerCase())}" aria-label="New ${esc(type.toLowerCase())}" required>${company ? `<input type="url" name="link" placeholder="${linkLabel(type)}" aria-label="${linkLabel(type)}">` : ""}</div>
+<span></span><div class="wide-cell"><input type="text" name="name" placeholder="+ New ${esc(type.toLowerCase())}" aria-label="New ${esc(type.toLowerCase())}" required>${company ? `<input type="url" name="link" placeholder="${linkLabel(type)}" aria-label="${linkLabel(type)}">` : ""}</div>
 <select name="priority" aria-label="Priority">${options(PRIORITIES, type === "Job Listing Websites" ? null : "High", "None")}</select>
 <input type="checkbox" name="active" checked aria-label="Active">
 <div class="wide-cell"><input type="text" name="notes" placeholder="Notes" aria-label="Notes"></div>${company ? "<div></div>" : ""}
 <div class="cell-actions"><button type="submit" name="action" value="pref-save" class="small">Add</button></div></form>`;
   return `<h3 id="type-${esc(type.replace(/\s+/g, "-").toLowerCase())}">${esc(type)} <span class="muted">${rows.length}</span></h3><p class="muted">${esc(TYPE_HELP[type] ?? "")}</p>
-<div class="table">${head}${rows.map((p) => preferenceRow(p, token, action)).join("")}${add}</div>`;
+<div class="table" data-sortable="pref-order" data-type="${esc(type)}">${head}${rows.map((p) => preferenceRow(p, token, action)).join("")}${add}</div>`;
 }
 
-const MEMORY_COLUMNS = "minmax(200px,3fr) 56px minmax(120px,1.2fr) 120px";
+const MEMORY_COLUMNS = "20px minmax(200px,3fr) 56px minmax(120px,1.2fr) 176px";
 
 function memoryRow(m: Memory, token: string, action: string): string {
   const from = m.roleLink ? `<a href="${esc(m.roleLink)}" rel="noreferrer" target="_blank">${esc(m.roleName || "role in Notion")}</a>` : "";
-  return `<form method="post" action="${action}" class="trow${m.active ? "" : " off"}" style="grid-template-columns:${MEMORY_COLUMNS}">${token}<input type="hidden" name="id" value="${esc(m.id)}">
-<div class="wide-cell"><input type="text" name="note" value="${esc(m.note)}" aria-label="Note" required></div>
+  return `<form method="post" action="${action}" class="trow${m.active ? "" : " off"}" style="grid-template-columns:${MEMORY_COLUMNS}" data-id="${esc(m.id)}">${token}<input type="hidden" name="id" value="${esc(m.id)}">
+${HANDLE}<div class="wide-cell"><input type="text" name="note" value="${esc(m.note)}" aria-label="Note" required></div>
 <input type="checkbox" name="active"${m.active ? " checked" : ""} aria-label="Active" title="Active">
 <div class="muted">${tag(m.source)} ${esc(m.addedAt.slice(0, 10))}${from ? `<br>${from}` : ""}</div>
-<div class="cell-actions"><button type="submit" name="action" value="memory-save" class="plain small">Save</button><button type="submit" name="action" value="memory-delete" class="danger small">Delete</button></div></form>`;
+<div class="cell-actions"><button type="submit" name="action" value="memory-save" class="plain small">Save</button><button type="submit" name="action" value="memory-delete" class="danger small">Delete</button>${moves("memory")}</div></form>`;
 }
 
 function render(base: string, notes: Notes, csrf: string, params: URLSearchParams): Response {
@@ -108,7 +117,7 @@ function render(base: string, notes: Notes, csrf: string, params: URLSearchParam
   const sections = types.map((type) => preferenceSection(type, notes.preferences.filter((p) => (p.type ?? "Other") === type), token, action)).join("");
   const active = notes.memories.filter((m) => m.active).length;
   const memoryAdd = `<form method="post" action="${action}" class="trow" style="grid-template-columns:${MEMORY_COLUMNS}">${token}<input type="hidden" name="source" value="Chat">
-<div class="wide-cell"><input type="text" name="note" placeholder="+ New note, e.g. Skip agency roles" aria-label="New note" required></div>
+<span></span><div class="wide-cell"><input type="text" name="note" placeholder="+ New note, e.g. Skip agency roles" aria-label="New note" required></div>
 <input type="checkbox" name="active" checked aria-label="Active"><div></div>
 <div class="cell-actions"><button type="submit" name="action" value="memory-save" class="small">Add</button></div></form>`;
   const empty = !notes.preferences.length && !notes.memories.length;
@@ -119,7 +128,8 @@ function render(base: string, notes: Notes, csrf: string, params: URLSearchParam
   return page({
     title: TITLE,
     wide: true,
-    body: `${nav(base, "preferences")}<h1>${TITLE}</h1>
+    scripts: ["/preferences.js"],
+    body: `${nav(base, "preferences")}<div id="sort-target" data-action="${action}" data-csrf="${esc(csrf)}" hidden></div><h1>${TITLE}</h1>
 <p class="muted">What the daily job search looks for, and Claude's notes about what you want. The server and Claude read this page's contents through the connector, so changes count from the next run.</p>
 ${flash ? `<p class="${flash[0]}" role="status">${esc(flash[1])}</p>` : ""}
 ${notesConnected() ? "" : `<div class="note"><strong>Storage not connected.</strong> Connect a private Vercel Blob store to this project to save preferences.</div>`}
@@ -129,10 +139,53 @@ ${empty ? importCard : ""}
 ${sections}
 <h2 id="memory">Claude memory <span class="muted">${active} active of ${notes.memories.length}</span></h2>
 <p class="muted">Notes Claude saves from your comments and chats, and pattern suggestions (switched off until you tick them). Claude reads the active ones on every run.</p>
-<div class="table"><div class="thead" style="grid-template-columns:${MEMORY_COLUMNS}"><span>Note</span><span>Active</span><span>From</span><span></span></div>${notes.memories.map((m) => memoryRow(m, token, action)).join("")}${memoryAdd}</div>
+<div class="table" data-sortable="memory-order"><div class="thead" style="grid-template-columns:${MEMORY_COLUMNS}"><span></span><span>Note</span><span>Active</span><span>From</span><span></span></div>${notes.memories.map((m) => memoryRow(m, token, action)).join("")}${memoryAdd}</div>
 ${empty ? "" : `<hr>${importCard}`}`,
   });
 }
+
+// GET /preferences.js: drag a row by its handle to reorder its list. The
+// new order is saved straight away; the arrows do the same without it.
+const SORT_SCRIPT = `(() => {
+  const target = document.getElementById("sort-target");
+  if (!target) return;
+  for (const list of document.querySelectorAll("[data-sortable]")) {
+    let dragged = null;
+    list.addEventListener("pointerdown", (e) => {
+      const row = e.target.closest("[data-id]");
+      if (row) row.draggable = Boolean(e.target.closest(".handle"));
+    });
+    list.addEventListener("dragstart", (e) => {
+      dragged = e.target.closest("[data-id]");
+      if (!dragged) return;
+      dragged.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", dragged.dataset.id);
+    });
+    list.addEventListener("dragover", (e) => {
+      if (!dragged) return;
+      e.preventDefault();
+      const over = e.target.closest("[data-id]");
+      if (!over || over === dragged || over.parentNode !== list) return;
+      const box = over.getBoundingClientRect();
+      list.insertBefore(dragged, e.clientY > box.top + box.height / 2 ? over.nextSibling : over);
+    });
+    list.addEventListener("dragend", async () => {
+      if (!dragged) return;
+      dragged.classList.remove("dragging");
+      dragged.draggable = false;
+      dragged = null;
+      const ids = [...list.children].filter((r) => r.dataset.id).map((r) => r.dataset.id);
+      const body = new URLSearchParams({ csrf: target.dataset.csrf, action: list.dataset.sortable, type: list.dataset.type || "", ids: ids.join(",") });
+      try {
+        const res = await fetch(target.dataset.action, { method: "POST", body, credentials: "same-origin", redirect: "manual" });
+        if (res.type !== "opaqueredirect" && !res.ok) throw new Error(String(res.status));
+      } catch {
+        location.reload();
+      }
+    });
+  }
+})();`;
 
 function signingKey(): Promise<CryptoKey> | null {
   const password = adminPassword();
@@ -185,6 +238,29 @@ async function handlePost(base: string, form: URLSearchParams): Promise<Response
       });
       return back("saved", "#memory");
     }
+    const move = /^(pref|memory)-(up|down)$/.exec(action ?? "");
+    if (move) {
+      await changeNotes((notes) => {
+        const list: { id: string; type?: string | null }[] = move[1] === "pref" ? notes.preferences : notes.memories;
+        const i = list.findIndex((x) => x.id === id);
+        if (i < 0) return;
+        // The nearest row in the same list on the page (same type, for preferences).
+        const step = move[2] === "up" ? -1 : 1;
+        let j = i + step;
+        while (j >= 0 && j < list.length && move[1] === "pref" && (list[j].type ?? null) !== (list[i].type ?? null)) j += step;
+        if (j < 0 || j >= list.length) return;
+        [list[i], list[j]] = [list[j], list[i]];
+      });
+      return back("moved", move[1] === "pref" ? anchor(field("type") || null) : "#memory");
+    }
+    if (action === "pref-order" || action === "memory-order") {
+      const ids = field("ids").split(",").filter(Boolean);
+      await changeNotes((notes) => {
+        if (action === "pref-order") notes.preferences = reorder(notes.preferences, ids, (p) => (p.type ?? "Other") === (field("type") || "Other"));
+        else notes.memories = reorder(notes.memories, ids, () => true);
+      });
+      return back("moved");
+    }
     if (action === "memory-delete") {
       await changeNotes((notes) => {
         notes.memories = notes.memories.filter((m) => m.id !== id);
@@ -209,6 +285,10 @@ async function handlePost(base: string, form: URLSearchParams): Promise<Response
 
 export default {
   async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    if (url.pathname === "/preferences.js" || url.searchParams.get("route") === "script") {
+      return new Response(SORT_SCRIPT, { headers: { "content-type": "text/javascript; charset=utf-8", "cache-control": "public, max-age=300", "x-content-type-options": "nosniff" } });
+    }
     const base = baseUrl(request);
     const sid = await signedInOwner(request);
     const key = signingKey();

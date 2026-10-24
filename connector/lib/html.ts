@@ -44,7 +44,8 @@ p.ok,span.ok{color:var(--ok)}p.warn,span.warn{color:var(--warn)}p.bad,span.bad,.
 .trow input[type=text],.trow input[type=url],.trow select,.trow textarea{background:transparent;border-color:transparent;padding:4px 6px}.trow input:hover,.trow select:hover,.trow textarea:hover{background:var(--field)}
 .trow input:focus,.trow select:focus,.trow textarea:focus{background:var(--bg)}
 .cell-actions{display:flex;gap:4px;justify-content:flex-end}
-@media (max-width:700px){.thead{display:none}.trow{grid-template-columns:1fr 1fr!important}.trow .wide-cell{grid-column:1/-1}}
+.handle{cursor:grab;color:var(--faint);user-select:none;font-size:.875rem;letter-spacing:-.2em;text-align:center}.trow:hover .handle{color:var(--muted)}.trow.dragging{opacity:.4}
+@media (max-width:700px){.thead{display:none}.trow{grid-template-columns:1fr 1fr!important}.trow .wide-cell{grid-column:1/-1}.handle{display:none}}
 code,.mono{font-family:"SFMono-Regular",Menlo,Consolas,"PT Mono","Liberation Mono",Courier,monospace;font-size:.85em;word-break:break-all}
 code{background:var(--hover);color:#eb5757;padding:.15em .35em;border-radius:3px}
 `;
@@ -58,10 +59,12 @@ export interface PageOptions {
   headers?: Record<string, string>;
   // Wider page, for tables.
   wide?: boolean;
+  // Scripts from this server the page loads.
+  scripts?: string[];
 }
 
-export function page({ title, body, status = 200, formTargets = [], headers = {}, wide = false }: PageOptions): Response {
-  const html = `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title><style>${STYLE}</style></head><body><main${wide ? ' class="wide"' : ""}>${body}</main>${body.includes("data-passkey") ? '<script src="/passkey.js" defer></script>' : ""}</body></html>`;
+export function page({ title, body, status = 200, formTargets = [], headers = {}, wide = false, scripts = [] }: PageOptions): Response {
+  const html = `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title><style>${STYLE}</style></head><body><main${wide ? ' class="wide"' : ""}>${body}</main>${body.includes("data-passkey") ? '<script src="/passkey.js" defer></script>' : ""}${scripts.map((src) => `<script src="${esc(src)}" defer></script>`).join("")}</body></html>`;
   const formAction = ["'self'", ...formTargets].join(" ");
   return new Response(html, {
     status,

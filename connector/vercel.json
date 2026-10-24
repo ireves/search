@@ -15,7 +15,8 @@
     { "source": "/authorize", "destination": "/api/oauth?route=authorize" },
     { "source": "/token", "destination": "/api/oauth?route=token" },
     { "source": "/jobs", "destination": "/api/jobs?route=page" },
-    { "source": "/preferences", "destination": "/api/preferences" }
+    { "source": "/preferences", "destination": "/api/preferences" },
+    { "source": "/preferences.js", "destination": "/api/preferences?route=script" }
   ],
   "functions": {
     "api/mcp.ts": { "maxDuration": 300 },
