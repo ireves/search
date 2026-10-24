@@ -62,6 +62,8 @@ test("add writes a kept role to Open Roles with the review and advert, and marks
     id: "r1",
     level: "Mid",
     summary: "Designs money tools.",
+    company_description: "Monzo is a UK digital bank.",
+    role_description: "A product designer for money tools.",
     candidate_potential: "Strong",
     why_it_matches: "London Product Designer.",
     positives: ["Good pay"],
@@ -81,12 +83,23 @@ test("add writes a kept role to Open Roles with the review and advert, and marks
   assert.equal(prop("Source").select.name, "Indeed");
   assert.equal(prop("Date found").date.start, "2026-10-24");
   assert.equal(prop("Pay").rich_text[0].text.content, "£50k");
-  const kinds = page.children!.map((b: any) => (b.type === "heading_3" ? `# ${b.heading_3.rich_text[0].text.content}` : b.type));
-  assert.deepEqual(kinds, ["# Positives", "bulleted_list_item", "# Negatives", "bulleted_list_item", "bulleted_list_item", "bulleted_list_item", "toggle"]);
+  const kinds = page.children!.map((b: any) => (b.type === "paragraph" ? b.paragraph.rich_text.map((t: any) => (t.annotations?.bold ? `**${t.text.content}**` : t.text.content)).join("") : b.type));
+  assert.deepEqual(kinds, [
+    "**Company:** Monzo is a UK digital bank.",
+    "**Role:** A product designer for money tools.",
+    "**Positives**",
+    "bulleted_list_item",
+    "**Negatives**",
+    "bulleted_list_item",
+    "bulleted_list_item",
+    "bulleted_list_item",
+    "toggle",
+  ]);
+  assert.ok(!page.children!.some((b: any) => b.type.startsWith("heading")), "no headings");
   const row = box.rows.find((r) => r.id === "r1")!;
   assert.equal(row.status, "added");
   assert.equal(row.notion_url, added.body.added.notion_url);
-  const again = await tool({ action: "add", id: "r1" });
+  const again = await tool({ action: "add", id: "r1", company_description: "x.", role_description: "y." });
   assert.match(again.text, /already added/);
 });
 
@@ -98,7 +111,7 @@ test("reject records the reason; company rows can't be added as roles", async ()
   assert.match(row.reason!, /Graphic Designer/);
   assert.ok(row.reviewed_at);
   assert.deepEqual((await tool({ action: "list" })).body.rows.map((r: any) => r.id), ["r1", "c1"]);
-  const wrong = await tool({ action: "add", id: "c1" });
+  const wrong = await tool({ action: "add", id: "c1", company_description: "x.", role_description: "y." });
   assert.match(wrong.text, /company to check/);
   assert.equal((await tool({ action: "reject", id: "nope" })).isError, true);
 });
@@ -106,19 +119,22 @@ test("reject records the reason; company rows can't be added as roles", async ()
 test("a role Claude found itself is checked for duplicates, then added and remembered", async () => {
   await seed();
   notionRows.push({ id: "n1", properties: { Name: { title: [{ plain_text: "Framer" }] }, Role: { rich_text: [{ plain_text: "UI Designer" }] }, Links: { url: "https://framer.com/careers/ui" }, "Entry type": { select: { name: "Role" } }, "Review status": { select: { name: "Added" } } } });
-  const dupNotion = await tool({ action: "add", company: "Framer", title: "UI Designer", link: "https://framer.com/careers/ui?utm_source=x", source: "Careers page" });
+  const describe = { company_description: "A company.", role_description: "A role." };
+  const dupNotion = await tool({ action: "add", company: "Framer", title: "UI Designer", link: "https://framer.com/careers/ui?utm_source=x", source: "Careers page", ...describe });
   assert.match(dupNotion.text, /already in Job Applications or the Inbox/);
-  const dupInbox = await tool({ action: "add", company: "Monzo", title: "Product Designer", link: "https://monzo.com/careers/1", source: "Careers page" });
+  const dupInbox = await tool({ action: "add", company: "Monzo", title: "Product Designer", link: "https://monzo.com/careers/1", source: "Careers page", ...describe });
   assert.match(dupInbox.text, /already in/);
-  assert.equal((await tool({ action: "add", company: "Craft Docs" })).isError, true, "needs a title and link");
+  assert.equal((await tool({ action: "add", company: "Craft Docs", ...describe })).isError, true, "needs a title and link");
+  const undescribed = await tool({ action: "add", company: "Craft Docs", title: "Product Designer", link: "https://craft.do/careers/pd", source: "Careers page" });
+  assert.match(undescribed.text, /company_description and role_description/, "both descriptions are required");
 
-  const ok = await tool({ action: "add", company: "Craft Docs", title: "Product Designer", link: "https://craft.do/careers/pd", source: "Careers page", level: "Junior", candidate_potential: "Average" });
+  const ok = await tool({ action: "add", company: "Craft Docs", title: "Product Designer", link: "https://craft.do/careers/pd", source: "Careers page", level: "Junior", candidate_potential: "Average", ...describe });
   assert.equal(ok.isError, false, ok.text);
   assert.equal(created.length, 1);
   assert.equal(created[0].properties.Source.select.name, "Careers page");
   const remembered = box.rows.find((r) => r.title === "Product Designer" && r.company === "Craft Docs")!;
   assert.equal(remembered.status, "added");
   assert.ok(remembered.keys.includes("craft.do/careers/pd"));
-  const twice = await tool({ action: "add", company: "Craft Docs", title: "Product Designer", link: "https://craft.do/careers/pd", source: "Careers page" });
+  const twice = await tool({ action: "add", company: "Craft Docs", title: "Product Designer", link: "https://craft.do/careers/pd", source: "Careers page", ...describe });
   assert.match(twice.text, /already in/);
 });
