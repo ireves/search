@@ -7,6 +7,7 @@ import { useInbox } from "../lib/jobs/inboxstore.js";
 import jobs from "../api/jobs.js";
 import oauth from "../api/oauth.js";
 import settings from "../api/settings.js";
+import { deflateSync } from "node:zlib";
 import { classify, pageScript, parseWorkbench, searchScript, useComposio, type Composio, type PageResult, type SearchItem, type SearchRequest } from "../lib/jobs/composio.js";
 import { bestLink, jobSearchCalls } from "../lib/jobs/searches.js";
 import { jobsFromPage, runCompanies, serviceOf } from "../lib/jobs/companies.js";
@@ -351,6 +352,18 @@ test("the workbench script and its reply round-trip", () => {
   const reply = JSON.stringify({ successful: true, data: { stdout: '[INFO] noise\n@@JOBS_RESULT@@[{"id":"a","ok":true}]\n', error: "" } });
   assert.deepEqual(parseWorkbench(reply), [{ id: "a", ok: true }]);
   assert.throws(() => parseWorkbench(JSON.stringify({ successful: true, data: { stdout: "nothing", error: "NameError" } })), /NameError/);
+});
+
+test("the workbench reply comes back compressed, and a cut-off one is called cut", () => {
+  const script = searchScript([], { keywords: [], textChars: 100 });
+  assert.match(script, /zlib\.compress/);
+  const rows = Array.from({ length: 200 }, (_, i) => ({ id: String(i), ok: true, text: "Product Designer, London. ".repeat(20) }));
+  const packed = "z:" + deflateSync(Buffer.from(JSON.stringify(rows))).toString("base64");
+  assert.ok(packed.length < JSON.stringify(rows).length / 5);
+  assert.deepEqual(parseWorkbench(JSON.stringify({ successful: true, data: { stdout: `@@JOBS_RESULT@@${packed}\n`, error: "" } })), rows);
+  const cut = (stdout: string) => () => parseWorkbench(JSON.stringify({ successful: true, data: { stdout, error: "" } }));
+  assert.throws(cut(`@@JOBS_RESULT@@${packed.slice(0, 200)}`), (e: any) => e.kind === "cut");
+  assert.throws(cut('@@JOBS_RESULT@@[{"id":"a","text":"unfinish'), (e: any) => e.kind === "cut");
 });
 
 test("Composio errors get their own messages", () => {

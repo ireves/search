@@ -465,6 +465,21 @@ test("Reddit threads are rebuilt from the .json address with comments", async ()
   assert.ok(formatRedditJson("not json", 1000) === null);
 });
 
+test("a Reddit thread is also read at its plain address, so a slow .json read doesn't lose it", async () => {
+  mockNetwork((c) => {
+    if (c.url !== "https://api.parallel.ai/v1/extract") return undefined;
+    const url = c.body.urls[0];
+    if (url.endsWith("/.json")) return { status: 504, body: { error: "timeout" } };
+    return { body: { results: [{ url, title: "Fix for edges : r/blenderhelp", excerpts: ["Use a Weighted Normal modifier."] }], errors: [] } };
+  });
+  const { text, isError } = await runFetch({ urls: ["https://www.reddit.com/r/blenderhelp/comments/abc/boolean_shading/"] });
+  assert.equal(isError, false);
+  const asked = calls.map((c) => c.body.urls[0]);
+  assert.ok(asked.includes("https://www.reddit.com/r/blenderhelp/comments/abc/boolean_shading/.json"));
+  assert.ok(asked.includes("https://www.reddit.com/r/blenderhelp/comments/abc/boolean_shading/"));
+  assert.match(text, /Weighted Normal modifier/);
+});
+
 test("verify gathers evidence per claim from different websites", async () => {
   mockNetwork(
     exaSearchReply([exaResult("https://blender.org/download", "Download", "Blender 5.2.2 LTS", "2026-09-15"), exaResult("https://blender.org/news", "News", "5.2 released")]),
@@ -679,6 +694,27 @@ test("a failing job board adds a note and the others still answer", async () => 
   assert.equal(isError, false);
   assert.match(text, /Glassdoor jobs unavailable: Glassdoor via Apify is out of credit\./);
   assert.match(text, /Designer at Acme/);
+});
+
+test("a board refused for too many runs at once says so, and is tried again", async () => {
+  await setSecret("APIFY_API_TOKEN", "apify-test-token");
+  const busy = { status: 402, body: { error: { type: "actor-concurrent-runs-limit-exceeded", message: "By launching this job you will exceed your limit of 5 concurrent Actor runs." } } };
+  let indeedTries = 0;
+  mockNetwork(
+    exaSearchReply([]),
+    (c) => (c.url.includes("glassdoor") ? busy : undefined),
+    (c) => (c.url.includes("indeed") && ++indeedTries === 1 ? busy : undefined),
+    apifyReply({ "valig~indeed-jobs-scraper": [{ title: "Indeed Designer", url: "https://uk.indeed.com/viewjob?jk=1" }] }),
+  );
+  const { text } = await runSearch({ query: "designer", type: "jobs" });
+  // Glassdoor: first try and two retries, then a note that isn't about credit.
+  assert.equal(calls.filter((c) => c.url.includes("glassdoor")).length, 3);
+  assert.match(text, /Glassdoor jobs unavailable: Glassdoor via Apify had too many searches running at once/);
+  assert.doesNotMatch(text, /out of credit/);
+  // Indeed: refused once, answered on the retry.
+  assert.equal(indeedTries, 2);
+  assert.doesNotMatch(text, /Indeed jobs unavailable/);
+  assert.match(text, /Indeed Designer/);
 });
 
 test("job queries are split into role and place", () => {

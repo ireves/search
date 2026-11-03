@@ -14,12 +14,19 @@ export class EngineError extends Error {
   get friendly(): string {
     if (this.status === 0 && /no API key/.test(this.message)) return this.message;
     if (this.status === 401 || this.status === 403) return `${this.engine} rejected the API key. Check it on the connector's settings page.`;
+    if (this.status === 402 && isConcurrencyLimit(this.message)) return `${this.engine} had too many searches running at once (the plan's limit), so this one was refused.`;
     if (this.status === 402) return `${this.engine} is out of credit.`;
     if (this.status === 429) return `${this.engine} rate limit reached. Try again shortly.`;
     if (this.status === 408 || this.status === 504 || this.status === -1) return `${this.engine} took too long to respond.`;
     if (this.status >= 500) return `${this.engine} had a server error (${this.status}).`;
     return `${this.engine} error ${this.status}: ${this.message.slice(0, 200)}`;
   }
+}
+
+// Apify answers 402 both for an empty balance and for "you will exceed your
+// limit of 5 concurrent Actor runs", which only means too many at once.
+export function isConcurrencyLimit(message: string): boolean {
+  return /concurrent/i.test(message);
 }
 
 export async function apiKey(engine: "Exa" | "Parallel"): Promise<string> {

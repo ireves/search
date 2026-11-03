@@ -4,6 +4,7 @@
 // marker, and the tool-schema lookup for the weekly check. Direct
 // multi-execute replies are cut to a preview when large, so they aren't used.
 
+import { inflateSync } from "node:zlib";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { readSecret } from "../store.js";
@@ -11,7 +12,7 @@ import { COMPOSIO } from "./config.js";
 
 export class ComposioError extends Error {
   constructor(
-    public kind: "no_key" | "key" | "balance" | "tool" | "time" | "other",
+    public kind: "no_key" | "key" | "balance" | "tool" | "time" | "cut" | "other",
     message: string,
   ) {
     super(message);
@@ -29,6 +30,8 @@ export class ComposioError extends Error {
         return `A Composio tool is missing or has changed: ${this.message.slice(0, 200)}`;
       case "time":
         return "Composio's workbench hit its time limit.";
+      case "cut":
+        return "Composio's workbench reply was too long and was cut off.";
       default:
         return `Composio error: ${this.message.slice(0, 200)}`;
     }
@@ -118,7 +121,7 @@ export function pageScript(pages: PageRequest[], options: PageOptions): string {
   const payload = Buffer.from(
     JSON.stringify({ pages, keywords: options.keywords.map((k) => k.toLowerCase()), head: options.headChars, tool: COMPOSIO.scrape.tool, args: { ...COMPOSIO.scrape.args, onlyMainContent: options.mainOnly } }),
   ).toString("base64");
-  return `import json, base64, re
+  return `import json, base64, re, zlib
 from concurrent.futures import ThreadPoolExecutor
 job = json.loads(base64.b64decode("${payload}").decode())
 SERVICE = re.compile(r"greenhouse\\.io|lever\\.co|ashbyhq\\.com|workable\\.com", re.I)
@@ -143,7 +146,7 @@ def one(p):
     return {"id": p["id"], "ok": True, "status": meta.get("statusCode"), "final": meta.get("url") or meta.get("sourceURL"), "title": meta.get("title"), "chars": len(md), "head": md[: job["head"]], "matches": matches[:80], "services": services, "charge": charge}
 with ThreadPoolExecutor(8) as ex:
     out = list(ex.map(one, job["pages"]))
-print("${COMPOSIO.marker}" + json.dumps(out))
+print("${COMPOSIO.marker}z:" + base64.b64encode(zlib.compress(json.dumps(out, separators=(",", ":")).encode(), 9)).decode())
 `;
 }
 
@@ -152,7 +155,7 @@ print("${COMPOSIO.marker}" + json.dumps(out))
 // trimmed, so the reply stays small.
 export function searchScript(calls: SearchRequest[], options: { keywords: string[]; textChars: number }): string {
   const payload = Buffer.from(JSON.stringify({ calls, keywords: options.keywords.map((k) => k.toLowerCase()), text: options.textChars })).toString("base64");
-  return `import json, base64
+  return `import json, base64, zlib
 from concurrent.futures import ThreadPoolExecutor
 job = json.loads(base64.b64decode("${payload}").decode())
 KW = job["keywords"]; N = job["text"]
@@ -195,12 +198,15 @@ def one(c):
     return {"id": c["id"], "ok": True, "raw": len(raw), "items": items, "charge": charge}
 with ThreadPoolExecutor(8) as ex:
     out = list(ex.map(one, job["calls"]))
-print("${COMPOSIO.marker}" + json.dumps(out))
+print("${COMPOSIO.marker}z:" + base64.b64encode(zlib.compress(json.dumps(out, separators=(",", ":")).encode(), 9)).decode())
 `;
 }
 
 // Pulls the workbench's reply apart: Connect wraps the script's printed
-// output in JSON, and the result follows the marker.
+// output in JSON, and the result follows the marker. The scripts print it
+// compressed ("z:" then base64), because the workbench cuts what a script
+// prints at about 40,000 characters (seen in Oct and Nov 2026 runs). A reply
+// that is still cut off throws a "cut" error, and the caller splits the batch.
 export function parseWorkbench(text: string): unknown {
   let stdout = text;
   try {
@@ -218,8 +224,13 @@ export function parseWorkbench(text: string): unknown {
   }
   const at = String(stdout).lastIndexOf(COMPOSIO.marker);
   if (at < 0) throw new ComposioError("other", `the workbench printed no result: ${String(stdout).slice(0, 300)}`);
-  const line = String(stdout).slice(at + COMPOSIO.marker.length).split("\n")[0];
-  return JSON.parse(line);
+  const line = String(stdout).slice(at + COMPOSIO.marker.length).split("\n")[0].trim();
+  try {
+    if (line.startsWith("z:")) return JSON.parse(inflateSync(Buffer.from(line.slice(2), "base64")).toString("utf8"));
+    return JSON.parse(line);
+  } catch (error) {
+    throw new ComposioError("cut", `the result could not be read (${line.length} characters; likely cut off): ${(error as Error).message}`);
+  }
 }
 
 function textOf(result: any): string {
@@ -262,20 +273,29 @@ export async function composio(): Promise<Composio> {
     return parseWorkbench(textOf(result));
   }
 
+  // One batch: one retry, except when retrying can't help. A reply too long to
+  // come back whole is run again as two halves, down to single items.
+  async function runBatch<T, R>(client: Client, batch: T[], script: (batch: T[]) => string): Promise<R[]> {
+    const code = script(batch);
+    try {
+      return (await runScript(client, code).catch((error) => {
+        if (error instanceof ComposioError && ["key", "balance", "tool", "cut"].includes(error.kind)) throw error;
+        return runScript(client, code);
+      })) as R[];
+    } catch (error) {
+      if (!(error instanceof ComposioError && error.kind === "cut") || batch.length < 2) throw error;
+      const half = Math.ceil(batch.length / 2);
+      return [...(await runBatch<T, R>(client, batch.slice(0, half), script)), ...(await runBatch<T, R>(client, batch.slice(half), script))];
+    }
+  }
+
   return {
     async readPages(pages, options) {
       if (!pages.length) return [];
       return withClient(async (client) => {
         const out: PageResult[] = [];
         for (let i = 0; i < pages.length; i += COMPOSIO.batchSize) {
-          const batch = pages.slice(i, i + COMPOSIO.batchSize);
-          const code = pageScript(batch, options);
-          // One retry, except when retrying can't help.
-          const results = (await runScript(client, code).catch((error) => {
-            if (error instanceof ComposioError && ["key", "balance", "tool"].includes(error.kind)) throw error;
-            return runScript(client, code);
-          })) as PageResult[];
-          out.push(...results);
+          out.push(...(await runBatch<PageRequest, PageResult>(client, pages.slice(i, i + COMPOSIO.batchSize), (batch) => pageScript(batch, options))));
         }
         return out;
       });
@@ -285,12 +305,7 @@ export async function composio(): Promise<Composio> {
       return withClient(async (client) => {
         const out: SearchResult[] = [];
         for (let i = 0; i < calls.length; i += COMPOSIO.batchSize) {
-          const code = searchScript(calls.slice(i, i + COMPOSIO.batchSize), options);
-          const results = (await runScript(client, code).catch((error) => {
-            if (error instanceof ComposioError && ["key", "balance", "tool"].includes(error.kind)) throw error;
-            return runScript(client, code);
-          })) as SearchResult[];
-          out.push(...results);
+          out.push(...(await runBatch<SearchRequest, SearchResult>(client, calls.slice(i, i + COMPOSIO.batchSize), (batch) => searchScript(batch, options))));
         }
         return out;
       });
