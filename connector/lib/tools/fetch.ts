@@ -321,7 +321,10 @@ export async function runFetch(input: FetchInput): Promise<{ text: string; isErr
 }
 
 // Reddit threads often come back without comments. The thread's .json address
-// returns the whole discussion, which is rebuilt here as a readable list.
+// returns the whole discussion, which is rebuilt here as a readable list. The
+// plain thread address is read at the same time: the .json read often takes
+// the whole time allowed (every Reddit read in the log up to Nov 2026 timed
+// out that way), and waiting for it first left no time for the plain read.
 async function readReddit(
   url: string,
   question: string | undefined,
@@ -335,26 +338,35 @@ async function readReddit(
   const u = new URL(url);
   u.hostname = "www.reddit.com";
   u.search = "";
-  const jsonUrl = `${u.toString().replace(/\/+$/, "")}/.json`;
-  try {
-    const [result] = await parallelExtract([jsonUrl], question ?? "All comments in this thread", maxChars, { full: true, fresh, timeoutMs: left() });
-    const thread = result?.full ? formatRedditJson(result.full, maxChars) : null;
-    if (thread) {
-      pages.set(url, { url, title: thread.title, date: thread.date, content: thread.text });
-      return;
-    }
-    if (left() < minTry) {
-      pages.set(url, { url, content: "", error: TOO_SLOW });
-      return;
-    }
-    const [plain] = await parallelExtract([url], question ?? "The post and all the replies", maxChars, { fresh, timeoutMs: left() });
-    if (plain?.ok) pages.set(url, { url, title: plain.title, date: plain.date, content: plain.excerpts });
-    else if (result?.excerpts) pages.set(url, { url, title: result.title, content: result.excerpts });
-    else pages.set(url, { url, content: "", error: plain?.error });
-  } catch (e) {
-    failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
-    pages.set(url, { url, content: "", error: "not available" });
+  const threadUrl = u.toString();
+  const jsonUrl = `${threadUrl.replace(/\/+$/, "")}/.json`;
+  if (left() < minTry) {
+    pages.set(url, { url, content: "", error: TOO_SLOW });
+    return;
   }
+  const [asJson, asPage] = await Promise.allSettled([
+    parallelExtract([jsonUrl], question ?? "All comments in this thread", maxChars, { full: true, fresh, timeoutMs: left() }).then((r) => r[0]),
+    parallelExtract([threadUrl], question ?? "The post and all the replies", maxChars, { fresh, timeoutMs: left() }).then((r) => r[0]),
+  ]);
+  const json = asJson.status === "fulfilled" ? asJson.value : undefined;
+  const plain = asPage.status === "fulfilled" ? asPage.value : undefined;
+  const thread = json?.full ? formatRedditJson(json.full, maxChars) : null;
+  if (thread) {
+    pages.set(url, { url, title: thread.title, date: thread.date, content: thread.text });
+    return;
+  }
+  if (plain?.ok) {
+    pages.set(url, { url, title: plain.title, date: plain.date, content: plain.excerpts });
+    return;
+  }
+  if (json?.excerpts) {
+    pages.set(url, { url, title: json.title, content: json.excerpts });
+    return;
+  }
+  const errors = [asJson, asPage].flatMap((r) => (r.status === "rejected" ? [r.reason] : []));
+  for (const e of errors) failures.push(e instanceof EngineError ? e.friendly : (e as Error).message);
+  const slow = errors.length === 2 && errors.every((e) => e instanceof EngineError && e.status === -1);
+  pages.set(url, { url, content: "", error: slow ? TOO_SLOW : plain?.error ?? json?.error ?? "not available" });
 }
 
 interface RedditComment {

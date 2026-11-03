@@ -7,7 +7,7 @@
 import { addCost } from "../cost.js";
 import { cleanText, isoDay, truncate } from "../text.js";
 import type { Hit } from "./exa.js";
-import { callJson, EngineError } from "./http.js";
+import { callJson, EngineError, isConcurrencyLimit } from "./http.js";
 import { readSecret } from "../store.js";
 
 const BASE = "https://api.apify.com/v2";
@@ -230,8 +230,51 @@ export function boardsFor(country: string, sites: string[], excluded: string[]):
   });
 }
 
+// Apify's free plan runs at most 5 scrapers at once and refuses the rest. One
+// jobs search starts up to 4, and helpers run several searches side by side,
+// so runs from this server queue for one of MAX_RUNS places. Another server
+// copy can still take places, so a refusal for that reason waits and tries
+// again while there is time.
+const MAX_RUNS = Number(process.env.APIFY_MAX_RUNS) || 4;
+const RETRY_WAITS_MS = (process.env.APIFY_RETRY_MS ?? "10000,20000").split(",").map(Number);
+let running = 0;
+const queue: (() => void)[] = [];
+
+async function takeSlot(): Promise<() => void> {
+  if (running >= MAX_RUNS) await new Promise<void>((resolve) => queue.push(resolve));
+  running++;
+  let done = false;
+  return () => {
+    if (done) return;
+    done = true;
+    running--;
+    queue.shift()?.();
+  };
+}
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Runs one board's scraper and waits for its adverts.
 export async function apifyJobs(board: Board, o: JobSearchOptions): Promise<Hit[]> {
+  const began = Date.now();
+  for (let attempt = 0; ; attempt++) {
+    const release = await takeSlot();
+    try {
+      return await runBoard(board, o);
+    } catch (e) {
+      const wait = RETRY_WAITS_MS[attempt];
+      // No retry once a minute has gone: the whole call must end within Vercel's limit.
+      const busy = e instanceof EngineError && e.status === 402 && isConcurrencyLimit(e.message);
+      if (!busy || wait === undefined || Date.now() - began > 60_000) throw e;
+      release();
+      await pause(wait);
+    } finally {
+      release();
+    }
+  }
+}
+
+async function runBoard(board: Board, o: JobSearchOptions): Promise<Hit[]> {
   const spec = BOARDS[board];
   const key = await apifyKey();
   if (!key) throw new EngineError("Apify", 0, "Apify has no API key.");
